@@ -19,7 +19,9 @@ function createSupabaseAdminClient() {
     throw new Error(message);
   }
 
-  return createClient<Database>(SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY, {
+  const cleanUrl = (SUPABASE_URL || '').replace(/\/rest\/v1\/?$/, '').replace(/\/+$/, '');
+
+  return createClient<Database>(cleanUrl, SUPABASE_SERVICE_ROLE_KEY, {
     auth: {
       storage: undefined,
       persistSession: false,

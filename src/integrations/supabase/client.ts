@@ -15,7 +15,9 @@ function createSupabaseClient() {
     throw new Error(message);
   }
 
-  return createClient<Database>(SUPABASE_URL, SUPABASE_PUBLISHABLE_KEY, {
+  const cleanUrl = (SUPABASE_URL || '').replace(/\/rest\/v1\/?$/, '').replace(/\/+$/, '');
+
+  return createClient<Database>(cleanUrl, SUPABASE_PUBLISHABLE_KEY, {
     auth: {
       persistSession: true,
       autoRefreshToken: true,

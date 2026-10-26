@@ -25,6 +25,7 @@ import { Route as AuthenticatedReportsRouteImport } from './routes/_authenticate
 import { Route as AuthenticatedSharedChannelsRouteImport } from './routes/_authenticated/shared-channels'
 import { Route as AuthenticatedShootingsRouteImport } from './routes/_authenticated/shootings'
 import { Route as AuthenticatedSmsRouteImport } from './routes/_authenticated/sms'
+import { Route as ApiPingRouteImport } from './routes/api/ping'
 import { Route as PMemberIdRouteImport } from './routes/p.$memberId'
 import { Route as RReportIdRouteImport } from './routes/r.$reportId'
 import { Route as ApiPublicManifestRouteImport } from './routes/api/public/manifest'
@@ -110,6 +111,11 @@ const AuthenticatedSmsRoute = AuthenticatedSmsRouteImport.update({
   path: '/sms',
   getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
+const ApiPingRoute = ApiPingRouteImport.update({
+  id: '/api/ping',
+  path: '/api/ping',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const PMemberIdRoute = PMemberIdRouteImport.update({
   id: '/p/$memberId',
   path: '/p/$memberId',
@@ -142,6 +148,7 @@ export interface FileRoutesByFullPath {
   '/shared-channels': typeof AuthenticatedSharedChannelsRoute
   '/shootings': typeof AuthenticatedShootingsRoute
   '/sms': typeof AuthenticatedSmsRoute
+  '/api/ping': typeof ApiPingRoute
   '/p/$memberId': typeof PMemberIdRoute
   '/r/$reportId': typeof RReportIdRoute
   '/api/public/manifest': typeof ApiPublicManifestRoute
@@ -162,6 +169,7 @@ export interface FileRoutesByTo {
   '/shared-channels': typeof AuthenticatedSharedChannelsRoute
   '/shootings': typeof AuthenticatedShootingsRoute
   '/sms': typeof AuthenticatedSmsRoute
+  '/api/ping': typeof ApiPingRoute
   '/p/$memberId': typeof PMemberIdRoute
   '/r/$reportId': typeof RReportIdRoute
   '/api/public/manifest': typeof ApiPublicManifestRoute
@@ -184,6 +192,7 @@ export interface FileRoutesById {
   '/_authenticated/shared-channels': typeof AuthenticatedSharedChannelsRoute
   '/_authenticated/shootings': typeof AuthenticatedShootingsRoute
   '/_authenticated/sms': typeof AuthenticatedSmsRoute
+  '/api/ping': typeof ApiPingRoute
   '/p/$memberId': typeof PMemberIdRoute
   '/r/$reportId': typeof RReportIdRoute
   '/api/public/manifest': typeof ApiPublicManifestRoute
@@ -206,6 +215,7 @@ export interface FileRouteTypes {
     | '/shared-channels'
     | '/shootings'
     | '/sms'
+    | '/api/ping'
     | '/p/$memberId'
     | '/r/$reportId'
     | '/api/public/manifest'
@@ -226,6 +236,7 @@ export interface FileRouteTypes {
     | '/shared-channels'
     | '/shootings'
     | '/sms'
+    | '/api/ping'
     | '/p/$memberId'
     | '/r/$reportId'
     | '/api/public/manifest'
@@ -247,6 +258,7 @@ export interface FileRouteTypes {
     | '/_authenticated/shared-channels'
     | '/_authenticated/shootings'
     | '/_authenticated/sms'
+    | '/api/ping'
     | '/p/$memberId'
     | '/r/$reportId'
     | '/api/public/manifest'
@@ -257,6 +269,7 @@ export interface RootRouteChildren {
   AuthenticatedRouteRoute: typeof AuthenticatedRouteRouteWithChildren
   AuthRoute: typeof AuthRoute
   MemberLoginRoute: typeof MemberLoginRoute
+  ApiPingRoute: typeof ApiPingRoute
   PMemberIdRoute: typeof PMemberIdRoute
   RReportIdRoute: typeof RReportIdRoute
   ApiPublicManifestRoute: typeof ApiPublicManifestRoute
@@ -376,6 +389,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedSmsRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
+    '/api/ping': {
+      id: '/api/ping'
+      path: '/api/ping'
+      fullPath: '/api/ping'
+      preLoaderRoute: typeof ApiPingRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/p/$memberId': {
       id: '/p/$memberId'
       path: '/p/$memberId'
@@ -438,6 +458,7 @@ const rootRouteChildren: RootRouteChildren = {
   AuthenticatedRouteRoute: AuthenticatedRouteRouteWithChildren,
   AuthRoute: AuthRoute,
   MemberLoginRoute: MemberLoginRoute,
+  ApiPingRoute: ApiPingRoute,
   PMemberIdRoute: PMemberIdRoute,
   RReportIdRoute: RReportIdRoute,
   ApiPublicManifestRoute: ApiPublicManifestRoute,

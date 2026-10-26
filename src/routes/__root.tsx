@@ -125,6 +125,15 @@ function RootComponent() {
     return () => sub.subscription.unsubscribe();
   }, [router, queryClient]);
 
+  // Periodic heartbeat: Keep Vercel server and Supabase database warm while user is active
+  useEffect(() => {
+    const PING_INTERVAL = 10 * 60 * 1000; // every 10 minutes
+    const interval = setInterval(() => {
+      fetch("/api/ping", { cache: "no-store" }).catch(() => {});
+    }, PING_INTERVAL);
+    return () => clearInterval(interval);
+  }, []);
+
   return (
     <QueryClientProvider client={queryClient}>
       <SplashScreen />
