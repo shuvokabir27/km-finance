@@ -1,0 +1,16 @@
+{
+  "name": "KM Team Finance",
+  "short_name": "KM Team",
+  "description": "টিম ম্যানেজার — হাজিরা, প্রফাইল ও বেতন ব্যবস্থাপনা",
+  "start_url": "/",
+  "scope": "/",
+  "display": "standalone",
+  "orientation": "portrait",
+  "background_color": "#f0fdf4",
+  "theme_color": "#16a34a",
+  "lang": "bn",
+  "icons": [
+    { "src": "/icon-192.png", "type": "image/png", "sizes": "192x192", "purpose": "any maskable" },
+    { "src": "/icon-512.png", "type": "image/png", "sizes": "512x512", "purpose": "any maskable" }
+  ]
+}

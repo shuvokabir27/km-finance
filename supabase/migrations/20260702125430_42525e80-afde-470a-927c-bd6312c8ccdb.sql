@@ -1,0 +1,2 @@
+REVOKE EXECUTE ON FUNCTION public.auto_attend_monthly_on_shooting() FROM PUBLIC, anon, authenticated;
+REVOKE EXECUTE ON FUNCTION public.auto_attend_shootings_on_monthly_member() FROM PUBLIC, anon, authenticated;

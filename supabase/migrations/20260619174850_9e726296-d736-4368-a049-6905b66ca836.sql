@@ -1,0 +1,1 @@
+ALTER TABLE public.shootings ADD COLUMN IF NOT EXISTS director text;

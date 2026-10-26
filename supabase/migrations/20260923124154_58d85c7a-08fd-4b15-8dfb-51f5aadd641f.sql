@@ -1,0 +1,1 @@
+REVOKE ALL ON FUNCTION public.save_payment_account() FROM PUBLIC, anon, authenticated;
