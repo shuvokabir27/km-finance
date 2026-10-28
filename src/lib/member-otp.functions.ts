@@ -43,6 +43,16 @@ async function findMember(mobile: string, memberId?: string) {
   return { member: m ?? null, supabaseAdmin };
 }
 
+function getStartOfTodayBD(): string {
+  const now = new Date();
+  // Bangladesh timezone is UTC+6
+  const bdTime = new Date(now.getTime() + 6 * 60 * 60 * 1000);
+  const y = bdTime.getUTCFullYear();
+  const m = String(bdTime.getUTCMonth() + 1).padStart(2, "0");
+  const d = String(bdTime.getUTCDate()).padStart(2, "0");
+  return new Date(`${y}-${m}-${d}T00:00:00+06:00`).toISOString();
+}
+
 export const requestMemberOtp = createServerFn({ method: "POST" })
   .inputValidator((d: { mobile: string; memberId?: string }) => ({
     mobile: normalizeMobile(d?.mobile),
@@ -54,6 +64,22 @@ export const requestMemberOtp = createServerFn({ method: "POST" })
     if (!member) throw new Error("এই মোবাইল নম্বরে কোনো সদস্য পাওয়া যায়নি");
 
     const key = `m:${data.mobile}`;
+    const startOfToday = getStartOfTodayBD();
+
+    // Check daily OTP limit (maximum 2 OTPs per number per day)
+    const { count: dailyCount } = await supabaseAdmin
+      .from("sms_otp_codes")
+      .select("id", { count: "exact", head: true })
+      .eq("mobile", key)
+      .gte("created_at", startOfToday);
+
+    const sentToday = dailyCount ?? 0;
+    const DAILY_LIMIT = 2;
+
+    if (sentToday >= DAILY_LIMIT) {
+      throw new Error("আপনার আজকের OTP লিমিট শেষ হয়ে গেছে (সর্বোচ্চ ২টি)। অনুগ্রহ করে আগামীকাল আবার চেষ্টা করুন। (Try next day for OTP, your limit is end)");
+    }
+
     const { data: recent } = await supabaseAdmin
       .from("sms_otp_codes").select("created_at").eq("mobile", key)
       .order("created_at", { ascending: false }).limit(1);
@@ -71,7 +97,12 @@ export const requestMemberOtp = createServerFn({ method: "POST" })
     });
     if (error) throw new Error("সার্ভারে সমস্যা");
     await sendSms(data.mobile, `Kuakata Multimedia profile login code: ${code}. Valid 5 minutes. Do not share.`);
-    return { ok: true, masked: data.mobile.replace(/^(\d{3})\d{4}(\d{4})$/, "$1****$2") };
+    const remainingToday = Math.max(0, DAILY_LIMIT - (sentToday + 1));
+    return {
+      ok: true,
+      masked: data.mobile.replace(/^(\d{3})\d{4}(\d{4})$/, "$1****$2"),
+      remainingToday,
+    };
   });
 
 export const verifyMemberOtp = createServerFn({ method: "POST" })
