@@ -210,6 +210,10 @@ ALTER TABLE public.members ADD COLUMN IF NOT EXISTS photo_url text;
 -- Migration: 20260619162357_8ea52b45-10d5-4d71-9f35-2da300065295.sql
 -- ------------------------------------------------------------------------------
 
+INSERT INTO storage.buckets (id, name, public)
+VALUES ('member-photos', 'member-photos', false)
+ON CONFLICT (id) DO NOTHING;
+
 CREATE POLICY "own member photos read"
 ON storage.objects FOR SELECT TO authenticated
 USING (bucket_id = 'member-photos' AND auth.uid()::text = (storage.foldername(name))[1]);

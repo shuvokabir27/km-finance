@@ -17,6 +17,8 @@ import { Label } from "@/components/ui/label";
 import { toast } from "sonner";
 import { MonthShootingsDetails } from "@/components/month-shootings-details";
 import { ShootingCalendar } from "@/components/shooting-calendar";
+import { QuickDuePaymentDialog } from "@/components/quick-due-payment-dialog";
+import { QuickClientPaymentDialog } from "@/components/quick-client-payment-dialog";
 
 export const Route = createFileRoute("/_authenticated/dashboard")({
   component: Dashboard,
@@ -181,6 +183,14 @@ function Dashboard() {
         <WeatherLine />
       </div>
 
+      {/* Quick Payment Action Cards */}
+      <div className="min-[700px]:col-span-2 xl:col-span-3">
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+          <QuickDuePaymentDialog membersWithDue={data?.breakdown} />
+          <QuickClientPaymentDialog />
+        </div>
+      </div>
+
 
       {/* Hero balance card */}
       <div className="hero-gradient relative overflow-hidden rounded-3xl p-5 shadow-lg min-[700px]:h-full">
@@ -219,7 +229,18 @@ function Dashboard() {
                 {isLoading ? "…" : taka(data!.paidThisMonth)}
               </div>
             </div>
-            <div className="flex items-center gap-2">
+            <div className="flex items-center gap-2 flex-wrap justify-end">
+              <QuickDuePaymentDialog
+                membersWithDue={data?.breakdown}
+                trigger={
+                  <button
+                    type="button"
+                    className="inline-flex items-center gap-1 rounded-full bg-white text-primary px-3 py-1.5 text-xs font-bold shadow-sm transition hover:bg-white/90 active:scale-95"
+                  >
+                    <Wallet className="h-3.5 w-3.5" /> দ্রুত পরিশোধ
+                  </button>
+                }
+              />
               <DuesDialog />
               <Link
                 to="/payments"
@@ -360,13 +381,23 @@ function ClientDuesCard() {
 
   return (
     <section className="rounded-3xl border border-border/70 bg-card p-4">
-      <div className="mb-3 flex items-center justify-between">
+      <div className="mb-3 flex items-center justify-between gap-2">
         <h2 className="flex items-center gap-2 text-sm font-semibold">
           <Users className="h-4 w-4 text-primary" /> ক্লায়েন্ট হিসাব
         </h2>
-        <Link to="/client-dues" className="text-xs font-medium text-primary hover:underline">
-          বিস্তারিত →
-        </Link>
+        <div className="flex items-center gap-2">
+          <QuickClientPaymentDialog
+            channelsSummary={data}
+            trigger={
+              <Button size="sm" variant="outline" className="h-7 gap-1 border-primary/30 bg-primary/5 text-xs text-primary hover:bg-primary/10">
+                <Plus className="h-3 w-3" /> পেমেন্ট গ্রহণ
+              </Button>
+            }
+          />
+          <Link to="/client-dues" className="text-xs font-medium text-primary hover:underline">
+            বিস্তারিত →
+          </Link>
+        </div>
       </div>
 
       <Link
@@ -1259,7 +1290,11 @@ function DuesDialog() {
       </button>
 
       <Dialog open={open} onOpenChange={setOpen}>
-        <DialogContent className="max-h-[90vh] overflow-hidden p-0 sm:max-w-3xl">
+        <DialogContent
+          className="max-h-[90vh] overflow-hidden p-0 sm:max-w-3xl"
+          onPointerDownOutside={(e) => e.preventDefault()}
+          onInteractOutside={(e) => e.preventDefault()}
+        >
           <DialogHeader className="no-print border-b border-border/60 px-5 pb-3 pt-5">
             <DialogTitle className="flex items-center justify-between gap-2">
               <span className="flex items-center gap-2"><Users className="h-4 w-4 text-primary" /> সদস্য হিসাব তালিকা</span>
@@ -1504,7 +1539,11 @@ function DuesDialog() {
       </Dialog>
 
       <Dialog open={!!payTarget} onOpenChange={(o) => { if (!o) setPayTarget(null); }}>
-        <DialogContent className="max-w-sm p-0">
+        <DialogContent
+          className="max-w-sm p-0"
+          onPointerDownOutside={(e) => e.preventDefault()}
+          onInteractOutside={(e) => e.preventDefault()}
+        >
           <DialogHeader className="border-b border-border/60 px-5 py-3">
             <DialogTitle className="flex items-center gap-2 text-base">
               <Wallet className="h-4 w-4 text-primary" /> পেমেন্ট — {payTarget?.name}

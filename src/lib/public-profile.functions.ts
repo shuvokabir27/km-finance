@@ -316,9 +316,15 @@ export const updatePublicProfilePhoto = createServerFn({ method: "POST" })
     }
 
     const path = `${member.owner_id}/${member.id}-${Date.now()}.${data.ext}`;
-    const up = await supabaseAdmin.storage
+    let up = await supabaseAdmin.storage
       .from(PHOTO_BUCKET)
       .upload(path, bytes, { contentType: data.contentType, upsert: false });
+    if (up.error && (up.error.message?.includes("Bucket not found") || (up.error as { statusCode?: string }).statusCode === "404")) {
+      await supabaseAdmin.storage.createBucket(PHOTO_BUCKET, { public: false });
+      up = await supabaseAdmin.storage
+        .from(PHOTO_BUCKET)
+        .upload(path, bytes, { contentType: data.contentType, upsert: false });
+    }
     if (up.error) throw up.error;
 
     if (member.photo_url) {
