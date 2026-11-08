@@ -2482,24 +2482,44 @@ function RecentActivityFeed({
 
 function QuickActionsCard({ membersWithDue }: { membersWithDue?: BreakdownRow[] }) {
   return (
-    <section className="rounded-3xl border border-border/70 bg-card p-5 shadow-xs">
-      <h2 className="flex items-center gap-2 text-sm font-bold text-slate-800 dark:text-slate-100 mb-4">
-        <Zap className="h-4 w-4 text-amber-500 fill-amber-500" /> দ্রুত অ্যাকশন
-      </h2>
+    <section className="relative overflow-hidden rounded-3xl border border-white/60 dark:border-white/10 bg-white/70 dark:bg-slate-900/60 backdrop-blur-xl p-5 shadow-xs">
+      {/* Background ambient light */}
+      <div className="pointer-events-none absolute -top-10 left-1/4 h-32 w-80 rounded-full bg-gradient-to-r from-amber-400/10 via-rose-400/10 to-purple-400/10 blur-3xl" />
 
-      <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3">
+      <div className="relative z-10 flex items-center justify-between mb-4">
+        <h2 className="flex items-center gap-2 text-sm font-bold text-slate-800 dark:text-slate-100">
+          <span className="grid h-6 w-6 place-items-center rounded-lg bg-amber-500/15 text-amber-500 shadow-xs shadow-amber-500/20">
+            <Zap className="h-4 w-4 fill-amber-500" />
+          </span>
+          দ্রুত অ্যাকশন
+        </h2>
+        <span className="text-[11px] font-semibold text-muted-foreground flex items-center gap-1.5 bg-muted/40 px-2.5 py-0.5 rounded-full border border-border/40">
+          <span className="h-1.5 w-1.5 rounded-full bg-emerald-500 animate-pulse" />
+          সরাসরি শর্টকাট
+        </span>
+      </div>
+
+      <div className="relative z-10 grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3">
         {/* 1. Payment */}
         <QuickDuePaymentDialog
           membersWithDue={membersWithDue}
           trigger={
             <button
               type="button"
-              className="flex flex-col items-center gap-2 rounded-2xl border border-amber-200/60 bg-amber-50/50 p-3 sm:p-3.5 text-center transition hover:bg-amber-100/70 hover:border-amber-300 hover:shadow-xs active:scale-95 cursor-pointer w-full"
+              className="group relative flex flex-col items-center gap-2.5 overflow-hidden rounded-2xl border border-amber-200/70 dark:border-amber-500/25 bg-gradient-to-b from-amber-50/80 via-white/70 to-amber-50/30 dark:from-amber-950/20 dark:via-slate-900/40 dark:to-slate-900/20 backdrop-blur-md p-3.5 sm:p-4 text-center transition-all duration-300 hover:border-amber-400 hover:shadow-lg hover:shadow-amber-500/15 hover:-translate-y-1 active:scale-95 cursor-pointer w-full shadow-[inset_0_1px_1px_rgba(255,255,255,0.95),0_2px_8px_rgba(245,158,11,0.06)]"
             >
-              <div className="grid h-12 w-12 place-items-center rounded-2xl bg-amber-500 text-white shadow-xs">
-                <Wallet className="h-6 w-6" />
+              {/* Light glow aura */}
+              <div className="pointer-events-none absolute -top-6 -right-6 h-20 w-20 rounded-full bg-amber-400/25 blur-xl opacity-60 group-hover:opacity-100 group-hover:scale-125 transition-all duration-500" />
+              {/* Glass sheen reflection */}
+              <div className="pointer-events-none absolute inset-0 -translate-x-full group-hover:translate-x-full transition-transform duration-1000 bg-gradient-to-r from-transparent via-white/50 to-transparent ease-out" />
+
+              <div className="relative grid h-12 w-12 place-items-center rounded-2xl bg-gradient-to-br from-amber-400 via-amber-500 to-amber-600 text-white shadow-md shadow-amber-500/35 transition-all duration-300 group-hover:scale-110 group-hover:shadow-amber-500/50">
+                <div className="pointer-events-none absolute inset-0 rounded-2xl bg-gradient-to-b from-white/35 to-transparent" />
+                <Wallet className="relative z-10 h-6 w-6 drop-shadow-xs" />
               </div>
-              <span className="text-xs font-bold text-slate-700 dark:text-slate-200">পেমেন্ট</span>
+              <span className="relative z-10 text-xs font-bold text-slate-700 dark:text-slate-200 transition-colors group-hover:text-amber-700 dark:group-hover:text-amber-400">
+                পেমেন্ট
+              </span>
             </button>
           }
         />
@@ -2507,45 +2527,77 @@ function QuickActionsCard({ membersWithDue }: { membersWithDue?: BreakdownRow[] 
         {/* 2. Shooting */}
         <Link
           to="/shootings"
-          className="flex flex-col items-center gap-2 rounded-2xl border border-rose-200/60 bg-rose-50/50 p-3 sm:p-3.5 text-center transition hover:bg-rose-100/70 hover:border-rose-300 hover:shadow-xs active:scale-95 cursor-pointer"
+          className="group relative flex flex-col items-center gap-2.5 overflow-hidden rounded-2xl border border-rose-200/70 dark:border-rose-500/25 bg-gradient-to-b from-rose-50/80 via-white/70 to-rose-50/30 dark:from-rose-950/20 dark:via-slate-900/40 dark:to-slate-900/20 backdrop-blur-md p-3.5 sm:p-4 text-center transition-all duration-300 hover:border-rose-400 hover:shadow-lg hover:shadow-rose-500/15 hover:-translate-y-1 active:scale-95 cursor-pointer shadow-[inset_0_1px_1px_rgba(255,255,255,0.95),0_2px_8px_rgba(244,63,94,0.06)]"
         >
-          <div className="grid h-12 w-12 place-items-center rounded-2xl bg-rose-500 text-white shadow-xs">
-            <Camera className="h-6 w-6" />
+          {/* Light glow aura */}
+          <div className="pointer-events-none absolute -top-6 -right-6 h-20 w-20 rounded-full bg-rose-400/25 blur-xl opacity-60 group-hover:opacity-100 group-hover:scale-125 transition-all duration-500" />
+          {/* Glass sheen reflection */}
+          <div className="pointer-events-none absolute inset-0 -translate-x-full group-hover:translate-x-full transition-transform duration-1000 bg-gradient-to-r from-transparent via-white/50 to-transparent ease-out" />
+
+          <div className="relative grid h-12 w-12 place-items-center rounded-2xl bg-gradient-to-br from-rose-400 via-rose-500 to-rose-600 text-white shadow-md shadow-rose-500/35 transition-all duration-300 group-hover:scale-110 group-hover:shadow-rose-500/50">
+            <div className="pointer-events-none absolute inset-0 rounded-2xl bg-gradient-to-b from-white/35 to-transparent" />
+            <Camera className="relative z-10 h-6 w-6 drop-shadow-xs" />
           </div>
-          <span className="text-xs font-bold text-slate-700 dark:text-slate-200">শুটিং তৈরি</span>
+          <span className="relative z-10 text-xs font-bold text-slate-700 dark:text-slate-200 transition-colors group-hover:text-rose-700 dark:group-hover:text-rose-400">
+            শুটিং তৈরি
+          </span>
         </Link>
 
         {/* 3. Member */}
         <Link
           to="/members"
-          className="flex flex-col items-center gap-2 rounded-2xl border border-emerald-200/60 bg-emerald-50/50 p-3 sm:p-3.5 text-center transition hover:bg-emerald-100/70 hover:border-emerald-300 hover:shadow-xs active:scale-95 cursor-pointer"
+          className="group relative flex flex-col items-center gap-2.5 overflow-hidden rounded-2xl border border-emerald-200/70 dark:border-emerald-500/25 bg-gradient-to-b from-emerald-50/80 via-white/70 to-emerald-50/30 dark:from-emerald-950/20 dark:via-slate-900/40 dark:to-slate-900/20 backdrop-blur-md p-3.5 sm:p-4 text-center transition-all duration-300 hover:border-emerald-400 hover:shadow-lg hover:shadow-emerald-500/15 hover:-translate-y-1 active:scale-95 cursor-pointer shadow-[inset_0_1px_1px_rgba(255,255,255,0.95),0_2px_8px_rgba(16,185,129,0.06)]"
         >
-          <div className="grid h-12 w-12 place-items-center rounded-2xl bg-emerald-500 text-white shadow-xs">
-            <UserPlus className="h-6 w-6" />
+          {/* Light glow aura */}
+          <div className="pointer-events-none absolute -top-6 -right-6 h-20 w-20 rounded-full bg-emerald-400/25 blur-xl opacity-60 group-hover:opacity-100 group-hover:scale-125 transition-all duration-500" />
+          {/* Glass sheen reflection */}
+          <div className="pointer-events-none absolute inset-0 -translate-x-full group-hover:translate-x-full transition-transform duration-1000 bg-gradient-to-r from-transparent via-white/50 to-transparent ease-out" />
+
+          <div className="relative grid h-12 w-12 place-items-center rounded-2xl bg-gradient-to-br from-emerald-400 via-emerald-500 to-teal-600 text-white shadow-md shadow-emerald-500/35 transition-all duration-300 group-hover:scale-110 group-hover:shadow-emerald-500/50">
+            <div className="pointer-events-none absolute inset-0 rounded-2xl bg-gradient-to-b from-white/35 to-transparent" />
+            <UserPlus className="relative z-10 h-6 w-6 drop-shadow-xs" />
           </div>
-          <span className="text-xs font-bold text-slate-700 dark:text-slate-200">সদস্য যুক্ত</span>
+          <span className="relative z-10 text-xs font-bold text-slate-700 dark:text-slate-200 transition-colors group-hover:text-emerald-700 dark:group-hover:text-emerald-400">
+            সদস্য যুক্ত
+          </span>
         </Link>
 
         {/* 4. Report */}
         <Link
           to="/reports"
-          className="flex flex-col items-center gap-2 rounded-2xl border border-blue-200/60 bg-blue-50/50 p-3 sm:p-3.5 text-center transition hover:bg-blue-100/70 hover:border-blue-300 hover:shadow-xs active:scale-95 cursor-pointer"
+          className="group relative flex flex-col items-center gap-2.5 overflow-hidden rounded-2xl border border-blue-200/70 dark:border-blue-500/25 bg-gradient-to-b from-blue-50/80 via-white/70 to-blue-50/30 dark:from-blue-950/20 dark:via-slate-900/40 dark:to-slate-900/20 backdrop-blur-md p-3.5 sm:p-4 text-center transition-all duration-300 hover:border-blue-400 hover:shadow-lg hover:shadow-blue-500/15 hover:-translate-y-1 active:scale-95 cursor-pointer shadow-[inset_0_1px_1px_rgba(255,255,255,0.95),0_2px_8px_rgba(59,130,246,0.06)]"
         >
-          <div className="grid h-12 w-12 place-items-center rounded-2xl bg-blue-500 text-white shadow-xs">
-            <FileText className="h-6 w-6" />
+          {/* Light glow aura */}
+          <div className="pointer-events-none absolute -top-6 -right-6 h-20 w-20 rounded-full bg-blue-400/25 blur-xl opacity-60 group-hover:opacity-100 group-hover:scale-125 transition-all duration-500" />
+          {/* Glass sheen reflection */}
+          <div className="pointer-events-none absolute inset-0 -translate-x-full group-hover:translate-x-full transition-transform duration-1000 bg-gradient-to-r from-transparent via-white/50 to-transparent ease-out" />
+
+          <div className="relative grid h-12 w-12 place-items-center rounded-2xl bg-gradient-to-br from-blue-400 via-blue-500 to-indigo-600 text-white shadow-md shadow-blue-500/35 transition-all duration-300 group-hover:scale-110 group-hover:shadow-blue-500/50">
+            <div className="pointer-events-none absolute inset-0 rounded-2xl bg-gradient-to-b from-white/35 to-transparent" />
+            <FileText className="relative z-10 h-6 w-6 drop-shadow-xs" />
           </div>
-          <span className="text-xs font-bold text-slate-700 dark:text-slate-200">রিপোর্ট</span>
+          <span className="relative z-10 text-xs font-bold text-slate-700 dark:text-slate-200 transition-colors group-hover:text-blue-700 dark:group-hover:text-blue-400">
+            রিপোর্ট
+          </span>
         </Link>
 
         {/* 5. Attendance */}
         <Link
           to="/attendance"
-          className="flex flex-col items-center gap-2 rounded-2xl border border-purple-200/60 bg-purple-50/50 p-3 sm:p-3.5 text-center transition hover:bg-purple-100/70 hover:border-purple-300 hover:shadow-xs active:scale-95 cursor-pointer"
+          className="group relative flex flex-col items-center gap-2.5 overflow-hidden rounded-2xl border border-purple-200/70 dark:border-purple-500/25 bg-gradient-to-b from-purple-50/80 via-white/70 to-purple-50/30 dark:from-purple-950/20 dark:via-slate-900/40 dark:to-slate-900/20 backdrop-blur-md p-3.5 sm:p-4 text-center transition-all duration-300 hover:border-purple-400 hover:shadow-lg hover:shadow-purple-500/15 hover:-translate-y-1 active:scale-95 cursor-pointer shadow-[inset_0_1px_1px_rgba(255,255,255,0.95),0_2px_8px_rgba(168,85,247,0.06)]"
         >
-          <div className="grid h-12 w-12 place-items-center rounded-2xl bg-purple-500 text-white shadow-xs">
-            <CalendarDays className="h-6 w-6" />
+          {/* Light glow aura */}
+          <div className="pointer-events-none absolute -top-6 -right-6 h-20 w-20 rounded-full bg-purple-400/25 blur-xl opacity-60 group-hover:opacity-100 group-hover:scale-125 transition-all duration-500" />
+          {/* Glass sheen reflection */}
+          <div className="pointer-events-none absolute inset-0 -translate-x-full group-hover:translate-x-full transition-transform duration-1000 bg-gradient-to-r from-transparent via-white/50 to-transparent ease-out" />
+
+          <div className="relative grid h-12 w-12 place-items-center rounded-2xl bg-gradient-to-br from-purple-400 via-purple-500 to-fuchsia-600 text-white shadow-md shadow-purple-500/35 transition-all duration-300 group-hover:scale-110 group-hover:shadow-purple-500/50">
+            <div className="pointer-events-none absolute inset-0 rounded-2xl bg-gradient-to-b from-white/35 to-transparent" />
+            <CalendarDays className="relative z-10 h-6 w-6 drop-shadow-xs" />
           </div>
-          <span className="text-xs font-bold text-slate-700 dark:text-slate-200">উপস্থিতি</span>
+          <span className="relative z-10 text-xs font-bold text-slate-700 dark:text-slate-200 transition-colors group-hover:text-purple-700 dark:group-hover:text-purple-400">
+            উপস্থিতি
+          </span>
         </Link>
       </div>
     </section>
