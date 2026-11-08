@@ -2,6 +2,8 @@ import { useMemo, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { taka, toBn, bnDate } from "@/lib/format";
+import { useChannels } from "@/lib/brand";
+import { fetchClientSummary } from "@/lib/client-summary";
 import { CalendarDays, ChevronLeft, ChevronRight, Clapperboard, MapPin, Users, Receipt } from "lucide-react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 
@@ -22,6 +24,7 @@ type Shooting = {
   location: string | null;
   director: string | null;
   channel: string | null;
+  contract_amount?: number | null;
 };
 
 export function ShootingCalendar() {
@@ -34,12 +37,36 @@ export function ShootingCalendar() {
   const monthStart = fmt(new Date(year, month, 1));
   const monthEnd = fmt(new Date(year, month + 1, 0));
 
+  const { data: channels = [] } = useChannels();
+  const { data: clientSummary = [] } = useQuery({
+    queryKey: ["client-channel-summary"],
+    queryFn: fetchClientSummary,
+    staleTime: 1000 * 60 * 5,
+  });
+
+  const clientChannelSet = useMemo(() => {
+    const set = new Set<string>();
+    clientSummary.forEach((c) => set.add(c.channel.trim().toLowerCase()));
+    channels.forEach((c) => {
+      if (c.is_own === false && !c.is_shared) {
+        set.add(c.name.trim().toLowerCase());
+      }
+    });
+    return set;
+  }, [clientSummary, channels]);
+
+  const isClientShooting = (s: Shooting) => {
+    if (s.contract_amount != null && Number(s.contract_amount) > 0) return true;
+    if (!s.channel) return false;
+    return clientChannelSet.has(s.channel.trim().toLowerCase());
+  };
+
   const { data: shootings = [] } = useQuery({
     queryKey: ["calendar-shootings", monthStart],
     queryFn: async () => {
       const { data, error } = await supabase
         .from("shootings")
-        .select("id, name, shoot_date, location, director, channel")
+        .select("id, name, shoot_date, location, director, channel, contract_amount")
         .gte("shoot_date", monthStart)
         .lte("shoot_date", monthEnd);
       if (error) throw error;
@@ -105,39 +132,71 @@ export function ShootingCalendar() {
       <div className="grid grid-cols-7 gap-1.5 flex-1">
         {cells.map((d, i) => {
           if (d === null) return <div key={i} className="aspect-square" />;
-          const items = byDay[d];
-          const has = !!items?.length;
+          const items = byDay[d] || [];
+          const has = items.length > 0;
           const isToday = isCurrentMonth && d === today.getDate();
+
+          const hasClient = items.some((s) => isClientShooting(s));
+          const hasOwn = items.some((s) => !isClientShooting(s));
+
+          let cellClass = "bg-muted/20 text-slate-700 hover:bg-muted/40 cursor-pointer";
+          let dots = null;
+
+          if (hasClient && hasOwn) {
+            cellClass = "bg-gradient-to-br from-emerald-100 via-white to-red-100 text-slate-900 font-bold border border-amber-300 hover:brightness-95 cursor-pointer shadow-2xs";
+            dots = (
+              <span className="mt-0.5 inline-flex items-center gap-0.5">
+                <span className="h-1.5 w-1.5 rounded-full bg-emerald-600" />
+                <span className="h-1.5 w-1.5 rounded-full bg-red-600" />
+              </span>
+            );
+          } else if (hasClient) {
+            // Client channel shooting -> RED background
+            cellClass = "bg-red-100 text-red-900 font-bold border border-red-300 hover:bg-red-200 cursor-pointer shadow-2xs";
+            dots = <span className="mt-0.5 inline-block h-1.5 w-1.5 rounded-full bg-red-600" />;
+          } else if (hasOwn) {
+            // Own channel shooting -> GREEN background
+            cellClass = "bg-emerald-100 text-emerald-900 font-bold border border-emerald-300 hover:bg-emerald-200 cursor-pointer shadow-2xs";
+            dots = <span className="mt-0.5 inline-block h-1.5 w-1.5 rounded-full bg-emerald-600" />;
+          }
+
+          if (isToday) {
+            if (has) {
+              cellClass += " ring-2 ring-slate-900 ring-offset-2 scale-105 shadow-md";
+            } else {
+              cellClass = "bg-slate-900 text-white font-black shadow-md shadow-slate-900/25 scale-105 cursor-pointer";
+            }
+          }
+
           return (
             <button
               type="button"
               key={i}
               disabled={!has && !isToday}
               onClick={() => setSelectedDate(fmt(new Date(year, month, d)))}
-              title={items?.map((x) => x.name).join(", ")}
-              className={`relative aspect-square rounded-xl text-center text-xs flex flex-col items-center justify-center transition-all ${
-                isToday
-                  ? "bg-red-600 text-white font-black shadow-md shadow-red-500/30 scale-105"
-                  : has
-                  ? "bg-emerald-50 text-emerald-800 font-bold border border-emerald-200/80 hover:bg-emerald-100 cursor-pointer"
-                  : "bg-muted/20 text-slate-700 hover:bg-muted/40 cursor-pointer"
-              }`}
+              title={items?.map((x) => `${x.name}${isClientShooting(x) ? " (ক্লায়েন্ট)" : " (নিজস্ব)"}`).join(", ")}
+              className={`relative aspect-square rounded-xl text-center text-xs flex flex-col items-center justify-center transition-all ${cellClass}`}
             >
               <span>{toBn(d)}</span>
-              {has && (
-                <span className={`mt-0.5 inline-block h-1.5 w-1.5 rounded-full ${isToday ? "bg-white" : "bg-emerald-500"}`} />
-              )}
+              {dots}
             </button>
           );
         })}
       </div>
 
-      <div className="mt-3 flex items-center justify-between text-[10px] text-muted-foreground pt-2 border-t border-border/40">
-        <span className="inline-flex items-center gap-1.5">
-          <span className="h-2 w-2 rounded-full bg-emerald-500" /> শুটিং অনুষ্ঠিত
+      {/* Legend */}
+      <div className="mt-3 flex flex-wrap items-center justify-between gap-2 text-[10.5px] pt-2 border-t border-border/40">
+        <span className="inline-flex items-center gap-1.5 font-medium text-emerald-800">
+          <span className="h-2.5 w-2.5 rounded-full bg-emerald-500 shadow-2xs" />
+          নিজস্ব চ্যানেল (সবুজ)
         </span>
-        <span className="inline-flex items-center gap-1.5">
-          <span className="h-2 w-2 rounded-full bg-red-600" /> আজকের দিন
+        <span className="inline-flex items-center gap-1.5 font-medium text-red-700">
+          <span className="h-2.5 w-2.5 rounded-full bg-red-600 shadow-2xs" />
+          ক্লায়েন্ট চ্যানেল (লাল)
+        </span>
+        <span className="inline-flex items-center gap-1.5 font-medium text-slate-700">
+          <span className="h-2.5 w-2.5 rounded-full bg-slate-900 shadow-2xs" />
+          আজকের দিন
         </span>
       </div>
 
@@ -151,7 +210,11 @@ export function ShootingCalendar() {
           </DialogHeader>
           <div className="space-y-3">
             {selectedShootings.map((s) => (
-              <ShootingDetailCard key={s.id} shooting={s} />
+              <ShootingDetailCard
+                key={s.id}
+                shooting={s}
+                isClient={isClientShooting(s)}
+              />
             ))}
           </div>
         </DialogContent>
@@ -168,7 +231,13 @@ type AttRow = {
 
 type ExpRow = { id: string; amount: number; note: string | null };
 
-function ShootingDetailCard({ shooting: s }: { shooting: Shooting }) {
+function ShootingDetailCard({
+  shooting: s,
+  isClient,
+}: {
+  shooting: Shooting;
+  isClient?: boolean;
+}) {
   const summary = useQuery({
     queryKey: ["shooting-summary", s.id],
     queryFn: async () => {
@@ -211,15 +280,35 @@ function ShootingDetailCard({ shooting: s }: { shooting: Shooting }) {
   return (
     <div className="rounded-2xl border bg-card p-3 space-y-2.5">
       <div className="flex items-start gap-2">
-        <span className="grid h-8 w-8 shrink-0 place-items-center rounded-xl bg-primary/10 text-primary">
+        <span
+          className={`grid h-8 w-8 shrink-0 place-items-center rounded-xl ${
+            isClient ? "bg-red-100 text-red-600" : "bg-emerald-100 text-emerald-600"
+          }`}
+        >
           <Clapperboard className="h-4 w-4" />
         </span>
         <div className="min-w-0 flex-1">
-          <div className="text-sm font-semibold">{s.name}</div>
-          <div className="flex flex-wrap gap-x-2 gap-y-0.5 text-[11px] text-muted-foreground">
+          <div className="flex items-center gap-2">
+            <span className="text-sm font-semibold truncate">{s.name}</span>
+            <span
+              className={`rounded-full px-2 py-0.5 text-[10px] font-bold ${
+                isClient
+                  ? "bg-red-100 text-red-700 border border-red-200"
+                  : "bg-emerald-100 text-emerald-700 border border-emerald-200"
+              }`}
+            >
+              {isClient ? "ক্লায়েন্ট" : "নিজস্ব"}
+            </span>
+          </div>
+          <div className="flex flex-wrap gap-x-2 gap-y-0.5 text-[11px] text-muted-foreground mt-0.5">
             {s.channel && <span>চ্যানেল: {s.channel}</span>}
             {s.director && <span>পরিচালক: {s.director}</span>}
-            {s.location && <span className="inline-flex items-center gap-0.5"><MapPin className="h-3 w-3" />{s.location}</span>}
+            {s.location && (
+              <span className="inline-flex items-center gap-0.5">
+                <MapPin className="h-3 w-3" />
+                {s.location}
+              </span>
+            )}
           </div>
         </div>
       </div>
