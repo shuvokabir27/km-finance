@@ -16,6 +16,7 @@ import { Input } from "@/components/ui/input";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, DialogFooter } from "@/components/ui/dialog";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { taka, toBn, bnDate } from "@/lib/format";
+import { calculateMemberAverageIncome } from "@/lib/member-income";
 import { ACCOUNT_KIND_LABEL, type AccountKind, BD_BANKS } from "@/lib/bd-banks";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
@@ -153,6 +154,14 @@ function ProfileView({ data, token, refetch, onLogout }: { data: PublicProfile; 
 
   const [photoUrl, setPhotoUrl] = useState<string | null>(member.photo_signed_url);
 
+  const incomeStats = calculateMemberAverageIncome({
+    memberType: member.type,
+    memberRate: member.rate,
+    shootings: data.shootings,
+    salaries: data.salaries,
+    bonuses: data.bonuses,
+  });
+
   return (
     <div className="min-h-screen bg-gradient-to-b from-emerald-50/60 via-background to-background pb-20">
       <div className="mx-auto max-w-md px-4 pt-6">
@@ -199,8 +208,14 @@ function ProfileView({ data, token, refetch, onLogout }: { data: PublicProfile; 
             </div>
           )}
 
-          <div className="mt-5 grid grid-cols-3 gap-2">
+          <div className="mt-5 grid grid-cols-2 gap-2 sm:grid-cols-4">
             <Stat label="মোট ব্যালেন্স" value={taka(balance)} accent={balance > 0 ? "text-success" : ""} />
+            <Stat
+              label="গড় মাসিক আয়"
+              value={taka(incomeStats.avgMonthlyIncome)}
+              accent="text-primary font-bold"
+              sub={incomeStats.activeMonthsCount > 0 ? `${toBn(incomeStats.activeMonthsCount)} মাসের গড়` : undefined}
+            />
             <Stat label={member.type === "daily" ? "দৈনিক রেট" : "মাসিক"} value={taka(member.rate)} />
             <Stat label="শুটিং" value={toBn(String(shootings_count))} />
           </div>
@@ -259,6 +274,12 @@ function ProfileView({ data, token, refetch, onLogout }: { data: PublicProfile; 
               label="মোট হাজিরা (সব সময়)"
               value={toBn(String(data.shootings.length))}
               sub={member.type === "daily" ? `আয় ${taka(totalEarned)}` : undefined}
+            />
+            <Stat
+              label="গড় মাসিক আয়"
+              value={taka(incomeStats.avgMonthlyIncome)}
+              accent="text-primary font-bold"
+              sub={incomeStats.activeMonthsCount > 0 ? `${toBn(incomeStats.activeMonthsCount)} মাসের গড়` : undefined}
             />
             <Stat
               label="এই সময়ের হাজিরা"

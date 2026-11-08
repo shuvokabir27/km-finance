@@ -6,3 +6,4 @@ WHERE channel IS NOT NULL;
 CREATE INDEX IF NOT EXISTS idx_shootings_channel
 ON public.shootings(channel)
 WHERE channel IS NOT NULL;
+

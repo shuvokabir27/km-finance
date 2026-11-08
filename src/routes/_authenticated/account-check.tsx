@@ -4,7 +4,8 @@ import { useState, useRef } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { taka, toBn, bnDate } from "@/lib/format";
 import { MemberAvatar } from "@/components/member-avatar";
-import { UserSearch, Clapperboard, CalendarCheck, CalendarX, BadgeDollarSign, Wallet, Gift, TrendingUp, Download, Eye, ChevronDown, Check, Search } from "lucide-react";
+import { UserSearch, Clapperboard, CalendarCheck, CalendarX, BadgeDollarSign, Wallet, Gift, TrendingUp, Download, Eye, ChevronDown, Check, Search, CalendarRange } from "lucide-react";
+import { calculateMemberAverageIncome } from "@/lib/member-income";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { useMemo } from "react";
 import { toast } from "sonner";
@@ -130,6 +131,14 @@ function AccountCheckPage() {
         .reduce((s: number, p: { amount: number }) => s + Number(p.amount), 0);
       const totalBonus = bonuses.reduce((s, b) => s + Number(b.amount), 0);
 
+      const incomeStats = calculateMemberAverageIncome({
+        memberType: member?.type ?? "daily",
+        memberRate: member?.rate ?? 0,
+        generalPresent,
+        salaries,
+        bonuses,
+      });
+
       const presentAttendance = attendance.filter((a) => a.present);
       const absentAttendance = attendance.filter((a) => !a.present);
 
@@ -141,6 +150,9 @@ function AccountCheckPage() {
         earned,
         totalPaid,
         totalBonus,
+        totalIncome: incomeStats.totalIncome,
+        avgMonthlyIncome: incomeStats.avgMonthlyIncome,
+        activeMonthsCount: incomeStats.activeMonthsCount,
         balance: Number(balRes.data ?? 0),
         paymentsCount: payments.length,
         bonusesCount: bonuses.length,
@@ -214,14 +226,21 @@ function AccountCheckPage() {
                 <div className="relative">
                   <div className="text-xs text-primary-foreground/80">বর্তমান বকেয়া</div>
                   <div className="mt-1 text-3xl font-black text-primary-foreground">{taka(stats.balance)}</div>
-                  <div className="mt-3 grid grid-cols-2 gap-2 text-primary-foreground">
+                  <div className="mt-3 grid grid-cols-3 gap-2 text-primary-foreground">
                     <div className="rounded-xl bg-white/15 p-2">
                       <div className="text-[10px] opacity-80">মোট আয়</div>
-                      <div className="text-sm font-bold">{taka(stats.earned)}</div>
+                      <div className="text-sm font-bold truncate">{taka(stats.earned)}</div>
+                    </div>
+                    <div className="rounded-xl bg-white/20 p-2 border border-white/25 shadow-xs">
+                      <div className="text-[10px] font-medium opacity-95">গড় মাসিক আয়</div>
+                      <div className="text-sm font-extrabold truncate">{taka(stats.avgMonthlyIncome)}</div>
+                      {stats.activeMonthsCount > 0 && (
+                        <div className="text-[9px] opacity-80">{toBn(stats.activeMonthsCount)} মাসের গড়</div>
+                      )}
                     </div>
                     <div className="rounded-xl bg-white/15 p-2">
                       <div className="text-[10px] opacity-80">মোট পরিশোধ</div>
-                      <div className="text-sm font-bold">{taka(stats.totalPaid)}</div>
+                      <div className="text-sm font-bold truncate">{taka(stats.totalPaid)}</div>
                     </div>
                   </div>
                 </div>
@@ -234,6 +253,8 @@ function AccountCheckPage() {
                 <StatCard icon={Wallet} label="পেমেন্ট সংখ্যা" value={toBn(stats.paymentsCount)} tint="primary" />
                 <StatCard icon={Gift} label="মোট বোনাস" value={taka(stats.totalBonus)} tint="success" />
                 <StatCard icon={TrendingUp} label="বোনাস সংখ্যা" value={toBn(stats.bonusesCount)} tint="primary" />
+                <StatCard icon={TrendingUp} label="গড় মাসিক আয়" value={taka(stats.avgMonthlyIncome)} tint="success" />
+                <StatCard icon={CalendarRange} label="মোট কর্মমাস" value={`${toBn(stats.activeMonthsCount)} মাস`} tint="primary" />
               </div>
 
               <ShootingDues
@@ -332,13 +353,14 @@ function AccountCheckPage() {
                   <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: 8 }}>
                     {[
                       ["মোট আয়", taka(stats.earned)],
+                      ["গড় মাসিক আয়", taka(stats.avgMonthlyIncome)],
                       ["মোট পরিশোধ", taka(stats.totalPaid)],
                       ["মোট বোনাস", taka(stats.totalBonus)],
+                      ["মোট কর্মমাস", `${toBn(stats.activeMonthsCount)} মাস`],
                       ["মোট শুটিং", toBn(stats.totalShootings)],
                       ["মোট হাজিরা", toBn(stats.present)],
                       ["মোট অনুপস্থিত", toBn(stats.absent)],
                       ["পেমেন্ট সংখ্যা", toBn(stats.paymentsCount)],
-                      ["বোনাস সংখ্যা", toBn(stats.bonusesCount)],
                     ].map(([l, v]) => (
                       <div key={l} style={{ padding: 10, border: "1px solid #e2e8f0", borderRadius: 10 }}>
                         <div style={{ fontSize: 10, color: "#64748b" }}>{l}</div>

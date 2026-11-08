@@ -73,9 +73,18 @@ export function MemberMonthlyHistory({ member }: { member: Member }) {
     return <div className="rounded-xl border border-dashed bg-muted/20 p-4 text-center text-xs text-muted-foreground">কোনো মাসিক হিসাব নেই</div>;
   }
 
+  const monthsWithIncome = data.filter((r) => r.earned > 0);
+  const totalEarnedAll = data.reduce((s, r) => s + r.earned, 0);
+  const avgMonthly = monthsWithIncome.length > 0 ? Math.round(totalEarnedAll / monthsWithIncome.length) : (member.type === "monthly" ? Number(member.rate) : 0);
+
   return (
     <div className="space-y-2">
-      <div className="text-xs font-semibold text-muted-foreground">মাসিক হিসাব</div>
+      <div className="flex items-center justify-between">
+        <span className="text-xs font-semibold text-muted-foreground">মাসিক হিসাব</span>
+        <span className="text-[11px] font-bold text-primary bg-primary/10 px-2.5 py-0.5 rounded-full border border-primary/20">
+          গড় আয়: {taka(avgMonthly)}/মাস
+        </span>
+      </div>
       <div className="space-y-2">
         {data.map((r) => (
           <div key={r.key} className="rounded-xl border bg-card p-3">
