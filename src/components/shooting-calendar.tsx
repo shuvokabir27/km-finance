@@ -98,27 +98,35 @@ export function ShootingCalendar() {
     : [];
 
   return (
-    <section className="rounded-3xl border border-border/70 bg-card p-5 shadow-xs flex flex-col h-full">
-      <div className="mb-4 flex items-center justify-between">
-        <h2 className="flex items-center gap-2 text-sm font-bold text-slate-800">
-          <CalendarDays className="h-4 w-4 text-red-600" /> মাসিক ক্যালেন্ডার
+    <section className="relative overflow-hidden rounded-3xl border border-rose-200/70 dark:border-white/10 bg-gradient-to-br from-white via-rose-50/30 to-amber-50/20 dark:from-slate-900 dark:via-slate-900/95 dark:to-slate-950 p-4 sm:p-5 shadow-xs flex flex-col h-full">
+      {/* Background radiant ambient light */}
+      <div className="pointer-events-none absolute -top-12 -right-12 h-40 w-40 rounded-full bg-gradient-to-br from-rose-400/20 via-pink-400/15 to-amber-400/15 blur-2xl" />
+      <div className="pointer-events-none absolute -bottom-12 -left-12 h-36 w-36 rounded-full bg-gradient-to-tr from-emerald-400/15 via-teal-400/10 to-transparent blur-2xl" />
+
+      {/* Header */}
+      <div className="relative z-10 mb-4 flex items-center justify-between">
+        <h2 className="flex items-center gap-2 text-sm font-bold text-slate-800 dark:text-slate-100">
+          <span className="grid h-7 w-7 place-items-center rounded-xl bg-gradient-to-br from-rose-500 via-red-500 to-rose-600 text-white shadow-md shadow-rose-500/30">
+            <CalendarDays className="h-4 w-4" />
+          </span>
+          <span>মাসিক ক্যালেন্ডার</span>
         </h2>
-        <div className="flex items-center gap-1.5">
+        <div className="flex items-center gap-1 bg-white/80 dark:bg-slate-800/80 backdrop-blur-md p-1 rounded-full border border-rose-200/60 dark:border-white/10 shadow-2xs">
           <button
             type="button"
             onClick={() => setCursor(new Date(year, month - 1, 1))}
-            className="grid h-7 w-7 place-items-center rounded-full bg-muted/60 hover:bg-muted text-muted-foreground transition active:scale-95"
+            className="grid h-7 w-7 place-items-center rounded-full hover:bg-rose-100/70 dark:hover:bg-slate-700 text-rose-700 dark:text-slate-300 transition active:scale-95 cursor-pointer"
             aria-label="আগের মাস"
           >
             <ChevronLeft className="h-4 w-4" />
           </button>
-          <span className="min-w-[100px] text-center text-xs font-bold text-slate-700">
+          <span className="min-w-[105px] text-center text-xs font-black text-rose-950 dark:text-slate-100 px-1">
             {BN_MONTHS[month]} {toBn(String(year))}
           </span>
           <button
             type="button"
             onClick={() => setCursor(new Date(year, month + 1, 1))}
-            className="grid h-7 w-7 place-items-center rounded-full bg-muted/60 hover:bg-muted text-muted-foreground transition active:scale-95"
+            className="grid h-7 w-7 place-items-center rounded-full hover:bg-rose-100/70 dark:hover:bg-slate-700 text-rose-700 dark:text-slate-300 transition active:scale-95 cursor-pointer"
             aria-label="পরের মাস"
           >
             <ChevronRight className="h-4 w-4" />
@@ -126,45 +134,70 @@ export function ShootingCalendar() {
         </div>
       </div>
 
-      <div className="mb-2 grid grid-cols-7 gap-1 text-center text-[11px] font-bold text-slate-600">
-        {BN_WEEKDAYS.map((w) => <div key={w}>{w}</div>)}
+      {/* Weekdays Header */}
+      <div className="relative z-10 mb-2.5 grid grid-cols-7 gap-1 text-center text-[11px] font-bold">
+        {BN_WEEKDAYS.map((w, idx) => {
+          const isFriday = idx === 5; // শুক্র
+          const isSaturday = idx === 6; // শনি
+          return (
+            <div
+              key={w}
+              className={`py-1 rounded-lg ${
+                isFriday
+                  ? "bg-rose-100/80 dark:bg-rose-950/40 text-rose-700 dark:text-rose-400 font-black shadow-2xs"
+                  : isSaturday
+                  ? "bg-amber-100/70 dark:bg-amber-950/40 text-amber-800 dark:text-amber-400 font-bold"
+                  : "bg-white/60 dark:bg-slate-800/40 text-slate-600 dark:text-slate-300"
+              }`}
+            >
+              {w}
+            </div>
+          );
+        })}
       </div>
-      <div className="grid grid-cols-7 gap-1.5 flex-1">
+
+      {/* Dates Grid */}
+      <div className="relative z-10 grid grid-cols-7 gap-1.5 flex-1">
         {cells.map((d, i) => {
           if (d === null) return <div key={i} className="aspect-square" />;
           const items = byDay[d] || [];
           const has = items.length > 0;
           const isToday = isCurrentMonth && d === today.getDate();
+          const dayOfWeek = new Date(year, month, d).getDay();
+          const isFriday = dayOfWeek === 5;
 
           const hasClient = items.some((s) => isClientShooting(s));
           const hasOwn = items.some((s) => !isClientShooting(s));
 
-          let cellClass = "bg-muted/20 text-slate-700 hover:bg-muted/40 cursor-pointer";
+          let cellClass = isFriday
+            ? "bg-rose-50/70 dark:bg-rose-950/20 text-rose-700 dark:text-rose-300 hover:bg-rose-100/80 border border-rose-200/50 shadow-2xs font-semibold cursor-pointer"
+            : "bg-white/85 dark:bg-slate-800/60 text-slate-700 dark:text-slate-200 hover:bg-white dark:hover:bg-slate-700 hover:border-rose-300 hover:text-rose-600 border border-slate-200/60 dark:border-white/5 shadow-2xs font-semibold cursor-pointer transition-all";
           let dots = null;
 
           if (hasClient && hasOwn) {
-            cellClass = "bg-gradient-to-br from-emerald-100 via-white to-red-100 text-slate-900 font-bold border border-amber-300 hover:brightness-95 cursor-pointer shadow-2xs";
+            cellClass = "bg-gradient-to-br from-emerald-500 via-teal-500 to-rose-500 text-white font-black shadow-md shadow-emerald-500/25 border-0 hover:scale-110 active:scale-95 cursor-pointer";
             dots = (
-              <span className="mt-0.5 inline-flex items-center gap-0.5">
-                <span className="h-1.5 w-1.5 rounded-full bg-emerald-600" />
-                <span className="h-1.5 w-1.5 rounded-full bg-red-600" />
+              <span className="mt-0.5 inline-flex items-center gap-1">
+                <span className="h-1.5 w-1.5 rounded-full bg-white shadow-xs animate-pulse" />
+                <span className="h-1.5 w-1.5 rounded-full bg-amber-300 shadow-xs animate-pulse" />
               </span>
             );
           } else if (hasClient) {
-            // Client channel shooting -> RED background
-            cellClass = "bg-red-100 text-red-900 font-bold border border-red-300 hover:bg-red-200 cursor-pointer shadow-2xs";
-            dots = <span className="mt-0.5 inline-block h-1.5 w-1.5 rounded-full bg-red-600" />;
+            // Client channel shooting -> Vivid Ruby/Rose Red Gradient
+            cellClass = "bg-gradient-to-br from-rose-500 via-red-500 to-rose-600 text-white font-black shadow-md shadow-rose-500/35 border-0 hover:scale-110 active:scale-95 cursor-pointer";
+            dots = <span className="mt-0.5 inline-block h-1.5 w-1.5 rounded-full bg-white shadow-xs" />;
           } else if (hasOwn) {
-            // Own channel shooting -> GREEN background
-            cellClass = "bg-emerald-100 text-emerald-900 font-bold border border-emerald-300 hover:bg-emerald-200 cursor-pointer shadow-2xs";
-            dots = <span className="mt-0.5 inline-block h-1.5 w-1.5 rounded-full bg-emerald-600" />;
+            // Own channel shooting -> Vibrant Emerald/Teal Green Gradient
+            cellClass = "bg-gradient-to-br from-emerald-500 via-emerald-600 to-teal-600 text-white font-black shadow-md shadow-emerald-500/35 border-0 hover:scale-110 active:scale-95 cursor-pointer";
+            dots = <span className="mt-0.5 inline-block h-1.5 w-1.5 rounded-full bg-white shadow-xs" />;
           }
 
           if (isToday) {
             if (has) {
-              cellClass += " ring-2 ring-slate-900 ring-offset-2 scale-105 shadow-md";
+              cellClass += " ring-3 ring-amber-400 ring-offset-2 ring-offset-white dark:ring-offset-slate-900 shadow-xl scale-105 z-10";
             } else {
-              cellClass = "bg-slate-900 text-white font-black shadow-md shadow-slate-900/25 scale-105 cursor-pointer";
+              cellClass = "bg-gradient-to-br from-indigo-600 via-purple-600 to-indigo-700 text-white font-black shadow-lg shadow-indigo-500/40 ring-2 ring-indigo-300 ring-offset-1 scale-105 cursor-pointer z-10";
+              dots = <span className="mt-0.5 inline-block text-[9px] font-black text-amber-300 tracking-tighter">আজ</span>;
             }
           }
 
@@ -175,7 +208,7 @@ export function ShootingCalendar() {
               disabled={!has && !isToday}
               onClick={() => setSelectedDate(fmt(new Date(year, month, d)))}
               title={items?.map((x) => `${x.name}${isClientShooting(x) ? " (ক্লায়েন্ট)" : " (নিজস্ব)"}`).join(", ")}
-              className={`relative aspect-square rounded-xl text-center text-xs flex flex-col items-center justify-center transition-all ${cellClass}`}
+              className={`relative aspect-square rounded-xl text-center text-xs flex flex-col items-center justify-center transition-all duration-200 ${cellClass}`}
             >
               <span>{toBn(d)}</span>
               {dots}
@@ -185,17 +218,17 @@ export function ShootingCalendar() {
       </div>
 
       {/* Legend */}
-      <div className="mt-3 flex flex-wrap items-center justify-between gap-2 text-[10.5px] pt-2 border-t border-border/40">
-        <span className="inline-flex items-center gap-1.5 font-medium text-emerald-800">
-          <span className="h-2.5 w-2.5 rounded-full bg-emerald-500 shadow-2xs" />
+      <div className="relative z-10 mt-3.5 flex flex-wrap items-center justify-between gap-1.5 text-[10.5px] pt-3 border-t border-rose-200/50 dark:border-white/10">
+        <span className="inline-flex items-center gap-1.5 rounded-full bg-emerald-100/90 dark:bg-emerald-950/50 border border-emerald-300/80 text-emerald-800 dark:text-emerald-300 px-2.5 py-1 font-bold shadow-2xs">
+          <span className="h-2 w-2 rounded-full bg-emerald-500 shadow-xs" />
           নিজস্ব চ্যানেল (সবুজ)
         </span>
-        <span className="inline-flex items-center gap-1.5 font-medium text-red-700">
-          <span className="h-2.5 w-2.5 rounded-full bg-red-600 shadow-2xs" />
+        <span className="inline-flex items-center gap-1.5 rounded-full bg-rose-100/90 dark:bg-rose-950/50 border border-rose-300/80 text-rose-800 dark:text-rose-300 px-2.5 py-1 font-bold shadow-2xs">
+          <span className="h-2 w-2 rounded-full bg-rose-600 shadow-xs" />
           ক্লায়েন্ট চ্যানেল (লাল)
         </span>
-        <span className="inline-flex items-center gap-1.5 font-medium text-slate-700">
-          <span className="h-2.5 w-2.5 rounded-full bg-slate-900 shadow-2xs" />
+        <span className="inline-flex items-center gap-1.5 rounded-full bg-indigo-100/90 dark:bg-indigo-950/50 border border-indigo-300/80 text-indigo-800 dark:text-indigo-300 px-2.5 py-1 font-bold shadow-2xs">
+          <span className="h-2 w-2 rounded-full bg-indigo-600 shadow-xs" />
           আজকের দিন
         </span>
       </div>
@@ -203,9 +236,11 @@ export function ShootingCalendar() {
       <Dialog open={!!selectedDate} onOpenChange={(o) => !o && setSelectedDate(null)}>
         <DialogContent className="max-h-[85vh] overflow-y-auto max-w-md">
           <DialogHeader>
-            <DialogTitle className="flex items-center gap-2 text-sm">
-              <CalendarDays className="h-4 w-4 text-primary" />
-              {selectedDate && bnDate(selectedDate)} — {toBn(selectedShootings.length)} টি শুটিং
+            <DialogTitle className="flex items-center gap-2 text-sm font-bold text-slate-800 dark:text-slate-100">
+              <span className="grid h-7 w-7 place-items-center rounded-lg bg-gradient-to-br from-rose-500 to-red-600 text-white shadow-xs">
+                <CalendarDays className="h-4 w-4" />
+              </span>
+              <span>{selectedDate && bnDate(selectedDate)} — {toBn(selectedShootings.length)} টি শুটিং</span>
             </DialogTitle>
           </DialogHeader>
           <div className="space-y-3">
