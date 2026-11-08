@@ -52,6 +52,7 @@ import {
   Trophy,
   Camera,
   UserPlus,
+  AlertCircle,
 } from "lucide-react";
 import { useServerFn } from "@tanstack/react-start";
 import { sendBulkSmsToMembers, getBulkSmsBalance } from "@/lib/bulk-sms.functions";
@@ -182,13 +183,14 @@ function Dashboard() {
       {/* 1. Welcome Hero Banner (Kuakata Beach Panorama + 3D Clapperboard + Date & Time Cards) */}
       <KuakataBeachBanner />
 
-      {/* 2. Top Stats 4 Cards Row: মোট সদস্য, মোট শুটিং, আজকের হাজিরা (with circular progress ring), মোট পেমেন্ট */}
+      {/* 2. Top Stats 4 Cards Row: মোট সদস্য, মোট শুটিং, মোট বকেয়া, মোট পেমেন্ট */}
       <TopStatsRow
         totalMembers={totalMembers}
         activeMembers={activeMembers}
         totalShootings={totalShootings}
         monthShootings={monthShootingsCount}
-        presentCount={presentCount}
+        totalDue={data?.outstanding || 0}
+        dueMembersCount={data?.breakdown?.filter((b) => b.total > 0).length || 0}
         paidThisMonth={data?.paidThisMonth || 18600}
       />
 
@@ -1936,18 +1938,18 @@ function TopStatsRow({
   activeMembers,
   totalShootings,
   monthShootings,
-  presentCount,
+  totalDue,
+  dueMembersCount,
   paidThisMonth,
 }: {
   totalMembers: number;
   activeMembers: number;
   totalShootings: number;
   monthShootings: number;
-  presentCount: number;
+  totalDue: number;
+  dueMembersCount: number;
   paidThisMonth: number;
 }) {
-  const percent = totalMembers > 0 ? Math.min(100, Math.round((presentCount / totalMembers) * 100)) : 80;
-
   return (
     <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
       {/* 1. মোট সদস্য */}
@@ -1998,24 +2000,26 @@ function TopStatsRow({
         </div>
       </Link>
 
-      {/* 3. আজকের হাজিরা */}
+      {/* 3. মোট বকেয়া (আজকের হাজিরার পরিবর্তে) */}
       <Link
-        to="/attendance"
-        className="group relative overflow-hidden rounded-3xl border border-sky-200/70 bg-gradient-to-br from-sky-50/90 via-white to-blue-50/40 p-5 shadow-xs transition hover:shadow-md hover:-translate-y-0.5"
+        to="/members"
+        className="group relative overflow-hidden rounded-3xl border border-rose-200/70 bg-gradient-to-br from-rose-50/90 via-white to-red-50/40 p-5 shadow-xs transition hover:shadow-md hover:-translate-y-0.5"
       >
         <div className="flex items-center justify-between">
-          <div className="grid h-12 w-12 place-items-center rounded-2xl bg-sky-500 text-white shadow-md shadow-sky-500/25 group-hover:scale-105 transition-transform">
-            <Briefcase className="h-6 w-6" />
+          <div className="grid h-12 w-12 place-items-center rounded-2xl bg-rose-600 text-white shadow-md shadow-rose-600/25 group-hover:scale-105 transition-transform">
+            <AlertCircle className="h-6 w-6" />
           </div>
-          <CircularProgress percent={percent} />
+          <span className="inline-flex items-center gap-1 rounded-full bg-rose-100 px-2.5 py-0.5 text-[11px] font-bold text-rose-700">
+            বকেয়া
+          </span>
         </div>
         <div className="mt-3">
-          <div className="text-xs font-semibold text-sky-800">আজকের হাজিরা</div>
-          <div className="text-2xl sm:text-3xl font-black text-slate-800 tracking-tight">
-            {toBn(String(presentCount))} / {toBn(String(totalMembers))} জন
+          <div className="text-xs font-semibold text-rose-800">মোট বকেয়া</div>
+          <div className="text-2xl sm:text-3xl font-black text-rose-600 tracking-tight">
+            ৳ {taka(totalDue)}
           </div>
           <div className="mt-1 text-[11px] text-slate-500 font-medium">
-            উপস্থিতির হার {toBn(String(percent))}%
+            {toBn(String(dueMembersCount))} জন সদস্যের বকেয়া
           </div>
         </div>
       </Link>
