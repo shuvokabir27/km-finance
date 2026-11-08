@@ -51,8 +51,6 @@ import {
   ChevronLeft,
   ChevronRight,
   Zap,
-  Megaphone,
-  Trophy,
   AlertCircle,
 } from "lucide-react";
 import { useServerFn } from "@tanstack/react-start";
@@ -282,12 +280,7 @@ function Dashboard() {
         </div>
       </div>
 
-      {/* 5. Bottom 2-Card Section (গুরুত্বপূর্ণ বার্তা, টিমের অনুপ্রেরণা) */}
-      <BottomTwoCards
-        upcomingShootingName={recentShootings.data?.[0]?.name}
-      />
-
-      {/* 6. Detailed Monthly Shooting Breakdown Table */}
+      {/* 5. Detailed Monthly Shooting Breakdown Table */}
       <MonthShootingsDetails />
     </div>
   );
@@ -2654,58 +2647,6 @@ function QuickActionsCard({ membersWithDue }: { membersWithDue?: BreakdownRow[] 
         </Link>
       </div>
     </section>
-  );
-}
-
-function BottomTwoCards({ upcomingShootingName }: { upcomingShootingName?: string }) {
-  return (
-    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-5">
-      {/* 1. গুরুত্বপূর্ণ বার্তা */}
-      <section className="relative overflow-hidden rounded-2xl sm:rounded-3xl border border-emerald-200/70 bg-gradient-to-br from-emerald-50/90 via-green-50/50 to-teal-50/40 p-4 sm:p-5 shadow-xs flex flex-col justify-between">
-        <div className="relative z-10">
-          <div className="flex items-center gap-2 text-xs font-bold text-emerald-800 mb-2">
-            <Megaphone className="h-4 w-4 text-emerald-600" />
-            গুরুত্বপূর্ণ বার্তা
-          </div>
-          <p className="text-xs sm:text-sm font-semibold text-slate-800 leading-snug">
-            {upcomingShootingName
-              ? `আসন্ন নতুন শুটিং: "${upcomingShootingName}" এর শিডিউল চূড়ান্ত করা হয়েছে।`
-              : "আগামী ১৬ নভেম্বর নতুন নাটকের শুটিং শুরু হবে।"}
-          </p>
-        </div>
-
-        <div className="relative z-10 mt-3 flex items-center justify-between">
-          <Link
-            to="/shootings"
-            className="inline-flex items-center gap-1 rounded-full bg-red-600 px-3 py-1.5 text-xs font-bold text-white shadow-xs hover:bg-red-700 transition active:scale-95 cursor-pointer"
-          >
-            বিস্তারিত দেখুন <ArrowUpRight className="h-3.5 w-3.5" />
-          </Link>
-          <Clapperboard className="h-8 w-8 sm:h-10 sm:w-10 text-emerald-800/20" />
-        </div>
-      </section>
-
-      {/* 2. টিমের অনুপ্রেরণা */}
-      <section className="rounded-2xl sm:rounded-3xl border border-amber-200/70 bg-gradient-to-br from-amber-50/90 via-yellow-50/40 to-orange-50/30 p-4 sm:p-5 shadow-xs flex flex-col justify-between text-center">
-        <div className="flex items-center justify-center gap-2 text-xs font-bold text-amber-800 mb-1">
-          <Trophy className="h-4 w-4 text-amber-600" />
-          টিমের অনুপ্রেরণা
-        </div>
-
-        <div className="my-auto py-2">
-          <p className="text-sm sm:text-base font-black italic text-slate-800 leading-snug tracking-tight">
-            “একসাথে কাজ করি, আরো ভালো কিছু তৈরি করি।”
-          </p>
-          <div className="mt-1 text-[10px] font-semibold text-slate-500">
-            — Kuakata Multimedia Team
-          </div>
-        </div>
-
-        <div className="text-[10px] font-bold text-amber-700 uppercase tracking-widest">
-          Unity · Creativity · Excellence
-        </div>
-      </section>
-    </div>
   );
 }
 
