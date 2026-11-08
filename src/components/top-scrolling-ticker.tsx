@@ -16,6 +16,8 @@ import {
   Wallet,
   BadgeDollarSign,
   Clapperboard,
+  ChevronLeft,
+  ChevronRight,
 } from "lucide-react";
 
 type ShootingRow = {
@@ -67,22 +69,42 @@ function getCachedShootings(): ShootingRow[] | undefined {
   }
 }
 
-export function TopScrollingTicker() {
-  // Listen for tab focus/visibility to prevent freezing when switching tabs on mobile/tablet
-  const [tickerKey, setTickerKey] = useState(0);
+function useVisibleCount() {
+  const [count, setCount] = useState(3);
 
   useEffect(() => {
-    const handleVisibility = () => {
-      if (document.visibilityState === "visible") {
-        setTickerKey((k) => k + 1);
+    const handleResize = () => {
+      const w = window.innerWidth;
+      if (w < 540) {
+        setCount(1);
+      } else if (w < 820) {
+        setCount(2);
+      } else {
+        setCount(3);
       }
     };
-    document.addEventListener("visibilitychange", handleVisibility);
-    window.addEventListener("focus", handleVisibility);
-    return () => {
-      document.removeEventListener("visibilitychange", handleVisibility);
-      window.removeEventListener("focus", handleVisibility);
+    handleResize();
+    window.addEventListener("resize", handleResize);
+    return () => window.removeEventListener("resize", handleResize);
+  }, []);
+
+  return count;
+}
+
+export function TopScrollingTicker() {
+  const visibleCount = useVisibleCount();
+  const [startIndex, setStartIndex] = useState(0);
+  const [isSliding, setIsSliding] = useState(false);
+  const [isHovered, setIsHovered] = useState(false);
+  const [isPaused, setIsPaused] = useState(false);
+
+  // Pause when tab is not active / minimized to prevent mobile desync
+  useEffect(() => {
+    const onVisibility = () => {
+      setIsPaused(document.visibilityState === "hidden");
     };
+    document.addEventListener("visibilitychange", onVisibility);
+    return () => document.removeEventListener("visibilitychange", onVisibility);
   }, []);
 
   // 1. Total Member Due (Immediate from cache)
@@ -156,10 +178,8 @@ export function TopScrollingTicker() {
 
   // Construct alternating colorful ticker items
   const items: TickerItem[] = useMemo(() => {
-    const list: TickerItem[] = [];
-
     // 1. Member Due (Rose/Red)
-    list.push({
+    const memberDueItem: TickerItem = {
       id: "member-due",
       to: "/members",
       icon: AlertCircle,
@@ -170,10 +190,10 @@ export function TopScrollingTicker() {
         "border-rose-500/30 bg-rose-500/10 hover:bg-rose-500/20 text-rose-800 dark:text-rose-200",
       tagClass: "bg-rose-500/20 text-rose-700 dark:text-rose-300",
       highlightClass: "text-rose-600 dark:text-rose-400 font-bold",
-    });
+    };
 
     // 2. Client Due (Amber/Orange)
-    list.push({
+    const clientDueItem: TickerItem = {
       id: "client-due",
       to: "/client-dues",
       icon: Wallet,
@@ -184,55 +204,103 @@ export function TopScrollingTicker() {
         "border-amber-500/30 bg-amber-500/10 hover:bg-amber-500/20 text-amber-800 dark:text-amber-200",
       tagClass: "bg-amber-500/20 text-amber-700 dark:text-amber-300",
       highlightClass: "text-amber-600 dark:text-amber-400 font-bold",
-    });
+    };
 
     // 3. Payments (Emerald/Green)
-    (recentPayments ?? []).forEach((p, idx) => {
-      const name = p.member?.name || "সদস্য";
-      list.push({
-        id: `payment-${p.id || idx}`,
-        to: "/payments",
-        icon: BadgeDollarSign,
-        tag: `পেমেন্ট ${idx + 1}`,
-        title: name,
-        highlight: `৳ ${taka(p.amount)}`,
-        subtext: bnDate(p.paid_at),
-        containerClass:
-          "border-emerald-500/30 bg-emerald-500/10 hover:bg-emerald-500/20 text-emerald-800 dark:text-emerald-200",
-        tagClass: "bg-emerald-500/20 text-emerald-700 dark:text-emerald-300",
-        highlightClass: "text-emerald-600 dark:text-emerald-400 font-bold",
-      });
-    });
+    const paymentItems: TickerItem[] = (recentPayments ?? []).map((p, idx) => ({
+      id: `payment-${p.id || idx}`,
+      to: "/payments",
+      icon: BadgeDollarSign,
+      tag: `পেমেন্ট ${idx + 1}`,
+      title: p.member?.name || "সদস্য",
+      highlight: `৳ ${taka(p.amount)}`,
+      subtext: bnDate(p.paid_at),
+      containerClass:
+        "border-emerald-500/30 bg-emerald-500/10 hover:bg-emerald-500/20 text-emerald-800 dark:text-emerald-200",
+      tagClass: "bg-emerald-500/20 text-emerald-700 dark:text-emerald-300",
+      highlightClass: "text-emerald-600 dark:text-emerald-400 font-bold",
+    }));
 
     // 4. Shootings (Sky/Blue)
-    (recentShootings ?? []).forEach((s, idx) => {
-      list.push({
-        id: `shooting-${s.id || idx}`,
-        to: "/shootings",
-        icon: Clapperboard,
-        tag: `শুটিং ${idx + 1}`,
-        title: s.name,
-        highlight: bnDate(s.shoot_date),
-        containerClass:
-          "border-sky-500/30 bg-sky-500/10 hover:bg-sky-500/20 text-sky-800 dark:text-sky-200",
-        tagClass: "bg-sky-500/20 text-sky-700 dark:text-sky-300",
-        highlightClass: "text-sky-600 dark:text-sky-400 font-semibold",
-      });
-    });
+    const shootingItems: TickerItem[] = (recentShootings ?? []).map((s, idx) => ({
+      id: `shooting-${s.id || idx}`,
+      to: "/shootings",
+      icon: Clapperboard,
+      tag: `শুটিং ${idx + 1}`,
+      title: s.name,
+      highlight: bnDate(s.shoot_date),
+      containerClass:
+        "border-sky-500/30 bg-sky-500/10 hover:bg-sky-500/20 text-sky-800 dark:text-sky-200",
+      tagClass: "bg-sky-500/20 text-sky-700 dark:text-sky-300",
+      highlightClass: "text-sky-600 dark:text-sky-400 font-semibold",
+    }));
+
+    // Beautifully interleave so consecutive items alternate vibrant colors
+    const list: TickerItem[] = [];
+    list.push(memberDueItem);
+    if (paymentItems[0]) list.push(paymentItems[0]);
+    if (shootingItems[0]) list.push(shootingItems[0]);
+    list.push(clientDueItem);
+    if (paymentItems[1]) list.push(paymentItems[1]);
+    if (shootingItems[1]) list.push(shootingItems[1]);
+    if (paymentItems[2]) list.push(paymentItems[2]);
+    if (shootingItems[2]) list.push(shootingItems[2]);
 
     return list;
   }, [memberDue, clientDue, recentPayments, recentShootings]);
 
-  // Repeat enough items so the loop is always at least 3500px wide, avoiding empty gaps on any tablet or wide screen
-  const repeated = useMemo(() => {
+  // Ensure there are at least 6 items so the sliding window always has continuous items
+  const safeItems = useMemo(() => {
     if (items.length === 0) return [];
-    const repeatCount = Math.max(3, Math.ceil(18 / items.length));
-    const base: TickerItem[] = [];
-    for (let i = 0; i < repeatCount; i++) {
-      base.push(...items);
+    let list = [...items];
+    while (list.length < 6) {
+      list = [...list, ...items];
     }
-    return [...base, ...base];
+    return list;
   }, [items]);
+
+  // Chained 3-second step timer: rests for 3000ms, then initiates slide
+  useEffect(() => {
+    if (isPaused || isHovered || isSliding || safeItems.length === 0) return;
+
+    const timer = setTimeout(() => {
+      setIsSliding(true);
+    }, 3000);
+
+    return () => clearTimeout(timer);
+  }, [isPaused, isHovered, isSliding, safeItems.length, startIndex]);
+
+  // Slide completion timer: after 550ms ease-out animation, advance index and reset position
+  useEffect(() => {
+    if (!isSliding || safeItems.length === 0) return;
+
+    const timer = setTimeout(() => {
+      setIsSliding(false);
+      setStartIndex((prev) => (prev + 1) % safeItems.length);
+    }, 550);
+
+    return () => clearTimeout(timer);
+  }, [isSliding, safeItems.length]);
+
+  const handleNext = () => {
+    if (isSliding || safeItems.length === 0) return;
+    setIsSliding(true);
+  };
+
+  const handlePrev = () => {
+    if (isSliding || safeItems.length === 0) return;
+    setStartIndex((prev) => (prev - 1 + safeItems.length) % safeItems.length);
+  };
+
+  // Render visibleCount + 1 items: visibleCount visible, 1 incoming just outside right overflow
+  const displayedItems = useMemo(() => {
+    if (safeItems.length === 0) return [];
+    const list: TickerItem[] = [];
+    for (let i = 0; i <= visibleCount; i++) {
+      list.push(safeItems[(startIndex + i) % safeItems.length]);
+    }
+    return list;
+  }, [safeItems, startIndex, visibleCount]);
 
   if (items.length === 0) {
     return (
@@ -246,6 +314,8 @@ export function TopScrollingTicker() {
       </div>
     );
   }
+
+  const gap = 10; // px gap between items
 
   return (
     <div className="sticky top-0 z-20 flex w-full items-center overflow-hidden border-b border-border/60 bg-background/90 text-xs shadow-2xs backdrop-blur-md select-none">
@@ -263,49 +333,88 @@ export function TopScrollingTicker() {
         </span>
       </div>
 
-      {/* Marquee Track Container with min-w-0 for proper flex shrink calculation on mobile/tablets */}
-      <div className="relative min-w-0 flex-1 overflow-hidden py-1">
-        {/* Left fade gradient */}
-        <div className="pointer-events-none absolute bottom-0 left-0 top-0 z-10 w-6 bg-gradient-to-r from-background/95 to-transparent sm:w-10" />
-
-        {/* Right fade gradient */}
-        <div className="pointer-events-none absolute bottom-0 right-0 top-0 z-10 w-8 bg-gradient-to-l from-background/95 to-transparent sm:w-12" />
-
-        {/* Marquee scrolling strip */}
+      {/* Sliding Viewport Container */}
+      <div
+        className="relative min-w-0 flex-1 overflow-hidden px-2 py-1"
+        onMouseEnter={() => setIsHovered(true)}
+        onMouseLeave={() => setIsHovered(false)}
+      >
+        {/* Sliding items track */}
         <div
-          key={tickerKey}
-          className="animate-km-marquee flex items-center gap-3 whitespace-nowrap pl-2"
+          className="flex items-center gap-2.5"
+          style={{
+            transform: isSliding
+              ? `translateX(calc(-1 * (100% + ${gap}px) / ${visibleCount}))`
+              : "translateX(0px)",
+            transition: isSliding
+              ? "transform 550ms cubic-bezier(0.25, 1, 0.5, 1)"
+              : "none",
+          }}
         >
-          {repeated.map((item, idx) => {
+          {displayedItems.map((item, slotIdx) => {
             const Icon = item.icon;
             return (
-              <Link
-                key={`${item.id}-${idx}`}
-                to={item.to}
-                className={`group flex shrink-0 items-center gap-2 rounded-full border px-2.5 py-1 text-[11px] font-medium transition-all hover:scale-[1.02] sm:text-xs ${item.containerClass}`}
+              <div
+                key={slotIdx}
+                className="shrink-0"
+                style={{
+                  width: `calc((100% - ${(visibleCount - 1) * gap}px) / ${visibleCount})`,
+                }}
               >
-                <span
-                  className={`inline-flex items-center gap-1 rounded-full px-1.5 py-0.5 text-[10px] font-bold ${item.tagClass}`}
+                <Link
+                  to={item.to}
+                  className={`group flex h-7.5 w-full items-center justify-between gap-1.5 rounded-full border px-2.5 text-[11px] font-medium shadow-2xs transition-all hover:scale-[1.01] sm:text-xs ${item.containerClass}`}
                 >
-                  <Icon className="h-3 w-3 shrink-0" />
-                  {item.tag}
-                </span>
+                  <div className="flex min-w-0 items-center gap-1.5">
+                    <span
+                      className={`inline-flex shrink-0 items-center gap-1 rounded-full px-1.5 py-0.5 text-[10px] font-bold ${item.tagClass}`}
+                    >
+                      <Icon className="h-3 w-3 shrink-0" />
+                      <span>{item.tag}</span>
+                    </span>
 
-                <span className="max-w-[140px] truncate sm:max-w-[180px]">
-                  {item.title}
-                </span>
+                    <span className="truncate text-foreground/90 font-medium text-[11px] sm:text-xs">
+                      {item.title}
+                    </span>
+                  </div>
 
-                <span className={item.highlightClass}>{item.highlight}</span>
-
-                {item.subtext && (
-                  <span className="text-[10px] opacity-70 sm:text-[11px]">
-                    • {item.subtext}
-                  </span>
-                )}
-              </Link>
+                  <div className="flex shrink-0 items-center gap-1 font-semibold">
+                    <span className={item.highlightClass}>{item.highlight}</span>
+                    {item.subtext && (
+                      <span className="hidden text-[10px] opacity-70 min-[1200px]:inline">
+                        • {item.subtext}
+                      </span>
+                    )}
+                  </div>
+                </Link>
+              </div>
             );
           })}
         </div>
+      </div>
+
+      {/* Manual Step Controls (Prev / Next) */}
+      <div className="relative z-10 flex shrink-0 items-center gap-0.5 border-l border-border/60 bg-background/95 px-1.5 py-1">
+        <button
+          type="button"
+          onClick={handlePrev}
+          disabled={isSliding}
+          title="পূর্ববর্তী তথ্য"
+          aria-label="Previous info"
+          className="inline-flex h-6 w-6 items-center justify-center rounded-full text-muted-foreground transition hover:bg-muted hover:text-foreground active:scale-95 disabled:opacity-40"
+        >
+          <ChevronLeft className="h-3.5 w-3.5" />
+        </button>
+        <button
+          type="button"
+          onClick={handleNext}
+          disabled={isSliding}
+          title="পরবর্তী তথ্য"
+          aria-label="Next info"
+          className="inline-flex h-6 w-6 items-center justify-center rounded-full text-muted-foreground transition hover:bg-muted hover:text-foreground active:scale-95 disabled:opacity-40"
+        >
+          <ChevronRight className="h-3.5 w-3.5" />
+        </button>
       </div>
     </div>
   );
