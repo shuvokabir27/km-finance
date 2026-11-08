@@ -14,7 +14,7 @@ import {
 } from "@/lib/client-summary";
 import { saveMemberAccountIfNew } from "@/lib/save-member-account";
 import { ACCOUNT_KIND_LABEL, type AccountKind } from "@/lib/bd-banks";
-import { ArrowUpRight, Clapperboard, Wallet, BadgeDollarSign, TrendingUp, Plus, FileText, Download, Users, MessageSquare, Loader2, Handshake, ReceiptText, Landmark, Smartphone, Search } from "lucide-react";
+import { ArrowUpRight, Clapperboard, Wallet, BadgeDollarSign, TrendingUp, Plus, FileText, Download, Users, MessageSquare, Loader2, Handshake, ReceiptText, Landmark, Smartphone, Search, Calendar, Clock } from "lucide-react";
 import { useServerFn } from "@tanstack/react-start";
 import { sendBulkSmsToMembers, getBulkSmsBalance } from "@/lib/bulk-sms.functions";
 import { MemberAvatar } from "@/components/member-avatar";
@@ -107,24 +107,9 @@ function Dashboard() {
 
   const monthName = new Date().toLocaleDateString("bn-BD", { month: "long", year: "numeric" });
 
-  const getGreeting = () => {
-    const h = new Date().getHours();
-    if (h >= 3 && h < 5) return { text: "শুভ সুবেহ সাদেক", emoji: "🌌" };
-    if (h >= 5 && h < 12) return { text: "শুভ সকাল", emoji: "🌅" };
-    if (h >= 12 && h < 15) return { text: "শুভ দুপুর", emoji: "☀️" };
-    if (h >= 15 && h < 18) return { text: "শুভ বিকাল", emoji: "🌤️" };
-    if (h >= 18 && h < 20) return { text: "শুভ সন্ধ্যা", emoji: "🌆" };
-    return { text: "শুভ রাত্রি", emoji: "🌙" };
-  };
-  const greeting = getGreeting();
-
   return (
     <div className="space-y-5 min-[700px]:grid min-[700px]:grid-cols-2 min-[700px]:items-start min-[700px]:gap-5 min-[700px]:space-y-0 xl:grid-cols-3">
-      <div className="text-center min-[700px]:col-span-2 xl:col-span-3">
-        
-        <h1 className="mt-0.5 text-[22px] font-bold leading-tight">{greeting.text} {greeting.emoji}</h1>
-        <WeatherLine />
-      </div>
+      <GreetingDateTimeHeader />
 
       {/* Quick Payment Action Cards */}
       <div className="min-[700px]:col-span-2 xl:col-span-3">
@@ -1726,59 +1711,90 @@ function DueBreakdownDialog({
   );
 }
 
-const BN_DIGITS = ["০","১","২","৩","৪","৫","৬","৭","৮","৯"];
-const bnNum = (n: number | string) => String(n).replace(/\d/g, (d) => BN_DIGITS[+d]);
+const BN_DAYS = [
+  "রবিবার",
+  "সোমবার",
+  "মঙ্গলবার",
+  "বুধবার",
+  "বৃহস্পতিবার",
+  "শুক্রবার",
+  "শনিবার",
+];
 
-function weatherInfo(code: number): { label: string; emoji: string; rainy: boolean } {
-  if ([0].includes(code)) return { label: "পরিষ্কার আকাশ", emoji: "☀️", rainy: false };
-  if ([1, 2].includes(code)) return { label: "আংশিক মেঘলা", emoji: "🌤️", rainy: false };
-  if ([3].includes(code)) return { label: "মেঘলা আকাশ", emoji: "☁️", rainy: false };
-  if ([45, 48].includes(code)) return { label: "কুয়াশাচ্ছন্ন", emoji: "🌫️", rainy: false };
-  if ([51, 53, 55, 56, 57].includes(code)) return { label: "গুঁড়ি গুঁড়ি বৃষ্টি", emoji: "🌦️", rainy: true };
-  if ([61, 63, 65, 66, 67, 80, 81, 82].includes(code)) return { label: "বৃষ্টি হতে পারে", emoji: "🌧️", rainy: true };
-  if ([71, 73, 75, 77, 85, 86].includes(code)) return { label: "তুষারপাত", emoji: "🌨️", rainy: false };
-  if ([95, 96, 99].includes(code)) return { label: "বজ্রসহ বৃষ্টি", emoji: "⛈️", rainy: true };
-  return { label: "আবহাওয়া স্বাভাবিক", emoji: "🌤️", rainy: false };
-}
+const BN_MONTHS_NAMES = [
+  "জানুয়ারি",
+  "ফেব্রুয়ারি",
+  "মার্চ",
+  "এপ্রিল",
+  "মে",
+  "জুন",
+  "জুলাই",
+  "আগস্ট",
+  "সেপ্টেম্বর",
+  "অক্টোবর",
+  "নভেম্বর",
+  "ডিসেম্বর",
+];
 
-function WeatherLine() {
-  const { data } = useQuery({
-    queryKey: ["weather-kuakata"],
-    queryFn: async () => {
-      const url = "https://api.open-meteo.com/v1/forecast?latitude=21.81755&longitude=90.138884&current=temperature_2m,weather_code&daily=weather_code,temperature_2m_max,temperature_2m_min,precipitation_probability_max&timezone=Asia%2FDhaka&forecast_days=1";
-      const res = await fetch(url);
-      if (!res.ok) throw new Error("weather failed");
-      return res.json() as Promise<{
-        current: { temperature_2m: number; weather_code: number };
-        daily: { weather_code: number[]; temperature_2m_max: number[]; temperature_2m_min: number[]; precipitation_probability_max: number[] };
-      }>;
-    },
-    staleTime: 30 * 60 * 1000,
-    refetchOnWindowFocus: false,
-    retry: 1,
-  });
+function GreetingDateTimeHeader() {
+  const [time, setTime] = useState(() => new Date());
 
-  if (!data) return null;
-  const temp = Math.round(data.current.temperature_2m);
-  const info = weatherInfo(data.daily.weather_code?.[0] ?? data.current.weather_code);
-  const rainProb = data.daily.precipitation_probability_max?.[0] ?? 0;
-  const tMax = Math.round(data.daily.temperature_2m_max?.[0] ?? temp);
-  const tMin = Math.round(data.daily.temperature_2m_min?.[0] ?? temp);
+  useEffect(() => {
+    const timer = setInterval(() => {
+      setTime(new Date());
+    }, 1000);
+    return () => clearInterval(timer);
+  }, []);
 
-  const rainMsg = info.rainy
-    ? `আজ বৃষ্টি হওয়ার সম্ভাবনা রয়েছে (${bnNum(rainProb)}%)`
-    : rainProb >= 40
-      ? `আজ হালকা বৃষ্টি হতে পারে (${bnNum(rainProb)}%)`
-      : "আজ বৃষ্টি হওয়ার সম্ভাবনা কম";
+  const getGreeting = () => {
+    const h = time.getHours();
+    if (h >= 3 && h < 5) return { title: "শুভ সুবেহ সাদেক", emoji: "🌌", wish: "শান্তিময় ও বরকতময় একটি দিন শুরু হোক" };
+    if (h >= 5 && h < 12) return { title: "শুভ সকাল", emoji: "🌅", wish: "আপনার দিনটি সাফল্য ও আনন্দে কাটুক" };
+    if (h >= 12 && h < 15) return { title: "শুভ দুপুর", emoji: "☀️", wish: "কুয়াকাটা মাল্টিমিডিয়া টিম ড্যাশবোর্ডে আপনাকে স্বাগতম" };
+    if (h >= 15 && h < 18) return { title: "শুভ বিকাল", emoji: "🌤️", wish: "একটি সুন্দর ও সতেজ বিকাল কাটুক" };
+    if (h >= 18 && h < 20) return { title: "শুভ সন্ধ্যা", emoji: "🌆", wish: "সারাদিনের সফল কাজের পর শান্তিময় সন্ধ্যা" };
+    return { title: "শুভ রাত্রি", emoji: "🌙", wish: "শান্তিময় ও নিরাপদ রাত্রি কাটুক" };
+  };
+
+  const greeting = getGreeting();
+
+  const dayName = BN_DAYS[time.getDay()];
+  const dateNum = toBn(String(time.getDate()).padStart(2, "0"));
+  const monthName = BN_MONTHS_NAMES[time.getMonth()];
+  const yearNum = toBn(String(time.getFullYear()));
+  const formattedDate = `${dayName}, ${dateNum} ${monthName} ${yearNum}`;
+
+  let hours = time.getHours();
+  const minutes = toBn(String(time.getMinutes()).padStart(2, "0"));
+  const seconds = toBn(String(time.getSeconds()).padStart(2, "0"));
+  const ampm = hours >= 12 ? "PM" : "AM";
+  hours = hours % 12 || 12;
+  const hoursBn = toBn(String(hours).padStart(2, "0"));
+  const formattedTime = `${hoursBn}:${minutes}:${seconds} ${ampm}`;
 
   return (
-    <div className="mt-1.5 flex flex-col items-center gap-0.5 text-xs text-muted-foreground">
-      <div className="flex items-center gap-1.5">
-        <span>{info.emoji}</span>
-        <span>আজ {info.label} · তাপমাত্রা {bnNum(temp)}°C</span>
-      </div>
-      <div className="text-[11px]">
-        সর্বোচ্চ {bnNum(tMax)}° / সর্বনিম্ন {bnNum(tMin)}° · {rainMsg}
+    <div className="text-center min-[700px]:col-span-2 xl:col-span-3 py-1">
+      <h1 className="text-[22px] sm:text-2xl font-black leading-tight flex items-center justify-center gap-2">
+        <span>{greeting.title}</span>
+        <span className="text-2xl">{greeting.emoji}</span>
+      </h1>
+
+      <p className="mt-1 text-xs sm:text-sm text-muted-foreground font-medium">
+        {greeting.wish}
+      </p>
+
+      <div className="mt-2.5 inline-flex flex-wrap items-center justify-center gap-2 rounded-full border border-border/80 bg-card/90 px-3.5 py-1 text-xs shadow-2xs backdrop-blur-xs select-none">
+        <div className="flex items-center gap-1.5 text-foreground font-medium">
+          <Calendar className="h-3.5 w-3.5 text-primary shrink-0" />
+          <span>{formattedDate}</span>
+        </div>
+
+        <span className="text-muted-foreground/40">•</span>
+
+        <div className="flex items-center gap-1.5 font-mono text-primary font-bold">
+          <Clock className="h-3.5 w-3.5 text-primary shrink-0" />
+          <span>{formattedTime}</span>
+        </div>
       </div>
     </div>
   );
