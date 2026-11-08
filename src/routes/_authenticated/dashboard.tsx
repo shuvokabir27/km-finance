@@ -1798,49 +1798,17 @@ function KuakataBeachBanner() {
   const formattedTime = `${hoursBn}:${minutes} ${ampm}`;
 
   return (
-    <div className="relative overflow-hidden rounded-3xl border border-sky-200/80 bg-gradient-to-r from-[#dff2fe] via-[#e8f5fe] to-[#d7effd] p-5 sm:p-7 shadow-xs">
-      {/* Background Beach Panorama Artwork (SVG) */}
-      <div className="pointer-events-none absolute inset-0 overflow-hidden select-none">
-        {/* Soft sun glow */}
-        <div className="absolute top-0 right-1/4 h-64 w-64 rounded-full bg-amber-200/35 blur-3xl" />
-
-        {/* Distant Sea & Waves */}
-        <svg
-          viewBox="0 0 1200 300"
-          preserveAspectRatio="none"
-          className="absolute bottom-0 left-0 h-full w-full opacity-60"
-          aria-hidden="true"
-        >
-          {/* Distant ocean horizon */}
-          <path d="M0 180 Q300 170 600 175 T1200 170 L1200 300 L0 300 Z" fill="#7dd3fc" opacity="0.35" />
-          <path d="M0 205 Q350 195 700 200 T1200 195 L1200 300 L0 300 Z" fill="#38bdf8" opacity="0.45" />
-          {/* Turquoise Waves */}
-          <path d="M0 230 Q250 220 500 225 T1000 220 T1200 222 L1200 300 L0 300 Z" fill="#0284c7" opacity="0.3" />
-          {/* Golden Beach Shore */}
-          <path d="M400 300 Q700 230 1200 240 L1200 300 Z" fill="#fde68a" opacity="0.8" />
-          <path d="M600 300 Q850 245 1200 255 L1200 300 Z" fill="#fcd34d" opacity="0.85" />
-        </svg>
-
-        {/* Coconut Palm Trees on the right */}
-        <div className="absolute -right-4 -bottom-4 hidden sm:block opacity-90">
-          <svg viewBox="0 0 320 240" className="h-44 w-60 text-emerald-800" aria-hidden="true">
-            {/* Trunk 1 */}
-            <path d="M220 240 Q210 160 195 100 Q190 70 180 50" stroke="#78350f" strokeWidth="9" fill="none" strokeLinecap="round" />
-            {/* Trunk 2 */}
-            <path d="M255 240 Q260 170 270 110 Q275 80 285 60" stroke="#78350f" strokeWidth="8" fill="none" strokeLinecap="round" />
-            {/* Palm Fronds 1 */}
-            <path d="M180 50 Q130 30 90 60" stroke="#15803d" strokeWidth="4" fill="none" strokeLinecap="round" />
-            <path d="M180 50 Q140 10 110 20" stroke="#16a34a" strokeWidth="4" fill="none" strokeLinecap="round" />
-            <path d="M180 50 Q170 10 160 0" stroke="#15803d" strokeWidth="3.5" fill="none" strokeLinecap="round" />
-            <path d="M180 50 Q200 15 220 10" stroke="#16a34a" strokeWidth="4" fill="none" strokeLinecap="round" />
-            <path d="M180 50 Q220 30 245 60" stroke="#15803d" strokeWidth="4" fill="none" strokeLinecap="round" />
-            {/* Palm Fronds 2 */}
-            <path d="M285 60 Q240 40 210 70" stroke="#15803d" strokeWidth="3.5" fill="none" strokeLinecap="round" />
-            <path d="M285 60 Q270 20 250 15" stroke="#16a34a" strokeWidth="3.5" fill="none" strokeLinecap="round" />
-            <path d="M285 60 Q300 20 315 15" stroke="#15803d" strokeWidth="3.5" fill="none" strokeLinecap="round" />
-            <path d="M285 60 Q320 40 330 70" stroke="#16a34a" strokeWidth="3.5" fill="none" strokeLinecap="round" />
-          </svg>
-        </div>
+    <div className="relative overflow-hidden rounded-3xl border border-sky-200/80 bg-slate-900 p-5 sm:p-7 shadow-sm">
+      {/* Real Kuakata Beach Cover Photo */}
+      <div className="pointer-events-none absolute inset-0 select-none overflow-hidden">
+        <img
+          src="/kuakata-cover.jpg"
+          alt="Kuakata Beach"
+          className="h-full w-full object-cover object-[center_40%]"
+        />
+        {/* Soft elegant gradient overlays for readability and vibrancy */}
+        <div className="absolute inset-0 bg-gradient-to-r from-white/95 via-white/80 to-white/20 sm:to-transparent" />
+        <div className="absolute inset-0 bg-sky-950/10 mix-blend-multiply" />
       </div>
 
       {/* Content Row */}
@@ -1848,7 +1816,7 @@ function KuakataBeachBanner() {
         {/* Left: 3D Clapperboard & Greeting */}
         <div className="flex items-center gap-4">
           {/* 3D Clapperboard Icon */}
-          <div className="relative grid h-16 w-16 shrink-0 place-items-center rounded-2xl bg-gradient-to-br from-red-500 via-rose-600 to-red-700 p-2 text-white shadow-lg shadow-red-500/25">
+          <div className="relative grid h-16 w-16 shrink-0 place-items-center rounded-2xl bg-gradient-to-br from-red-500 via-rose-600 to-red-700 p-2 text-white shadow-lg shadow-red-500/30">
             {/* Diagonal striped clapper top */}
             <div className="flex h-3 w-full items-center overflow-hidden rounded-xs bg-slate-900 border border-white/40 mb-0.5">
               <div className="h-full w-2 bg-white -skew-x-12" />
@@ -1862,10 +1830,10 @@ function KuakataBeachBanner() {
           </div>
 
           <div>
-            <h1 className="text-xl sm:text-2xl lg:text-3xl font-black text-slate-800 tracking-tight">
+            <h1 className="text-xl sm:text-2xl lg:text-3xl font-black text-slate-900 tracking-tight drop-shadow-xs">
               স্বাগতম, কবির হোসেন শুভ!
             </h1>
-            <p className="mt-1 text-xs sm:text-sm font-medium text-slate-600">
+            <p className="mt-1 text-xs sm:text-sm font-semibold text-slate-700 drop-shadow-xs">
               Kuakata Multimedia এর টিম ম্যানেজমেন্ট ড্যাশবোর্ডে আপনাকে স্বাগতম।
             </p>
           </div>
@@ -1874,7 +1842,7 @@ function KuakataBeachBanner() {
         {/* Right: Floating Glass Cards */}
         <div className="flex items-center gap-3 self-start lg:self-auto flex-wrap sm:flex-nowrap">
           {/* Date Card */}
-          <div className="flex items-center gap-3 rounded-2xl border border-white/80 bg-white/90 px-4 py-2.5 shadow-xs backdrop-blur-md">
+          <div className="flex items-center gap-3 rounded-2xl border border-white/80 bg-white/90 px-4 py-2.5 shadow-md shadow-sky-950/5 backdrop-blur-md">
             <div className="grid h-10 w-10 place-items-center rounded-xl bg-red-50 text-red-600 border border-red-100 shadow-2xs">
               <Calendar className="h-5 w-5" />
             </div>
@@ -1886,7 +1854,7 @@ function KuakataBeachBanner() {
           </div>
 
           {/* Time Card */}
-          <div className="flex items-center gap-3 rounded-2xl border border-white/80 bg-white/90 px-4 py-2.5 shadow-xs backdrop-blur-md">
+          <div className="flex items-center gap-3 rounded-2xl border border-white/80 bg-white/90 px-4 py-2.5 shadow-md shadow-sky-950/5 backdrop-blur-md">
             <div className="grid h-10 w-10 place-items-center rounded-xl bg-red-50 text-red-600 border border-red-100 shadow-2xs">
               <Clock className="h-5 w-5" />
             </div>
