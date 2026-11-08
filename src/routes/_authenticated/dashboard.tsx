@@ -193,15 +193,15 @@ function Dashboard() {
       {/* 1. Welcome Hero Banner (Kuakata Beach Panorama + 3D Clapperboard + Date & Time Cards) */}
       <KuakataBeachBanner />
 
-      {/* 2. Top Stats 4 Cards Row: মোট সদস্য, ক্লায়েন্ট বকেয়া, মোট বকেয়া, মোট পেমেন্ট */}
+      {/* 2. Top Stats 4 Cards Row: ১. মোট বকেয়া, ২. ক্লায়েন্ট বকেয়া, ৩. মোট পেমেন্ট, ৪. মোট সদস্য */}
       <TopStatsRow
-        totalMembers={totalMembers}
-        activeMembers={activeMembers}
-        clientDue={totalClientDue}
-        clientDueChannelsCount={dueChannelsCount}
         totalDue={data?.outstanding || 0}
         dueMembersCount={data?.breakdown?.filter((b) => b.total > 0).length || 0}
+        clientDue={totalClientDue}
+        clientDueChannelsCount={dueChannelsCount}
         paidThisMonth={data?.paidThisMonth || 18600}
+        totalMembers={totalMembers}
+        activeMembers={activeMembers}
       />
 
       {/* 3. Financial Summary Overview Cards (Keeping all financial data 100% intact!) */}
@@ -1937,73 +1937,25 @@ function CircularProgress({ percent }: { percent: number }) {
 }
 
 function TopStatsRow({
-  totalMembers,
-  activeMembers,
-  clientDue,
-  clientDueChannelsCount,
   totalDue,
   dueMembersCount,
+  clientDue,
+  clientDueChannelsCount,
   paidThisMonth,
+  totalMembers,
+  activeMembers,
 }: {
-  totalMembers: number;
-  activeMembers: number;
-  clientDue: number;
-  clientDueChannelsCount: number;
   totalDue: number;
   dueMembersCount: number;
+  clientDue: number;
+  clientDueChannelsCount: number;
   paidThisMonth: number;
+  totalMembers: number;
+  activeMembers: number;
 }) {
   return (
     <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-      {/* 1. মোট সদস্য */}
-      <Link
-        to="/members"
-        className="group relative overflow-hidden rounded-3xl border border-rose-200/70 bg-gradient-to-br from-rose-50/90 via-white to-red-50/40 p-5 shadow-xs transition hover:shadow-md hover:-translate-y-0.5"
-      >
-        <div className="flex items-center justify-between">
-          <div className="grid h-12 w-12 place-items-center rounded-2xl bg-rose-500 text-white shadow-md shadow-rose-500/25 group-hover:scale-105 transition-transform">
-            <Users className="h-6 w-6" />
-          </div>
-          <span className="inline-flex items-center gap-0.5 rounded-full bg-emerald-100 px-2 py-0.5 text-[11px] font-bold text-emerald-700">
-            ↑ +২
-          </span>
-        </div>
-        <div className="mt-3">
-          <div className="text-xs font-semibold text-rose-800">মোট সদস্য</div>
-          <div className="text-3xl font-black text-slate-800 tracking-tight">
-            {toBn(String(totalMembers))}
-          </div>
-          <div className="mt-1 text-[11px] text-slate-500 font-medium">
-            সক্রিয়: {toBn(String(activeMembers))} জন
-          </div>
-        </div>
-      </Link>
-
-      {/* 2. ক্লায়েন্ট বকেয়া (মোট শুটিং এর পরিবর্তে) */}
-      <Link
-        to="/client-dues"
-        className="group relative overflow-hidden rounded-3xl border border-emerald-200/70 bg-gradient-to-br from-emerald-50/90 via-white to-green-50/40 p-5 shadow-xs transition hover:shadow-md hover:-translate-y-0.5"
-      >
-        <div className="flex items-center justify-between">
-          <div className="grid h-12 w-12 place-items-center rounded-2xl bg-emerald-600 text-white shadow-md shadow-emerald-600/25 group-hover:scale-105 transition-transform">
-            <Handshake className="h-6 w-6" />
-          </div>
-          <span className="inline-flex items-center gap-1 rounded-full bg-emerald-100 px-2.5 py-0.5 text-[11px] font-bold text-emerald-800">
-            ক্লায়েন্ট
-          </span>
-        </div>
-        <div className="mt-3">
-          <div className="text-xs font-semibold text-emerald-800">ক্লায়েন্ট বকেয়া</div>
-          <div className="text-2xl sm:text-3xl font-black text-emerald-700 tracking-tight">
-            ৳ {taka(clientDue)}
-          </div>
-          <div className="mt-1 text-[11px] text-slate-500 font-medium">
-            {toBn(String(clientDueChannelsCount))} টি চ্যানেলের বকেয়া
-          </div>
-        </div>
-      </Link>
-
-      {/* 3. মোট বকেয়া (আজকের হাজিরার পরিবর্তে) */}
+      {/* 1. মোট বকেয়া */}
       <Link
         to="/members"
         className="group relative overflow-hidden rounded-3xl border border-rose-200/70 bg-gradient-to-br from-rose-50/90 via-white to-red-50/40 p-5 shadow-xs transition hover:shadow-md hover:-translate-y-0.5"
@@ -2019,7 +1971,7 @@ function TopStatsRow({
         <div className="mt-3">
           <div className="text-xs font-semibold text-rose-800">মোট বকেয়া</div>
           <div className="text-2xl sm:text-3xl font-black text-rose-600 tracking-tight">
-            ৳ {taka(totalDue)}
+            {taka(totalDue)}
           </div>
           <div className="mt-1 text-[11px] text-slate-500 font-medium">
             {toBn(String(dueMembersCount))} জন সদস্যের বকেয়া
@@ -2027,7 +1979,31 @@ function TopStatsRow({
         </div>
       </Link>
 
-      {/* 4. মোট পেমেন্ট */}
+      {/* 2. ক্লায়েন্ট বকেয়া */}
+      <Link
+        to="/client-dues"
+        className="group relative overflow-hidden rounded-3xl border border-emerald-200/70 bg-gradient-to-br from-emerald-50/90 via-white to-green-50/40 p-5 shadow-xs transition hover:shadow-md hover:-translate-y-0.5"
+      >
+        <div className="flex items-center justify-between">
+          <div className="grid h-12 w-12 place-items-center rounded-2xl bg-emerald-600 text-white shadow-md shadow-emerald-600/25 group-hover:scale-105 transition-transform">
+            <Handshake className="h-6 w-6" />
+          </div>
+          <span className="inline-flex items-center gap-1 rounded-full bg-emerald-100 px-2.5 py-0.5 text-[11px] font-bold text-emerald-800">
+            ক্লায়েন্ট
+          </span>
+        </div>
+        <div className="mt-3">
+          <div className="text-xs font-semibold text-emerald-800">ক্লায়েন্ট বকেয়া</div>
+          <div className="text-2xl sm:text-3xl font-black text-emerald-700 tracking-tight">
+            {taka(clientDue)}
+          </div>
+          <div className="mt-1 text-[11px] text-slate-500 font-medium">
+            {toBn(String(clientDueChannelsCount))} টি চ্যানেলের বকেয়া
+          </div>
+        </div>
+      </Link>
+
+      {/* 3. মোট পেমেন্ট */}
       <Link
         to="/payments"
         className="group relative overflow-hidden rounded-3xl border border-amber-200/70 bg-gradient-to-br from-amber-50/90 via-white to-orange-50/40 p-5 shadow-xs transition hover:shadow-md hover:-translate-y-0.5"
@@ -2043,10 +2019,34 @@ function TopStatsRow({
         <div className="mt-3">
           <div className="text-xs font-semibold text-amber-800">মোট পেমেন্ট</div>
           <div className="text-2xl sm:text-3xl font-black text-slate-800 tracking-tight">
-            ৳ {taka(paidThisMonth)}
+            {taka(paidThisMonth)}
           </div>
           <div className="mt-1 text-[11px] text-slate-500 font-medium">
             এই মাসে পরিশোধ
+          </div>
+        </div>
+      </Link>
+
+      {/* 4. মোট সদস্য */}
+      <Link
+        to="/members"
+        className="group relative overflow-hidden rounded-3xl border border-sky-200/70 bg-gradient-to-br from-sky-50/90 via-white to-blue-50/40 p-5 shadow-xs transition hover:shadow-md hover:-translate-y-0.5"
+      >
+        <div className="flex items-center justify-between">
+          <div className="grid h-12 w-12 place-items-center rounded-2xl bg-sky-600 text-white shadow-md shadow-sky-600/25 group-hover:scale-105 transition-transform">
+            <Users className="h-6 w-6" />
+          </div>
+          <span className="inline-flex items-center gap-0.5 rounded-full bg-emerald-100 px-2 py-0.5 text-[11px] font-bold text-emerald-700">
+            ↑ +২
+          </span>
+        </div>
+        <div className="mt-3">
+          <div className="text-xs font-semibold text-sky-800">মোট সদস্য</div>
+          <div className="text-3xl font-black text-slate-800 tracking-tight">
+            {toBn(String(totalMembers))}
+          </div>
+          <div className="mt-1 text-[11px] text-slate-500 font-medium">
+            সক্রিয়: {toBn(String(activeMembers))} জন
           </div>
         </div>
       </Link>
