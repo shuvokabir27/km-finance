@@ -17,6 +17,9 @@ import { ACCOUNT_KIND_LABEL, type AccountKind } from "@/lib/bd-banks";
 import {
   AreaChart,
   Area,
+  BarChart,
+  Bar,
+  Cell,
   XAxis,
   YAxis,
   Tooltip as RechartsTooltip,
@@ -2052,26 +2055,100 @@ function TopStatsRow({
 }
 
 function MonthlySummaryChart() {
-  const chartData = [
-    { day: "১", member: 14, shooting: 12, payment: 6 },
-    { day: "৫", member: 20, shooting: 15, payment: 10 },
-    { day: "১০", member: 24, shooting: 18, payment: 12 },
-    { day: "১৫", member: 30, shooting: 24, payment: 17 },
-    { day: "২০", member: 27, shooting: 22, payment: 15 },
-    { day: "২৫", member: 35, shooting: 27, payment: 20 },
-    { day: "৩০", member: 36, shooting: 30, payment: 23 },
-  ];
+  const now = new Date();
+  const monthName = now.toLocaleDateString("bn-BD", { month: "long", year: "numeric" });
+  const monthStart = useMemo(
+    () => new Date(now.getFullYear(), now.getMonth(), 1).toISOString().slice(0, 10),
+    [],
+  );
+  const monthEnd = useMemo(
+    () => new Date(now.getFullYear(), now.getMonth() + 1, 0).toISOString().slice(0, 10),
+    [],
+  );
 
-  const monthName = new Date().toLocaleDateString("bn-BD", { month: "long", year: "numeric" });
+  // 1. Fetch running month's shootings
+  const { data: shootings = [], isLoading: isShootingsLoading } = useQuery({
+    queryKey: ["month-shootings-chart", monthStart],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("shootings")
+        .select("id, name, shoot_date")
+        .gte("shoot_date", monthStart)
+        .lte("shoot_date", monthEnd)
+        .order("shoot_date", { ascending: true });
+      if (error) throw error;
+      return (data ?? []) as { id: string; name: string; shoot_date: string }[];
+    },
+    staleTime: 1000 * 60 * 2,
+  });
+
+  const ids = useMemo(() => shootings.map((s) => s.id), [shootings]);
+
+  // 2. Fetch costs for each shooting via shooting_summary RPC
+  const summariesQuery = useQuery({
+    queryKey: ["month-shooting-summaries-chart", ids.join(",")],
+    enabled: ids.length > 0,
+    queryFn: async () => {
+      const out: Record<string, { total: number; att: number; extra: number; present: number }> = {};
+      await Promise.all(
+        ids.map(async (id) => {
+          const { data } = await supabase.rpc("shooting_summary", { _shooting_id: id });
+          const r = (data as { total_cost?: number; attendance_cost?: number; extra_cost?: number; present_count?: number }[] | null)?.[0];
+          out[id] = {
+            total: Number(r?.total_cost ?? 0),
+            att: Number(r?.attendance_cost ?? 0),
+            extra: Number(r?.extra_cost ?? 0),
+            present: Number(r?.present_count ?? 0),
+          };
+        }),
+      );
+      return out;
+    },
+    staleTime: 1000 * 60 * 2,
+  });
+
+  const summaries = summariesQuery.data ?? {};
+  const isLoading = isShootingsLoading || summariesQuery.isLoading;
+
+  // 3. Format chart items
+  const chartData = useMemo(() => {
+    return shootings.map((s) => {
+      const sum = summaries[s.id] ?? { total: 0, att: 0, extra: 0, present: 0 };
+      const shootDay = toBn(s.shoot_date.slice(8, 10));
+      return {
+        id: s.id,
+        name: s.name,
+        displayName: s.name.length > 10 ? s.name.slice(0, 9) + "…" : s.name,
+        date: s.shoot_date,
+        dayLabel: `${shootDay} নভে`,
+        total: sum.total,
+        att: sum.att,
+        extra: sum.extra,
+        present: sum.present,
+      };
+    });
+  }, [shootings, summaries]);
+
+  const totalMonthExpense = useMemo(
+    () => chartData.reduce((acc, c) => acc + c.total, 0),
+    [chartData],
+  );
 
   return (
     <section className="rounded-3xl border border-border/70 bg-card p-5 shadow-xs flex flex-col h-full">
-      <div className="mb-4 flex flex-wrap items-center justify-between gap-2">
+      {/* Header */}
+      <div className="mb-3 flex flex-wrap items-center justify-between gap-2">
         <div className="flex items-center gap-2">
           <span className="grid h-7 w-7 place-items-center rounded-lg bg-red-600 text-white shadow-xs">
-            <TrendingUp className="h-4 w-4" />
+            <Clapperboard className="h-4 w-4" />
           </span>
-          <h2 className="text-sm font-bold text-slate-800">মাসিক সারাংশ</h2>
+          <div>
+            <h2 className="text-sm font-bold text-slate-800">চলতি মাসের শুটিং ও খরচ</h2>
+            <div className="text-[11px] text-slate-500 font-medium">
+              মোট {toBn(String(shootings.length))} টি শুটিং • মোট খরচ:{" "}
+              <span className="font-bold text-red-600">৳ {taka(totalMonthExpense)}</span>
+            </div>
+          </div>
         </div>
 
         <div className="rounded-full bg-red-600 text-white px-3 py-1 text-xs font-semibold shadow-xs">
@@ -2079,71 +2156,153 @@ function MonthlySummaryChart() {
         </div>
       </div>
 
-      {/* Legend */}
-      <div className="mb-3 flex items-center gap-4 text-xs font-medium">
-        <span className="flex items-center gap-1.5 text-slate-700">
-          <span className="h-2.5 w-2.5 rounded-full bg-red-500"></span>
-          সদস্য
-        </span>
-        <span className="flex items-center gap-1.5 text-slate-700">
-          <span className="h-2.5 w-2.5 rounded-full bg-emerald-500"></span>
-          শুটিং
-        </span>
-        <span className="flex items-center gap-1.5 text-slate-700">
-          <span className="h-2.5 w-2.5 rounded-full bg-sky-500"></span>
-          পেমেন্ট
-        </span>
+      {/* Legend & Stats Pills */}
+      <div className="mb-3 flex flex-wrap items-center justify-between gap-2 text-xs">
+        <div className="flex items-center gap-3 font-medium">
+          <span className="flex items-center gap-1.5 text-slate-700">
+            <span className="h-2.5 w-2.5 rounded-full bg-red-500"></span>
+            মোট খরচ
+          </span>
+          <span className="flex items-center gap-1.5 text-slate-700">
+            <span className="h-2.5 w-2.5 rounded-full bg-emerald-500"></span>
+            হাজিরা
+          </span>
+          <span className="flex items-center gap-1.5 text-slate-700">
+            <span className="h-2.5 w-2.5 rounded-full bg-amber-500"></span>
+            অন্যান্য
+          </span>
+        </div>
+
+        {chartData.length > 0 && (
+          <span className="text-[11px] font-semibold text-slate-500 bg-slate-100 rounded-full px-2.5 py-0.5">
+            গড়: ৳ {taka(Math.round(totalMonthExpense / (chartData.length || 1)))}/শুটিং
+          </span>
+        )}
       </div>
 
-      {/* Chart */}
+      {/* Chart Canvas */}
       <div className="h-56 w-full flex-1">
-        <ResponsiveContainer width="100%" height="100%">
-          <AreaChart data={chartData} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
-            <defs>
-              <linearGradient id="colorMember" x1="0" y1="0" x2="0" y2="1">
-                <stop offset="5%" stopColor="#ef4444" stopOpacity={0.25} />
-                <stop offset="95%" stopColor="#ef4444" stopOpacity={0.0} />
-              </linearGradient>
-              <linearGradient id="colorShooting" x1="0" y1="0" x2="0" y2="1">
-                <stop offset="5%" stopColor="#10b981" stopOpacity={0.25} />
-                <stop offset="95%" stopColor="#10b981" stopOpacity={0.0} />
-              </linearGradient>
-              <linearGradient id="colorPayment" x1="0" y1="0" x2="0" y2="1">
-                <stop offset="5%" stopColor="#0ea5e9" stopOpacity={0.25} />
-                <stop offset="95%" stopColor="#0ea5e9" stopOpacity={0.0} />
-              </linearGradient>
-            </defs>
-            <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f1f5f9" />
-            <XAxis dataKey="day" stroke="#94a3b8" fontSize={11} tickLine={false} />
-            <YAxis stroke="#94a3b8" fontSize={11} tickLine={false} axisLine={false} />
-            <RechartsTooltip />
-            <Area
-              type="monotone"
-              dataKey="member"
-              stroke="#ef4444"
-              strokeWidth={2.5}
-              fillOpacity={1}
-              fill="url(#colorMember)"
-            />
-            <Area
-              type="monotone"
-              dataKey="shooting"
-              stroke="#10b981"
-              strokeWidth={2.5}
-              fillOpacity={1}
-              fill="url(#colorShooting)"
-            />
-            <Area
-              type="monotone"
-              dataKey="payment"
-              stroke="#0ea5e9"
-              strokeWidth={2.5}
-              fillOpacity={1}
-              fill="url(#colorPayment)"
-            />
-          </AreaChart>
-        </ResponsiveContainer>
+        {isLoading ? (
+          <div className="flex h-full items-center justify-center">
+            <div className="flex items-center gap-2 text-xs text-slate-400">
+              <Loader2 className="h-4 w-4 animate-spin text-red-600" />
+              শুটিং ডেটা লোড হচ্ছে…
+            </div>
+          </div>
+        ) : chartData.length === 0 ? (
+          <div className="flex h-full flex-col items-center justify-center text-center p-4 rounded-2xl bg-slate-50/60 border border-dashed border-slate-200">
+            <Clapperboard className="h-8 w-8 text-slate-300 mb-1" />
+            <div className="text-xs font-bold text-slate-700">চলতি মাসে কোনো শুটিং রেকর্ড নেই</div>
+            <p className="text-[11px] text-slate-400 mt-0.5">নতুন শুটিং যুক্ত করলে খরচ গ্রাফে শো হবে</p>
+            <Link
+              to="/shootings"
+              className="mt-3 inline-flex items-center gap-1 rounded-xl bg-red-600 px-3 py-1.5 text-xs font-bold text-white shadow-xs hover:bg-red-700 transition"
+            >
+              <Plus className="h-3.5 w-3.5" /> শুটিং তৈরি করুন
+            </Link>
+          </div>
+        ) : (
+          <ResponsiveContainer width="100%" height="100%">
+            <BarChart
+              data={chartData}
+              margin={{ top: 12, right: 10, left: -10, bottom: 0 }}
+            >
+              <defs>
+                <linearGradient id="barRedGradient" x1="0" y1="0" x2="0" y2="1">
+                  <stop offset="0%" stopColor="#ef4444" stopOpacity={0.95} />
+                  <stop offset="100%" stopColor="#dc2626" stopOpacity={0.8} />
+                </linearGradient>
+                <linearGradient id="barEmeraldGradient" x1="0" y1="0" x2="0" y2="1">
+                  <stop offset="0%" stopColor="#10b981" stopOpacity={0.95} />
+                  <stop offset="100%" stopColor="#059669" stopOpacity={0.8} />
+                </linearGradient>
+                <linearGradient id="barAmberGradient" x1="0" y1="0" x2="0" y2="1">
+                  <stop offset="0%" stopColor="#f59e0b" stopOpacity={0.95} />
+                  <stop offset="100%" stopColor="#d97706" stopOpacity={0.8} />
+                </linearGradient>
+              </defs>
+              <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f1f5f9" />
+              <XAxis
+                dataKey="displayName"
+                stroke="#64748b"
+                fontSize={11}
+                tickLine={false}
+              />
+              <YAxis
+                stroke="#94a3b8"
+                fontSize={10}
+                tickLine={false}
+                axisLine={false}
+                tickFormatter={(v) => "৳" + toBn(String(Math.round(v / 1000))) + "k"}
+              />
+              <RechartsTooltip
+                content={({ active, payload }) => {
+                  if (active && payload && payload.length) {
+                    const d = payload[0].payload;
+                    return (
+                      <div className="rounded-2xl border border-slate-700/80 bg-slate-900/95 p-3 text-white shadow-xl backdrop-blur-md min-w-[190px]">
+                        <div className="flex items-center gap-1.5 text-xs font-bold text-red-400 mb-1">
+                          <Clapperboard className="h-3.5 w-3.5" />
+                          <span className="truncate">{d.name}</span>
+                        </div>
+                        <div className="text-[11px] text-slate-400 mb-2 font-medium">
+                          তারিখ: {bnDate(d.date)}
+                        </div>
+                        <div className="space-y-1 text-xs border-t border-slate-800 pt-2">
+                          <div className="flex justify-between items-center">
+                            <span className="text-slate-300">মোট খরচ:</span>
+                            <span className="font-extrabold text-amber-400">৳ {taka(d.total)}</span>
+                          </div>
+                          <div className="flex justify-between items-center text-[11px] text-slate-400">
+                            <span>হাজিরা খরচ ({toBn(String(d.present))} জন):</span>
+                            <span>৳ {taka(d.att)}</span>
+                          </div>
+                          {d.extra > 0 && (
+                            <div className="flex justify-between items-center text-[11px] text-slate-400">
+                              <span>অন্যান্য খরচ:</span>
+                              <span>৳ {taka(d.extra)}</span>
+                            </div>
+                          )}
+                        </div>
+                      </div>
+                    );
+                  }
+                  return null;
+                }}
+              />
+              <Bar dataKey="total" radius={[8, 8, 0, 0]} maxBarSize={48}>
+                {chartData.map((_, index) => {
+                  const colors = ["url(#barRedGradient)", "url(#barEmeraldGradient)", "url(#barAmberGradient)"];
+                  return <Cell key={`cell-${index}`} fill={colors[index % colors.length]} />;
+                })}
+              </Bar>
+            </BarChart>
+          </ResponsiveContainer>
+        )}
       </div>
+
+      {/* Running Month Shootings Chips List */}
+      {chartData.length > 0 && (
+        <div className="mt-3 pt-3 border-t border-slate-100 flex flex-wrap gap-2 items-center">
+          {chartData.map((s, idx) => (
+            <Link
+              key={s.id}
+              to="/shootings"
+              className="group flex items-center gap-2 rounded-xl border border-slate-200/80 bg-slate-50/70 hover:bg-red-50 hover:border-red-200 px-3 py-1.5 text-xs transition active:scale-95"
+            >
+              <div className="grid h-5 w-5 place-items-center rounded-md bg-red-100 text-red-600 font-bold text-[10px] group-hover:bg-red-500 group-hover:text-white transition">
+                {toBn(String(idx + 1))}
+              </div>
+              <span className="font-semibold text-slate-800 group-hover:text-red-700 max-w-[120px] truncate">
+                {s.name}
+              </span>
+              <span className="font-bold text-red-600 bg-white px-2 py-0.5 rounded-lg border border-slate-200/60 shadow-2xs">
+                ৳ {taka(s.total)}
+              </span>
+            </Link>
+          ))}
+        </div>
+      )}
     </section>
   );
 }
