@@ -1803,11 +1803,11 @@ function KuakataBeachBanner() {
       <div className="pointer-events-none absolute inset-0 select-none overflow-hidden">
         <img
           src="/kuakata-cover.jpg"
-          alt="Kuakata Beach"
-          className="h-full w-full object-cover object-[center_40%]"
+          alt="Kuakata Sea Beach"
+          className="h-full w-full object-cover object-[center_55%]"
         />
         {/* Soft elegant gradient overlays for readability and vibrancy */}
-        <div className="absolute inset-0 bg-gradient-to-r from-white/95 via-white/80 to-white/20 sm:to-transparent" />
+        <div className="absolute inset-0 bg-gradient-to-r from-white/92 via-white/75 to-white/10 sm:to-transparent" />
         <div className="absolute inset-0 bg-sky-950/10 mix-blend-multiply" />
       </div>
 
