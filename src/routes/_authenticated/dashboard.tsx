@@ -191,6 +191,9 @@ function Dashboard() {
 
   return (
     <div className="space-y-6">
+      {/* 0. দ্রুত অ্যাকশন (টপে স্ক্রলিং টেক্সট হাইড করে স্থাপিত) */}
+      <QuickActionsCard />
+
       {/* 1. Welcome Hero Banner (Kuakata Beach Panorama + 3D Clapperboard + Date & Time Cards) */}
       <KuakataBeachBanner />
 
@@ -365,8 +368,8 @@ function Dashboard() {
         </div>
       </div>
 
-      {/* 5. Bottom 3-Card Section (দ্রুত অ্যাকশন, গুরুত্বপূর্ণ বার্তা, টিমের অনুপ্রেরণা) */}
-      <BottomThreeCards
+      {/* 5. Bottom 2-Card Section (গুরুত্বপূর্ণ বার্তা, টিমের অনুপ্রেরণা) */}
+      <BottomTwoCards
         upcomingShootingName={recentShootings.data?.[0]?.name}
       />
 
@@ -2537,63 +2540,66 @@ function RecentActivityFeed({
   );
 }
 
-function BottomThreeCards({ upcomingShootingName }: { upcomingShootingName?: string }) {
+function QuickActionsCard() {
   return (
-    <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
-      {/* 1. দ্রুত অ্যাকশন */}
-      <section className="rounded-3xl border border-border/70 bg-card p-5 shadow-xs flex flex-col justify-between">
-        <h2 className="flex items-center gap-2 text-sm font-bold text-slate-800 mb-4">
-          <Zap className="h-4 w-4 text-amber-500" /> দ্রুত অ্যাকশন
-        </h2>
+    <section className="rounded-3xl border border-border/70 bg-card p-5 shadow-xs">
+      <h2 className="flex items-center gap-2 text-sm font-bold text-slate-800 dark:text-slate-100 mb-4">
+        <Zap className="h-4 w-4 text-amber-500 fill-amber-500" /> দ্রুত অ্যাকশন
+      </h2>
 
-        <div className="grid grid-cols-4 gap-2">
-          {/* Shooting */}
-          <Link
-            to="/shootings"
-            className="flex flex-col items-center gap-1.5 rounded-2xl border border-rose-200/60 bg-rose-50/50 p-2.5 text-center transition hover:bg-rose-100/70 active:scale-95"
-          >
-            <div className="grid h-10 w-10 place-items-center rounded-xl bg-rose-500 text-white shadow-xs">
-              <Camera className="h-5 w-5" />
-            </div>
-            <span className="text-[10px] font-bold text-slate-700">শুটিং তৈরি</span>
-          </Link>
+      <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+        {/* Shooting */}
+        <Link
+          to="/shootings"
+          className="flex flex-col items-center gap-2 rounded-2xl border border-rose-200/60 bg-rose-50/50 p-3 sm:p-3.5 text-center transition hover:bg-rose-100/70 hover:border-rose-300 hover:shadow-xs active:scale-95 cursor-pointer"
+        >
+          <div className="grid h-12 w-12 place-items-center rounded-2xl bg-rose-500 text-white shadow-xs">
+            <Camera className="h-6 w-6" />
+          </div>
+          <span className="text-xs font-bold text-slate-700 dark:text-slate-200">শুটিং তৈরি</span>
+        </Link>
 
-          {/* Member */}
-          <Link
-            to="/members"
-            className="flex flex-col items-center gap-1.5 rounded-2xl border border-emerald-200/60 bg-emerald-50/50 p-2.5 text-center transition hover:bg-emerald-100/70 active:scale-95"
-          >
-            <div className="grid h-10 w-10 place-items-center rounded-xl bg-emerald-500 text-white shadow-xs">
-              <UserPlus className="h-5 w-5" />
-            </div>
-            <span className="text-[10px] font-bold text-slate-700">সদস্য যুক্ত</span>
-          </Link>
+        {/* Member */}
+        <Link
+          to="/members"
+          className="flex flex-col items-center gap-2 rounded-2xl border border-emerald-200/60 bg-emerald-50/50 p-3 sm:p-3.5 text-center transition hover:bg-emerald-100/70 hover:border-emerald-300 hover:shadow-xs active:scale-95 cursor-pointer"
+        >
+          <div className="grid h-12 w-12 place-items-center rounded-2xl bg-emerald-500 text-white shadow-xs">
+            <UserPlus className="h-6 w-6" />
+          </div>
+          <span className="text-xs font-bold text-slate-700 dark:text-slate-200">সদস্য যুক্ত</span>
+        </Link>
 
-          {/* Report */}
-          <Link
-            to="/reports"
-            className="flex flex-col items-center gap-1.5 rounded-2xl border border-blue-200/60 bg-blue-50/50 p-2.5 text-center transition hover:bg-blue-100/70 active:scale-95"
-          >
-            <div className="grid h-10 w-10 place-items-center rounded-xl bg-blue-500 text-white shadow-xs">
-              <FileText className="h-5 w-5" />
-            </div>
-            <span className="text-[10px] font-bold text-slate-700">রিপোর্ট</span>
-          </Link>
+        {/* Report */}
+        <Link
+          to="/reports"
+          className="flex flex-col items-center gap-2 rounded-2xl border border-blue-200/60 bg-blue-50/50 p-3 sm:p-3.5 text-center transition hover:bg-blue-100/70 hover:border-blue-300 hover:shadow-xs active:scale-95 cursor-pointer"
+        >
+          <div className="grid h-12 w-12 place-items-center rounded-2xl bg-blue-500 text-white shadow-xs">
+            <FileText className="h-6 w-6" />
+          </div>
+          <span className="text-xs font-bold text-slate-700 dark:text-slate-200">রিপোর্ট</span>
+        </Link>
 
-          {/* Attendance */}
-          <Link
-            to="/attendance"
-            className="flex flex-col items-center gap-1.5 rounded-2xl border border-purple-200/60 bg-purple-50/50 p-2.5 text-center transition hover:bg-purple-100/70 active:scale-95"
-          >
-            <div className="grid h-10 w-10 place-items-center rounded-xl bg-purple-500 text-white shadow-xs">
-              <CalendarDays className="h-5 w-5" />
-            </div>
-            <span className="text-[10px] font-bold text-slate-700">উপস্থিতি</span>
-          </Link>
-        </div>
-      </section>
+        {/* Attendance */}
+        <Link
+          to="/attendance"
+          className="flex flex-col items-center gap-2 rounded-2xl border border-purple-200/60 bg-purple-50/50 p-3 sm:p-3.5 text-center transition hover:bg-purple-100/70 hover:border-purple-300 hover:shadow-xs active:scale-95 cursor-pointer"
+        >
+          <div className="grid h-12 w-12 place-items-center rounded-2xl bg-purple-500 text-white shadow-xs">
+            <CalendarDays className="h-6 w-6" />
+          </div>
+          <span className="text-xs font-bold text-slate-700 dark:text-slate-200">উপস্থিতি</span>
+        </Link>
+      </div>
+    </section>
+  );
+}
 
-      {/* 2. গুরুত্বপূর্ণ বার্তা */}
+function BottomTwoCards({ upcomingShootingName }: { upcomingShootingName?: string }) {
+  return (
+    <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+      {/* 1. গুরুত্বপূর্ণ বার্তা */}
       <section className="relative overflow-hidden rounded-3xl border border-emerald-200/70 bg-gradient-to-br from-emerald-50/90 via-green-50/50 to-teal-50/40 p-5 shadow-xs flex flex-col justify-between">
         <div className="relative z-10">
           <div className="flex items-center gap-2 text-xs font-bold text-emerald-800 mb-2">
@@ -2610,7 +2616,7 @@ function BottomThreeCards({ upcomingShootingName }: { upcomingShootingName?: str
         <div className="relative z-10 mt-3 flex items-center justify-between">
           <Link
             to="/shootings"
-            className="inline-flex items-center gap-1 rounded-full bg-red-600 px-3 py-1.5 text-xs font-bold text-white shadow-xs hover:bg-red-700 transition active:scale-95"
+            className="inline-flex items-center gap-1 rounded-full bg-red-600 px-3 py-1.5 text-xs font-bold text-white shadow-xs hover:bg-red-700 transition active:scale-95 cursor-pointer"
           >
             বিস্তারিত দেখুন <ArrowUpRight className="h-3.5 w-3.5" />
           </Link>
@@ -2618,7 +2624,7 @@ function BottomThreeCards({ upcomingShootingName }: { upcomingShootingName?: str
         </div>
       </section>
 
-      {/* 3. টিমের অনুপ্রেরণা */}
+      {/* 2. টিমের অনুপ্রেরণা */}
       <section className="rounded-3xl border border-amber-200/70 bg-gradient-to-br from-amber-50/90 via-yellow-50/40 to-orange-50/30 p-5 shadow-xs flex flex-col justify-between text-center">
         <div className="flex items-center justify-center gap-2 text-xs font-bold text-amber-800 mb-1">
           <Trophy className="h-4 w-4 text-amber-600" />

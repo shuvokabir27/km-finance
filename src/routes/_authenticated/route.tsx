@@ -251,7 +251,7 @@ function AuthedLayout() {
           </div>
         </header>
 
-      <TopScrollingTicker />
+      {/* Top Scrolling Live Updates Marquee Ticker hidden as requested */}
 
       <main className="flex-1 px-5 pb-24 pt-5 min-[700px]:px-8 min-[700px]:pt-7 lg:px-10 xl:px-12">
         <div key={pathname} className={`mx-auto w-full max-w-7xl ${pageAnimClass(pathname)}`}>
