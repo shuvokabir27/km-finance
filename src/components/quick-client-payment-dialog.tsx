@@ -3,6 +3,10 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { taka, toBn, bnDate } from "@/lib/format";
 import { BrandAvatar, useChannels } from "@/lib/brand";
+import {
+  fetchClientSummary,
+  getCachedClientSummary,
+} from "@/lib/client-summary";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -96,17 +100,9 @@ export function QuickClientPaymentDialog({
   const { data: summaryList = [] } = useQuery({
     queryKey: ["client-channel-summary"],
     enabled: open && !channelsSummary,
-    queryFn: async () => {
-      const { data, error } = await supabase.rpc("client_channel_summary");
-      if (error) throw error;
-      return ((data ?? []) as ClientChannelRow[]).map((r) => ({
-        channel: r.channel,
-        shooting_count: Number(r.shooting_count),
-        contract: Number(r.contract_total),
-        received: Number(r.received_total),
-        due: Number(r.due_total),
-      }));
-    },
+    queryFn: fetchClientSummary,
+    initialData: getCachedClientSummary,
+    staleTime: 1000 * 60 * 2,
   });
 
   const channelsList = useMemo(() => {

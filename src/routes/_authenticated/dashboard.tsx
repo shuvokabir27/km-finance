@@ -3,7 +3,15 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useEffect, useMemo, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { taka, toBn, bnDate } from "@/lib/format";
-import { fetchDashboardSummary } from "@/lib/dashboard-totals";
+import {
+  fetchDashboardSummary,
+  getCachedDashboardSummary,
+} from "@/lib/dashboard-totals";
+import {
+  fetchClientSummary,
+  getCachedClientSummary,
+  type ClientSummaryItem,
+} from "@/lib/client-summary";
 import { saveMemberAccountIfNew } from "@/lib/save-member-account";
 import { ACCOUNT_KIND_LABEL, type AccountKind } from "@/lib/bd-banks";
 import { ArrowUpRight, Clapperboard, Wallet, BadgeDollarSign, TrendingUp, Plus, FileText, Download, Users, MessageSquare, Loader2, Handshake, ReceiptText, Landmark, Smartphone, Search } from "lucide-react";
@@ -43,6 +51,15 @@ function Dashboard() {
   const { data, isLoading } = useQuery({
     queryKey: ["dashboard"],
     queryFn: fetchDashboardSummary,
+    initialData: getCachedDashboardSummary,
+    staleTime: 1000 * 60 * 2,
+  });
+
+  const { data: clientSummaryList } = useQuery({
+    queryKey: ["client-channel-summary"],
+    queryFn: fetchClientSummary,
+    initialData: getCachedClientSummary,
+    staleTime: 1000 * 60 * 2,
   });
 
   const recentShootings = useQuery({
@@ -113,7 +130,7 @@ function Dashboard() {
       <div className="min-[700px]:col-span-2 xl:col-span-3">
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
           <QuickDuePaymentDialog membersWithDue={data?.breakdown} />
-          <QuickClientPaymentDialog />
+          <QuickClientPaymentDialog channelsSummary={clientSummaryList} />
         </div>
       </div>
 
@@ -276,16 +293,9 @@ type ClientSummaryRow = {
 function ClientDuesCard() {
   const { data, isLoading } = useQuery({
     queryKey: ["client-channel-summary"],
-    queryFn: async () => {
-      const { data, error } = await supabase.rpc("client_channel_summary");
-      if (error) throw error;
-      return ((data ?? []) as ClientSummaryRow[]).map((r) => ({
-        channel: r.channel,
-        due: Number(r.due_total),
-        received: Number(r.received_total),
-        contract: Number(r.contract_total),
-      }));
-    },
+    queryFn: fetchClientSummary,
+    initialData: getCachedClientSummary,
+    staleTime: 1000 * 60 * 2,
   });
 
   const totals = useMemo(() => {

@@ -37,6 +37,10 @@ import { taka, toBn, bnDate } from "@/lib/format";
 import { BrandAvatar, useChannels } from "@/lib/brand";
 import { toast } from "sonner";
 import { ConfirmDelete } from "@/components/confirm-delete";
+import {
+  fetchClientSummary,
+  getCachedClientSummary,
+} from "@/lib/client-summary";
 
 export const Route = createFileRoute("/_authenticated/client-dues")({
   component: ClientDuesPage,
@@ -55,17 +59,9 @@ function ClientDuesPage() {
 
   const { data: summary = [], isLoading } = useQuery({
     queryKey: ["client-channel-summary"],
-    queryFn: async () => {
-      const { data, error } = await supabase.rpc("client_channel_summary");
-      if (error) throw error;
-      return ((data ?? []) as Summary[]).map((r) => ({
-        channel: r.channel,
-        shooting_count: Number(r.shooting_count),
-        contract_total: Number(r.contract_total),
-        received_total: Number(r.received_total),
-        due_total: Number(r.due_total),
-      }));
-    },
+    queryFn: fetchClientSummary,
+    initialData: getCachedClientSummary,
+    staleTime: 1000 * 60 * 2,
   });
 
   const totals = useMemo(() => {

@@ -15,6 +15,32 @@ export type DashboardSummary = {
   }>;
 };
 
+const STORAGE_KEY = "km_cache_dashboard_summary_v1";
+
+export function getCachedDashboardSummary(): DashboardSummary | undefined {
+  if (typeof window === "undefined") return undefined;
+  try {
+    const raw = localStorage.getItem(STORAGE_KEY);
+    if (!raw) return undefined;
+    const parsed = JSON.parse(raw);
+    if (parsed && typeof parsed.outstanding === "number") {
+      return parsed as DashboardSummary;
+    }
+  } catch {
+    // Ignore cache error
+  }
+  return undefined;
+}
+
+export function saveCachedDashboardSummary(data: DashboardSummary): void {
+  if (typeof window === "undefined") return;
+  try {
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
+  } catch {
+    // Ignore storage quota error
+  }
+}
+
 export async function fetchDashboardSummary(): Promise<DashboardSummary> {
   const now = new Date();
   const monthStartDay = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, "0")}-01`;
@@ -99,5 +125,8 @@ export async function fetchDashboardSummary(): Promise<DashboardSummary> {
     return { id: m.id, name: m.name, photo_url: m.photo_url, prev: showPrev, curr: showCurr, total };
   });
 
-  return { paidThisMonth, outstanding, prevDue, currDue, breakdown };
+  const result: DashboardSummary = { paidThisMonth, outstanding, prevDue, currDue, breakdown };
+  saveCachedDashboardSummary(result);
+  return result;
 }
+

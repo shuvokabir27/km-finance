@@ -1,15 +1,21 @@
 import { Link } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
-import { useMemo } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { taka, bnDate } from "@/lib/format";
-import { fetchDashboardSummary } from "@/lib/dashboard-totals";
+import {
+  fetchDashboardSummary,
+  getCachedDashboardSummary,
+} from "@/lib/dashboard-totals";
+import {
+  fetchClientSummary,
+  getCachedClientSummary,
+} from "@/lib/client-summary";
 import {
   AlertCircle,
   Wallet,
   BadgeDollarSign,
   Clapperboard,
-  Sparkles,
 } from "lucide-react";
 
 type ShootingRow = {
@@ -38,26 +44,64 @@ type TickerItem = {
   highlightClass: string;
 };
 
+const PAYMENTS_CACHE_KEY = "km_cache_recent_payments_v1";
+const SHOOTINGS_CACHE_KEY = "km_cache_recent_shootings_v1";
+
+function getCachedPayments(): PaymentRow[] | undefined {
+  if (typeof window === "undefined") return undefined;
+  try {
+    const raw = localStorage.getItem(PAYMENTS_CACHE_KEY);
+    return raw ? JSON.parse(raw) : undefined;
+  } catch {
+    return undefined;
+  }
+}
+
+function getCachedShootings(): ShootingRow[] | undefined {
+  if (typeof window === "undefined") return undefined;
+  try {
+    const raw = localStorage.getItem(SHOOTINGS_CACHE_KEY);
+    return raw ? JSON.parse(raw) : undefined;
+  } catch {
+    return undefined;
+  }
+}
+
 export function TopScrollingTicker() {
-  // 1. Total Member Due
+  // Listen for tab focus/visibility to prevent freezing when switching tabs on mobile/tablet
+  const [tickerKey, setTickerKey] = useState(0);
+
+  useEffect(() => {
+    const handleVisibility = () => {
+      if (document.visibilityState === "visible") {
+        setTickerKey((k) => k + 1);
+      }
+    };
+    document.addEventListener("visibilitychange", handleVisibility);
+    window.addEventListener("focus", handleVisibility);
+    return () => {
+      document.removeEventListener("visibilitychange", handleVisibility);
+      window.removeEventListener("focus", handleVisibility);
+    };
+  }, []);
+
+  // 1. Total Member Due (Immediate from cache)
   const { data: dashboardData } = useQuery({
     queryKey: ["dashboard"],
     queryFn: fetchDashboardSummary,
-    staleTime: 1000 * 60,
+    initialData: getCachedDashboardSummary,
+    staleTime: 1000 * 60 * 2,
   });
 
-  // 2. Total Client Due
+  // 2. Total Client Due (Immediate from cache)
   const { data: clientSummary } = useQuery({
     queryKey: ["client-channel-summary"],
-    queryFn: async () => {
-      const { data, error } = await supabase.rpc("client_channel_summary");
-      if (error) throw error;
-      return (data ?? []) as Array<{ due_total: number }>;
-    },
-    staleTime: 1000 * 60,
+    queryFn: fetchClientSummary,
+    initialData: getCachedClientSummary,
+    staleTime: 1000 * 60 * 2,
   });
 
-  // 3. Last 3 Payments
+  // 3. Last 3 Payments (Immediate from cache)
   const { data: recentPayments } = useQuery({
     queryKey: ["dashboard-recent-payments"],
     queryFn: async () => {
@@ -67,12 +111,19 @@ export function TopScrollingTicker() {
         .order("paid_at", { ascending: false })
         .limit(3);
       if (error) throw error;
-      return data as unknown as PaymentRow[];
+      const list = (data ?? []) as unknown as PaymentRow[];
+      try {
+        localStorage.setItem(PAYMENTS_CACHE_KEY, JSON.stringify(list));
+      } catch {
+        // ignore
+      }
+      return list;
     },
-    staleTime: 1000 * 60,
+    initialData: getCachedPayments,
+    staleTime: 1000 * 60 * 2,
   });
 
-  // 4. Last 3 Shootings
+  // 4. Last 3 Shootings (Immediate from cache)
   const { data: recentShootings } = useQuery({
     queryKey: ["dashboard-recent-shootings"],
     queryFn: async () => {
@@ -83,14 +134,24 @@ export function TopScrollingTicker() {
         .order("created_at", { ascending: false })
         .limit(3);
       if (error) throw error;
-      return data as ShootingRow[];
+      const list = (data ?? []) as ShootingRow[];
+      try {
+        localStorage.setItem(SHOOTINGS_CACHE_KEY, JSON.stringify(list));
+      } catch {
+        // ignore
+      }
+      return list;
     },
-    staleTime: 1000 * 60,
+    initialData: getCachedShootings,
+    staleTime: 1000 * 60 * 2,
   });
 
   const memberDue = dashboardData?.outstanding ?? 0;
   const clientDue = useMemo(() => {
-    return (clientSummary ?? []).reduce((acc, row) => acc + Number(row.due_total ?? 0), 0);
+    return (clientSummary ?? []).reduce(
+      (acc, row) => acc + Number(row.due ?? 0),
+      0,
+    );
   }, [clientSummary]);
 
   // Construct alternating colorful ticker items
@@ -162,13 +223,32 @@ export function TopScrollingTicker() {
     return list;
   }, [memberDue, clientDue, recentPayments, recentShootings]);
 
-  if (items.length === 0) return null;
+  // Repeat enough items so the loop is always at least 3500px wide, avoiding empty gaps on any tablet or wide screen
+  const repeated = useMemo(() => {
+    if (items.length === 0) return [];
+    const repeatCount = Math.max(3, Math.ceil(18 / items.length));
+    const base: TickerItem[] = [];
+    for (let i = 0; i < repeatCount; i++) {
+      base.push(...items);
+    }
+    return [...base, ...base];
+  }, [items]);
 
-  // We repeat items 4 times so it loops seamlessly on wide screens without empty gaps
-  const repeated = [...items, ...items, ...items, ...items];
+  if (items.length === 0) {
+    return (
+      <div className="sticky top-0 z-20 flex w-full items-center overflow-hidden border-b border-border/60 bg-background/90 px-3 py-1.5 text-xs shadow-2xs backdrop-blur-md select-none">
+        <div className="flex items-center gap-2 text-[11px] text-muted-foreground">
+          <span className="relative flex h-2 w-2">
+            <span className="inline-flex h-2 w-2 animate-pulse rounded-full bg-emerald-500"></span>
+          </span>
+          <span className="font-semibold text-primary">লাইভ আপডেট লোড হচ্ছে…</span>
+        </div>
+      </div>
+    );
+  }
 
   return (
-    <div className="sticky top-0 z-20 flex w-full items-center overflow-hidden border-b border-border/60 bg-background/90 backdrop-blur-md text-xs shadow-2xs select-none">
+    <div className="sticky top-0 z-20 flex w-full items-center overflow-hidden border-b border-border/60 bg-background/90 text-xs shadow-2xs backdrop-blur-md select-none">
       {/* Left fixed live indicator */}
       <div className="relative z-10 flex shrink-0 items-center gap-1.5 border-r border-border/60 bg-background/95 px-3 py-1.5 shadow-[4px_0_12px_-2px_rgba(0,0,0,0.06)] dark:shadow-[4px_0_12px_-2px_rgba(0,0,0,0.3)]">
         <span className="relative flex h-2 w-2">
@@ -183,23 +263,26 @@ export function TopScrollingTicker() {
         </span>
       </div>
 
-      {/* Marquee Track Container */}
-      <div className="relative flex-1 overflow-hidden py-1">
+      {/* Marquee Track Container with min-w-0 for proper flex shrink calculation on mobile/tablets */}
+      <div className="relative min-w-0 flex-1 overflow-hidden py-1">
         {/* Left fade gradient */}
-        <div className="pointer-events-none absolute left-0 top-0 bottom-0 z-10 w-6 bg-gradient-to-r from-background/95 to-transparent sm:w-10" />
+        <div className="pointer-events-none absolute bottom-0 left-0 top-0 z-10 w-6 bg-gradient-to-r from-background/95 to-transparent sm:w-10" />
 
         {/* Right fade gradient */}
-        <div className="pointer-events-none absolute right-0 top-0 bottom-0 z-10 w-8 bg-gradient-to-l from-background/95 to-transparent sm:w-12" />
+        <div className="pointer-events-none absolute bottom-0 right-0 top-0 z-10 w-8 bg-gradient-to-l from-background/95 to-transparent sm:w-12" />
 
         {/* Marquee scrolling strip */}
-        <div className="animate-km-marquee flex items-center gap-3 whitespace-nowrap pl-2">
+        <div
+          key={tickerKey}
+          className="animate-km-marquee flex items-center gap-3 whitespace-nowrap pl-2"
+        >
           {repeated.map((item, idx) => {
             const Icon = item.icon;
             return (
               <Link
                 key={`${item.id}-${idx}`}
                 to={item.to}
-                className={`group flex shrink-0 items-center gap-2 rounded-full border px-2.5 py-1 text-[11px] sm:text-xs font-medium transition-all hover:scale-[1.02] ${item.containerClass}`}
+                className={`group flex shrink-0 items-center gap-2 rounded-full border px-2.5 py-1 text-[11px] font-medium transition-all hover:scale-[1.02] sm:text-xs ${item.containerClass}`}
               >
                 <span
                   className={`inline-flex items-center gap-1 rounded-full px-1.5 py-0.5 text-[10px] font-bold ${item.tagClass}`}
@@ -215,7 +298,7 @@ export function TopScrollingTicker() {
                 <span className={item.highlightClass}>{item.highlight}</span>
 
                 {item.subtext && (
-                  <span className="opacity-70 text-[10px] sm:text-[11px]">
+                  <span className="text-[10px] opacity-70 sm:text-[11px]">
                     • {item.subtext}
                   </span>
                 )}

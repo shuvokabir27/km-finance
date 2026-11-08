@@ -303,8 +303,12 @@
 
 /* Top scrolling marquee ticker */
 @keyframes km-marquee {
-  0% { transform: translateX(0); }
-  100% { transform: translateX(-50%); }
+  0% {
+    transform: translate3d(0, 0, 0);
+  }
+  100% {
+    transform: translate3d(-50%, 0, 0);
+  }
 }
 
 .animate-km-marquee {
@@ -312,11 +316,19 @@
   width: max-content;
   animation: km-marquee 50s linear infinite;
   will-change: transform;
+  transform: translate3d(0, 0, 0);
+  -webkit-transform: translate3d(0, 0, 0);
+  -webkit-backface-visibility: hidden;
+  backface-visibility: hidden;
+  perspective: 1000px;
 }
 
-.animate-km-marquee:hover,
-.animate-km-marquee:active {
-  animation-play-state: paused;
+/* Pause on hover ONLY on desktop devices with mouse cursor */
+/* Prevents touch screens on mobile/tablets from freezing */
+@media (hover: hover) and (pointer: fine) {
+  .animate-km-marquee:hover {
+    animation-play-state: paused;
+  }
 }
 
 @media print {

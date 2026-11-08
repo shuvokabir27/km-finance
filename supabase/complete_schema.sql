@@ -898,6 +898,12 @@ CREATE INDEX IF NOT EXISTS client_payments_owner_channel_idx
   ON public.client_payments(owner_id, channel);
 CREATE INDEX IF NOT EXISTS client_payments_shooting_idx
   ON public.client_payments(shooting_id);
+CREATE INDEX IF NOT EXISTS idx_shootings_owner_channel
+  ON public.shootings(owner_id, channel)
+  WHERE channel IS NOT NULL;
+CREATE INDEX IF NOT EXISTS idx_shootings_channel
+  ON public.shootings(channel)
+  WHERE channel IS NOT NULL;
 
 -- 3) Per-channel summary (external channels only)
 CREATE OR REPLACE FUNCTION public.client_channel_summary()
