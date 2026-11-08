@@ -210,13 +210,7 @@ function Dashboard() {
 
   return (
     <div className="space-y-6">
-      {/* 0. দ্রুত অ্যাকশন (টপে স্ক্রলিং টেক্সট হাইড করে স্থাপিত) */}
-      <QuickActionsCard membersWithDue={data?.breakdown} />
-
-      {/* 1. Welcome Hero Banner (Kuakata Beach Panorama + 3D Clapperboard + Date & Time Cards) */}
-      <KuakataBeachBanner />
-
-      {/* 2. Top Stats 4 Cards Row: ১. মোট বকেয়া, ২. ক্লায়েন্ট বকেয়া, ৩. মোট পেমেন্ট, ৪. মোট সদস্য */}
+      {/* 1. Top Stats 4 Cards Row: ১. মোট বকেয়া, ২. ক্লায়েন্ট বকেয়া, ৩. মোট পেমেন্ট, ৪. মোট সদস্য */}
       <TopStatsRow
         totalDue={data?.outstanding || 0}
         dueMembersCount={data?.breakdown?.filter((b) => b.total > 0).length || 0}
@@ -228,6 +222,12 @@ function Dashboard() {
         totalMembers={totalMembers}
         activeMembers={activeMembers}
       />
+
+      {/* 2. দ্রুত অ্যাকশন (অ্যাকশন বাটন) */}
+      <QuickActionsCard membersWithDue={data?.breakdown} />
+
+      {/* 3. Welcome Hero Banner (Kuakata Beach Panorama + 3D Clapperboard + Date & Time Cards) */}
+      <KuakataBeachBanner />
 
       {/* 3. বকেয়া তালিকা বাটন (পূর্বের ৪টি কার্ডের জায়গায় শুধু ১টি বকেয়া তালিকা বাটন) */}
       <div className="flex items-center justify-between overflow-hidden rounded-3xl border border-rose-200/80 bg-gradient-to-r from-rose-50/90 via-white to-red-50/40 p-4 sm:p-5 shadow-xs">
