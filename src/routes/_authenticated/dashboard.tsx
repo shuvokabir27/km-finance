@@ -192,7 +192,7 @@ function Dashboard() {
   return (
     <div className="space-y-6">
       {/* 0. দ্রুত অ্যাকশন (টপে স্ক্রলিং টেক্সট হাইড করে স্থাপিত) */}
-      <QuickActionsCard />
+      <QuickActionsCard membersWithDue={data?.breakdown} />
 
       {/* 1. Welcome Hero Banner (Kuakata Beach Panorama + 3D Clapperboard + Date & Time Cards) */}
       <KuakataBeachBanner />
@@ -2540,14 +2540,14 @@ function RecentActivityFeed({
   );
 }
 
-function QuickActionsCard() {
+function QuickActionsCard({ membersWithDue }: { membersWithDue?: BreakdownRow[] }) {
   return (
     <section className="rounded-3xl border border-border/70 bg-card p-5 shadow-xs">
       <h2 className="flex items-center gap-2 text-sm font-bold text-slate-800 dark:text-slate-100 mb-4">
         <Zap className="h-4 w-4 text-amber-500 fill-amber-500" /> দ্রুত অ্যাকশন
       </h2>
 
-      <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+      <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3">
         {/* Shooting */}
         <Link
           to="/shootings"
@@ -2569,6 +2569,22 @@ function QuickActionsCard() {
           </div>
           <span className="text-xs font-bold text-slate-700 dark:text-slate-200">সদস্য যুক্ত</span>
         </Link>
+
+        {/* Payment */}
+        <QuickDuePaymentDialog
+          membersWithDue={membersWithDue}
+          trigger={
+            <button
+              type="button"
+              className="flex flex-col items-center gap-2 rounded-2xl border border-amber-200/60 bg-amber-50/50 p-3 sm:p-3.5 text-center transition hover:bg-amber-100/70 hover:border-amber-300 hover:shadow-xs active:scale-95 cursor-pointer w-full"
+            >
+              <div className="grid h-12 w-12 place-items-center rounded-2xl bg-amber-500 text-white shadow-xs">
+                <Wallet className="h-6 w-6" />
+              </div>
+              <span className="text-xs font-bold text-slate-700 dark:text-slate-200">পেমেন্ট</span>
+            </button>
+          }
+        />
 
         {/* Report */}
         <Link
