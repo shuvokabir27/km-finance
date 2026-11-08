@@ -5,7 +5,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { taka, toBn, bnDate } from "@/lib/format";
 import { saveMemberAccountIfNew } from "@/lib/save-member-account";
 import { ACCOUNT_KIND_LABEL, type AccountKind } from "@/lib/bd-banks";
-import { ArrowUpRight, Clapperboard, Wallet, BadgeDollarSign, TrendingUp, Plus, FileText, Download, Users, MessageSquare, Loader2, Handshake, ReceiptText, Landmark, Smartphone } from "lucide-react";
+import { ArrowUpRight, Clapperboard, Wallet, BadgeDollarSign, TrendingUp, Plus, FileText, Download, Users, MessageSquare, Loader2, Handshake, ReceiptText, Landmark, Smartphone, Search } from "lucide-react";
 import { useServerFn } from "@tanstack/react-start";
 import { sendBulkSmsToMembers, getBulkSmsBalance } from "@/lib/bulk-sms.functions";
 import { MemberAvatar } from "@/components/member-avatar";
@@ -1051,6 +1051,7 @@ function bnTaka(n: number) {
 function DuesDialog() {
   const [open, setOpen] = useState(false);
   const [tab, setTab] = useState<"due" | "paid">("due");
+  const [search, setSearch] = useState("");
   const [sendingId, setSendingId] = useState<string | null>(null);
   const sendSms = useServerFn(sendBulkSmsToMembers);
   const checkBalance = useServerFn(getBulkSmsBalance);
@@ -1194,7 +1195,13 @@ function DuesDialog() {
   const dueRows = all.filter((r) => r.balance > 0).sort((a, b) => b.balance - a.balance);
   const paidRows = all.filter((r) => r.balance <= 0).sort((a, b) => a.name.localeCompare(b.name, "bn"));
   const rows = tab === "due" ? dueRows : paidRows;
+  const filteredRows = useMemo(() => {
+    const q = search.trim().toLowerCase();
+    if (!q) return rows;
+    return rows.filter((r) => r.name.toLowerCase().includes(q) || (r.phone && r.phone.includes(q)));
+  }, [rows, search]);
   const total = dueRows.reduce((s, r) => s + r.balance, 0);
+  const filteredTotal = filteredRows.reduce((s, r) => s + Math.max(0, r.balance), 0);
 
   async function ensureShareLink(r: DuesMember): Promise<string> {
     let token = r.share_token;
@@ -1292,186 +1299,244 @@ function DuesDialog() {
 
       <Dialog open={open} onOpenChange={setOpen}>
         <DialogContent
-          className="max-h-[90vh] overflow-hidden p-0 sm:max-w-3xl"
+          className="flex h-[92dvh] max-h-[92dvh] w-[95vw] sm:max-w-4xl flex-col overflow-hidden p-0 rounded-2xl sm:rounded-3xl border-border/80 shadow-2xl"
           onPointerDownOutside={(e) => e.preventDefault()}
           onInteractOutside={(e) => e.preventDefault()}
         >
-          <DialogHeader className="no-print border-b border-border/60 px-5 pb-3 pt-5">
-            <DialogTitle className="flex items-center justify-between gap-2">
-              <span className="flex items-center gap-2"><Users className="h-4 w-4 text-primary" /> সদস্য হিসাব তালিকা</span>
-              <button type="button" onClick={handleCheckBalance} className="rounded-md border border-border/60 bg-muted/30 px-2 py-1 text-[11px] font-medium text-muted-foreground hover:bg-muted">SMS Balance</button>
-            </DialogTitle>
-            <div className="mt-3 inline-flex rounded-lg border border-border/60 bg-muted/30 p-0.5 text-xs">
+          <DialogHeader className="no-print shrink-0 border-b border-border/60 bg-card px-4 sm:px-6 py-3.5 space-y-3">
+            <div className="flex flex-wrap items-center justify-between gap-2">
+              <DialogTitle className="flex items-center gap-2 text-base sm:text-lg font-bold">
+                <span className="grid h-8 w-8 place-items-center rounded-xl bg-primary/10 text-primary">
+                  <Users className="h-4 w-4" />
+                </span>
+                <span>সদস্য হিসাব তালিকা</span>
+              </DialogTitle>
               <button
                 type="button"
-                onClick={() => setTab("due")}
-                className={`rounded-md px-3 py-1.5 font-semibold transition ${tab === "due" ? "bg-background shadow-sm text-primary" : "text-muted-foreground"}`}
+                onClick={handleCheckBalance}
+                className="rounded-lg border border-border/60 bg-muted/40 px-2.5 py-1 text-[11px] font-semibold text-muted-foreground transition hover:bg-muted active:scale-95"
               >
-                বকেয়া ({toBn(dueRows.length)})
+                SMS ব্যালেন্স
               </button>
-              <button
-                type="button"
-                onClick={() => setTab("paid")}
-                className={`rounded-md px-3 py-1.5 font-semibold transition ${tab === "paid" ? "bg-background shadow-sm text-emerald-600" : "text-muted-foreground"}`}
-              >
-                পেইড ({toBn(paidRows.length)})
-              </button>
+            </div>
+
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2.5">
+              <div className="inline-flex rounded-xl border border-border/60 bg-muted/40 p-1 text-xs">
+                <button
+                  type="button"
+                  onClick={() => setTab("due")}
+                  className={`rounded-lg px-3.5 py-1.5 font-bold transition-all ${
+                    tab === "due"
+                      ? "bg-background shadow-sm text-primary"
+                      : "text-muted-foreground hover:text-foreground"
+                  }`}
+                >
+                  বকেয়া ({toBn(dueRows.length)})
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setTab("paid")}
+                  className={`rounded-lg px-3.5 py-1.5 font-bold transition-all ${
+                    tab === "paid"
+                      ? "bg-background shadow-sm text-emerald-600"
+                      : "text-muted-foreground hover:text-foreground"
+                  }`}
+                >
+                  পেইড ({toBn(paidRows.length)})
+                </button>
+              </div>
+
+              <div className="relative flex-1 sm:max-w-xs">
+                <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-muted-foreground" />
+                <Input
+                  value={search}
+                  onChange={(e) => setSearch(e.target.value)}
+                  placeholder="নাম বা মোবাইল দিয়ে খুঁজুন..."
+                  className="h-8 pl-8 pr-7 text-xs rounded-xl bg-muted/30 border-border/60"
+                />
+                {search && (
+                  <button
+                    type="button"
+                    onClick={() => setSearch("")}
+                    className="absolute right-2 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground text-xs p-1"
+                  >
+                    ✕
+                  </button>
+                )}
+              </div>
             </div>
           </DialogHeader>
 
-          <div className="max-h-[70vh] overflow-y-auto px-5 py-3">
-            <div id="print-area" className="space-y-3 text-sm">
-              <div className="border-b pb-2 text-center">
-                <h2 className="text-lg font-bold">
+          <div className="flex-1 min-h-0 overflow-y-auto px-4 sm:px-6 py-4">
+            <div id="print-area" className="space-y-3.5 text-sm">
+              <div className="border-b pb-2.5 text-center">
+                <h2 className="text-base sm:text-lg font-bold">
                   Kuakata Multimedia Finance — {tab === "due" ? "বকেয়া" : "পরিশোধিত"} সদস্য তালিকা
                 </h2>
                 <p className="mt-0.5 text-[11px] text-muted-foreground">তৈরি: {bnDate(new Date())}</p>
               </div>
 
-              {dues.isLoading && <div className="py-6 text-center text-muted-foreground">লোড হচ্ছে…</div>}
+              {/* Top Summary Bar */}
+              <div className="flex flex-wrap items-center justify-between gap-2 rounded-xl bg-primary/10 border border-primary/20 p-2.5 sm:px-4">
+                <div className="flex items-center gap-1.5 text-xs sm:text-sm font-semibold">
+                  <span>{tab === "due" ? "বকেয়া সদস্য তালিকা" : "পরিশোধিত সদস্য তালিকা"}</span>
+                  <span className="rounded-full bg-primary/15 px-2 py-0.5 text-[11px] font-bold text-primary">
+                    {toBn(filteredRows.length)} জন
+                  </span>
+                </div>
+                {tab === "due" && (
+                  <div className="text-sm sm:text-base font-black text-primary">
+                    মোট বকেয়া: {taka(filteredTotal)}
+                  </div>
+                )}
+              </div>
 
-              {!dues.isLoading && rows.length === 0 && (
-                <div className="py-8 text-center text-sm text-muted-foreground">
-                  {tab === "due" ? "কোনো সদস্যের বকেয়া নেই 🎉" : "কোনো পরিশোধিত সদস্য নেই"}
+              {dues.isLoading && <div className="py-8 text-center text-xs text-muted-foreground">লোড হচ্ছে…</div>}
+
+              {!dues.isLoading && filteredRows.length === 0 && (
+                <div className="py-10 text-center text-sm text-muted-foreground">
+                  {search ? "কোনো সদস্য পাওয়া যায়নি" : tab === "due" ? "কোনো সদস্যের বকেয়া নেই 🎉" : "কোনো পরিশোধিত সদস্য নেই"}
                 </div>
               )}
 
-              {rows.length > 0 && (
+              {filteredRows.length > 0 && (
                 <>
-                  {/* Mobile card view */}
-                  <div className="space-y-2 md:hidden">
-                    {rows.map((r, i) => (
+                  {/* Mobile card view (hidden on md+) */}
+                  <div className="space-y-2.5 md:hidden">
+                    {filteredRows.map((r, i) => (
                       <div
                         key={r.id}
-                        className="rounded-lg border border-border/60 bg-card/60 p-3 shadow-sm"
+                        className="rounded-2xl border border-border/70 bg-card p-3.5 shadow-sm space-y-2.5"
                       >
-                        <div className="flex items-start gap-3">
-                          <div className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-muted text-[11px] font-semibold">
+                        <div className="flex items-start gap-2.5">
+                          <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-muted text-[11px] font-bold text-muted-foreground">
                             {toBn(String(i + 1))}
-                          </div>
-                          <MemberAvatar name={r.name} photoUrl={r.photo_url} size="sm" />
+                          </span>
+                          <MemberAvatar name={r.name} photoUrl={r.photo_url} size="md" />
                           <div className="min-w-0 flex-1">
-                            <div className="truncate text-sm font-semibold">{r.name}</div>
-                            <div className="truncate text-[11px] text-muted-foreground">
+                            <div className="truncate text-sm font-bold">{r.name}</div>
+                            <div className="truncate text-xs text-muted-foreground">
                               {r.phone ? toBn(r.phone) : "মোবাইল নেই"}
                             </div>
                           </div>
                           <div
-                            className={`shrink-0 text-right text-sm font-black ${tab === "due" ? "text-primary" : "text-emerald-600"}`}
+                            className={`shrink-0 text-right text-base font-black ${
+                              tab === "due" ? "text-primary" : "text-emerald-600"
+                            }`}
                           >
                             {tab === "due" ? taka(r.balance) : "৳ ০"}
                           </div>
                         </div>
-                        <div className="mt-2 flex items-center justify-between gap-2 border-t border-border/40 pt-2">
-                          <div className="min-w-0 text-[11px] text-muted-foreground">
+
+                        <div className="flex flex-wrap items-center justify-between gap-2 border-t border-border/40 pt-2 text-[11px]">
+                          <div className="text-muted-foreground">
                             {r.lastAmount && r.lastDate ? (
-                              <>
-                                <span className="font-semibold text-foreground">{taka(r.lastAmount)}</span>
-                                <span className="mx-1">·</span>
-                                <span>{bnDate(r.lastDate)}</span>
-                              </>
+                              <span>
+                                শেষ: <b className="text-foreground">{taka(r.lastAmount)}</b> ({bnDate(r.lastDate)})
+                              </span>
                             ) : (
                               <span>শেষ পেমেন্ট নেই</span>
                             )}
                           </div>
-                          <div className="flex shrink-0 items-center gap-1.5">
-                          <Button
-                            type="button"
-                            size="sm"
-                            className="h-8 shrink-0 gap-1 bg-primary px-2.5 text-[11px] text-primary-foreground hover:bg-primary/90 no-print"
-                            onClick={() => openPay(r)}
-                          >
-                            <Wallet className="h-3 w-3" />
-                            পেমেন্ট
-                          </Button>
-                          <Button
-                            type="button"
-                            size="sm"
-                            variant="outline"
-                            className="h-8 shrink-0 gap-1 border-emerald-500/40 bg-emerald-500/10 px-2.5 text-[11px] text-emerald-700 hover:bg-emerald-500/20 no-print"
-                            disabled={!r.phone}
-                            onClick={() => handleSendWhatsApp(r)}
-                            title="WhatsApp এ পাঠান"
-                          >
-                            <svg viewBox="0 0 24 24" className="h-3 w-3 fill-current" aria-hidden><path d="M20.52 3.48A11.93 11.93 0 0 0 12.04 0C5.5 0 .17 5.33.17 11.87c0 2.09.55 4.13 1.6 5.93L0 24l6.34-1.66a11.86 11.86 0 0 0 5.7 1.45h.01c6.54 0 11.87-5.33 11.87-11.87 0-3.17-1.24-6.15-3.4-8.44ZM12.05 21.3h-.01a9.4 9.4 0 0 1-4.79-1.31l-.34-.2-3.76.99 1-3.67-.22-.38a9.42 9.42 0 1 1 8.12 4.57Zm5.43-7.05c-.3-.15-1.76-.87-2.04-.97-.27-.1-.47-.15-.67.15-.2.3-.77.97-.95 1.17-.18.2-.35.22-.65.07-.3-.15-1.25-.46-2.39-1.47-.88-.79-1.48-1.76-1.65-2.06-.17-.3-.02-.46.13-.61.13-.13.3-.35.45-.52.15-.18.2-.3.3-.5.1-.2.05-.37-.02-.52-.07-.15-.67-1.62-.92-2.22-.24-.58-.49-.5-.67-.51l-.57-.01c-.2 0-.52.07-.79.37-.27.3-1.04 1.01-1.04 2.47 0 1.46 1.07 2.86 1.22 3.06.15.2 2.1 3.2 5.08 4.48.71.31 1.27.49 1.7.63.71.23 1.36.19 1.87.12.57-.09 1.76-.72 2.01-1.41.25-.7.25-1.29.17-1.41-.07-.13-.27-.2-.57-.35Z"/></svg>
-                            WA
-                          </Button>
-                          <Button
-                            type="button"
-                            size="sm"
-                            variant="outline"
-                            className="h-8 shrink-0 gap-1 px-2.5 text-[11px] no-print"
-                            disabled={sendingId === r.id || !r.phone}
-                            onClick={() => handleSendSms(r)}
-                          >
-                            {sendingId === r.id ? (
-                              <Loader2 className="h-3 w-3 animate-spin" />
-                            ) : (
-                              <MessageSquare className="h-3 w-3" />
-                            )}
-                            SMS
-                          </Button>
+
+                          <div className="flex items-center gap-1.5 ml-auto">
+                            <Button
+                              type="button"
+                              size="sm"
+                              className="h-7 gap-1 bg-primary px-2.5 text-[11px] font-semibold text-primary-foreground hover:bg-primary/90 no-print rounded-lg shadow-sm"
+                              onClick={() => openPay(r)}
+                            >
+                              <Wallet className="h-3 w-3" />
+                              পেমেন্ট
+                            </Button>
+                            <Button
+                              type="button"
+                              size="sm"
+                              variant="outline"
+                              className="h-7 gap-1 border-emerald-500/40 bg-emerald-500/10 px-2 text-[11px] font-semibold text-emerald-700 hover:bg-emerald-500/20 no-print rounded-lg"
+                              disabled={!r.phone}
+                              onClick={() => handleSendWhatsApp(r)}
+                              title="WhatsApp এ পাঠান"
+                            >
+                              <svg viewBox="0 0 24 24" className="h-3 w-3 fill-current" aria-hidden>
+                                <path d="M20.52 3.48A11.93 11.93 0 0 0 12.04 0C5.5 0 .17 5.33.17 11.87c0 2.09.55 4.13 1.6 5.93L0 24l6.34-1.66a11.86 11.86 0 0 0 5.7 1.45h.01c6.54 0 11.87-5.33 11.87-11.87 0-3.17-1.24-6.15-3.4-8.44ZM12.05 21.3h-.01a9.4 9.4 0 0 1-4.79-1.31l-.34-.2-3.76.99 1-3.67-.22-.38a9.42 9.42 0 1 1 8.12 4.57Zm5.43-7.05c-.3-.15-1.76-.87-2.04-.97-.27-.1-.47-.15-.67.15-.2.3-.77.97-.95 1.17-.18.2-.35.22-.65.07-.3-.15-1.25-.46-2.39-1.47-.88-.79-1.48-1.76-1.65-2.06-.17-.3-.02-.46.13-.61.13-.13.3-.35.45-.52.15-.18.2-.3.3-.5.1-.2.05-.37-.02-.52-.07-.15-.67-1.62-.92-2.22-.24-.58-.49-.5-.67-.51l-.57-.01c-.2 0-.52.07-.79.37-.27.3-1.04 1.01-1.04 2.47 0 1.46 1.07 2.86 1.22 3.06.15.2 2.1 3.2 5.08 4.48.71.31 1.27.49 1.7.63.71.23 1.36.19 1.87.12.57-.09 1.76-.72 2.01-1.41.25-.7.25-1.29.17-1.41-.07-.13-.27-.2-.57-.35Z"/>
+                              </svg>
+                              WA
+                            </Button>
+                            <Button
+                              type="button"
+                              size="sm"
+                              variant="outline"
+                              className="h-7 gap-1 px-2 text-[11px] font-semibold no-print rounded-lg"
+                              disabled={sendingId === r.id || !r.phone}
+                              onClick={() => handleSendSms(r)}
+                            >
+                              {sendingId === r.id ? (
+                                <Loader2 className="h-3 w-3 animate-spin" />
+                              ) : (
+                                <MessageSquare className="h-3 w-3" />
+                              )}
+                              SMS
+                            </Button>
                           </div>
                         </div>
                       </div>
                     ))}
-                    {tab === "due" && (
-                      <div className="flex items-center justify-between rounded-lg border border-primary/40 bg-primary/10 px-3 py-2">
-                        <span className="text-xs font-bold">
-                          মোট বকেয়া ({toBn(dueRows.length)} জন)
-                        </span>
-                        <span className="text-base font-black text-primary">{taka(total)}</span>
-                      </div>
-                    )}
                   </div>
 
-                  {/* Desktop table view */}
-                  <div className="hidden overflow-x-auto md:block">
+                  {/* Desktop Table view (visible on md+) */}
+                  <div className="hidden md:block overflow-x-auto rounded-xl border border-border/70 bg-card">
                     <table className="w-full border-collapse text-[12px]">
                       <thead>
-                        <tr className="bg-muted/60">
-                          <th className="border px-2 py-1.5 text-left font-semibold">#</th>
-                          <th className="border px-2 py-1.5 text-left font-semibold">সদস্য</th>
-                          <th className="border px-2 py-1.5 text-left font-semibold">মোবাইল</th>
-                          <th className="border px-2 py-1.5 text-left font-semibold">শেষ পেমেন্ট</th>
-                          <th className="border px-2 py-1.5 text-right font-semibold">
+                        <tr className="bg-muted/70 border-b border-border/70 text-muted-foreground sticky top-0 z-10 backdrop-blur">
+                          <th className="px-3 py-2.5 text-center font-bold w-12">#</th>
+                          <th className="px-3 py-2.5 text-left font-bold min-w-[170px]">সদস্য</th>
+                          <th className="px-3 py-2.5 text-left font-bold min-w-[120px]">মোবাইল</th>
+                          <th className="px-3 py-2.5 text-left font-bold min-w-[130px]">শেষ পেমেন্ট</th>
+                          <th className="px-3 py-2.5 text-right font-bold min-w-[110px]">
                             {tab === "due" ? "বকেয়া" : "ব্যালেন্স"}
                           </th>
-                          <th className="border px-2 py-1.5 text-center font-semibold no-print">অ্যাকশন</th>
+                          <th className="px-3 py-2.5 text-center font-bold min-w-[190px] no-print">অ্যাকশন</th>
                         </tr>
                       </thead>
-                      <tbody>
-                        {rows.map((r, i) => (
-                          <tr key={r.id} className="even:bg-muted/20">
-                            <td className="border px-2 py-1.5">{toBn(String(i + 1))}</td>
-                            <td className="border px-2 py-1.5">
-                              <div className="flex items-center gap-2">
+                      <tbody className="divide-y divide-border/40">
+                        {filteredRows.map((r, i) => (
+                          <tr key={r.id} className="transition-colors hover:bg-muted/30">
+                            <td className="px-3 py-2.5 text-center text-muted-foreground font-medium">
+                              {toBn(String(i + 1))}
+                            </td>
+                            <td className="px-3 py-2.5">
+                              <div className="flex items-center gap-2.5">
                                 <MemberAvatar name={r.name} photoUrl={r.photo_url} size="sm" />
-                                <span className="font-medium">{r.name}</span>
+                                <span className="font-semibold text-foreground">{r.name}</span>
                               </div>
                             </td>
-                            <td className="border px-2 py-1.5 text-muted-foreground">{r.phone ? toBn(r.phone) : "—"}</td>
-                            <td className="border px-2 py-1.5 text-[11px] text-muted-foreground">
+                            <td className="px-3 py-2.5 text-muted-foreground font-mono text-[11.5px]">
+                              {r.phone ? toBn(r.phone) : "—"}
+                            </td>
+                            <td className="px-3 py-2.5 text-[11px] text-muted-foreground">
                               {r.lastAmount && r.lastDate ? (
-                                <>
-                                  <div className="font-semibold text-foreground">{taka(r.lastAmount)}</div>
-                                  <div>{bnDate(r.lastDate)}</div>
-                                </>
+                                <div>
+                                  <span className="font-bold text-foreground">{taka(r.lastAmount)}</span>
+                                  <div className="text-[10px] text-muted-foreground">{bnDate(r.lastDate)}</div>
+                                </div>
                               ) : (
                                 "—"
                               )}
                             </td>
                             <td
-                              className={`border px-2 py-1.5 text-right font-bold ${tab === "due" ? "text-primary" : "text-emerald-600"}`}
+                              className={`px-3 py-2.5 text-right font-black text-sm ${
+                                tab === "due" ? "text-primary" : "text-emerald-600"
+                              }`}
                             >
                               {tab === "due" ? taka(r.balance) : "৳ ০"}
                             </td>
-                            <td className="border px-2 py-1 text-center no-print">
+                            <td className="px-3 py-2.5 text-center no-print">
                               <div className="flex items-center justify-center gap-1.5">
                                 <Button
                                   type="button"
                                   size="sm"
-                                  className="h-7 gap-1 bg-primary px-2 text-[11px] text-primary-foreground hover:bg-primary/90"
+                                  className="h-7 gap-1 bg-primary px-2.5 text-[11px] font-semibold text-primary-foreground hover:bg-primary/90 rounded-lg shadow-sm active:scale-95"
                                   onClick={() => openPay(r)}
                                 >
                                   <Wallet className="h-3 w-3" />
@@ -1481,19 +1546,21 @@ function DuesDialog() {
                                   type="button"
                                   size="sm"
                                   variant="outline"
-                                  className="h-7 gap-1 border-emerald-500/40 bg-emerald-500/10 px-2 text-[11px] text-emerald-700 hover:bg-emerald-500/20"
+                                  className="h-7 gap-1 border-emerald-500/40 bg-emerald-500/10 px-2 text-[11px] font-semibold text-emerald-700 hover:bg-emerald-500/20 rounded-lg active:scale-95"
                                   disabled={!r.phone}
                                   onClick={() => handleSendWhatsApp(r)}
                                   title="WhatsApp এ পাঠান"
                                 >
-                                  <svg viewBox="0 0 24 24" className="h-3 w-3 fill-current" aria-hidden><path d="M20.52 3.48A11.93 11.93 0 0 0 12.04 0C5.5 0 .17 5.33.17 11.87c0 2.09.55 4.13 1.6 5.93L0 24l6.34-1.66a11.86 11.86 0 0 0 5.7 1.45h.01c6.54 0 11.87-5.33 11.87-11.87 0-3.17-1.24-6.15-3.4-8.44ZM12.05 21.3h-.01a9.4 9.4 0 0 1-4.79-1.31l-.34-.2-3.76.99 1-3.67-.22-.38a9.42 9.42 0 1 1 8.12 4.57Zm5.43-7.05c-.3-.15-1.76-.87-2.04-.97-.27-.1-.47-.15-.67.15-.2.3-.77.97-.95 1.17-.18.2-.35.22-.65.07-.3-.15-1.25-.46-2.39-1.47-.88-.79-1.48-1.76-1.65-2.06-.17-.3-.02-.46.13-.61.13-.13.3-.35.45-.52.15-.18.2-.3.3-.5.1-.2.05-.37-.02-.52-.07-.15-.67-1.62-.92-2.22-.24-.58-.49-.5-.67-.51l-.57-.01c-.2 0-.52.07-.79.37-.27.3-1.04 1.01-1.04 2.47 0 1.46 1.07 2.86 1.22 3.06.15.2 2.1 3.2 5.08 4.48.71.31 1.27.49 1.7.63.71.23 1.36.19 1.87.12.57-.09 1.76-.72 2.01-1.41.25-.7.25-1.29.17-1.41-.07-.13-.27-.2-.57-.35Z"/></svg>
+                                  <svg viewBox="0 0 24 24" className="h-3 w-3 fill-current" aria-hidden>
+                                    <path d="M20.52 3.48A11.93 11.93 0 0 0 12.04 0C5.5 0 .17 5.33.17 11.87c0 2.09.55 4.13 1.6 5.93L0 24l6.34-1.66a11.86 11.86 0 0 0 5.7 1.45h.01c6.54 0 11.87-5.33 11.87-11.87 0-3.17-1.24-6.15-3.4-8.44ZM12.05 21.3h-.01a9.4 9.4 0 0 1-4.79-1.31l-.34-.2-3.76.99 1-3.67-.22-.38a9.42 9.42 0 1 1 8.12 4.57Zm5.43-7.05c-.3-.15-1.76-.87-2.04-.97-.27-.1-.47-.15-.67.15-.2.3-.77.97-.95 1.17-.18.2-.35.22-.65.07-.3-.15-1.25-.46-2.39-1.47-.88-.79-1.48-1.76-1.65-2.06-.17-.3-.02-.46.13-.61.13-.13.3-.35.45-.52.15-.18.2-.3.3-.5.1-.2.05-.37-.02-.52-.07-.15-.67-1.62-.92-2.22-.24-.58-.49-.5-.67-.51l-.57-.01c-.2 0-.52.07-.79.37-.27.3-1.04 1.01-1.04 2.47 0 1.46 1.07 2.86 1.22 3.06.15.2 2.1 3.2 5.08 4.48.71.31 1.27.49 1.7.63.71.23 1.36.19 1.87.12.57-.09 1.76-.72 2.01-1.41.25-.7.25-1.29.17-1.41-.07-.13-.27-.2-.57-.35Z"/>
+                                  </svg>
                                   WA
                                 </Button>
                                 <Button
                                   type="button"
                                   size="sm"
                                   variant="outline"
-                                  className="h-7 gap-1 px-2 text-[11px]"
+                                  className="h-7 gap-1 px-2 text-[11px] font-semibold rounded-lg active:scale-95"
                                   disabled={sendingId === r.id || !r.phone}
                                   onClick={() => handleSendSms(r)}
                                 >
@@ -1511,12 +1578,14 @@ function DuesDialog() {
                       </tbody>
                       {tab === "due" && (
                         <tfoot>
-                          <tr className="bg-primary/10">
-                            <td className="border px-2 py-2 font-bold" colSpan={4}>
-                              মোট বকেয়া ({toBn(dueRows.length)} জন)
+                          <tr className="bg-primary/10 border-t-2 border-primary/20">
+                            <td className="px-3 py-2.5 font-bold text-center" colSpan={4}>
+                              মোট বকেয়া ({toBn(filteredRows.length)} জন)
                             </td>
-                            <td className="border px-2 py-2 text-right text-base font-black text-primary">{taka(total)}</td>
-                            <td className="border no-print" />
+                            <td className="px-3 py-2.5 text-right text-base font-black text-primary">
+                              {taka(filteredTotal)}
+                            </td>
+                            <td className="no-print" />
                           </tr>
                         </tfoot>
                       )}
@@ -1528,20 +1597,32 @@ function DuesDialog() {
             </div>
           </div>
 
-          <DialogFooter className="no-print border-t border-border/60 px-5 py-3">
-            <Button variant="outline" onClick={() => setOpen(false)}>
-              বন্ধ
-            </Button>
-            <Button onClick={() => window.print()} disabled={rows.length === 0}>
-              <Download className="h-4 w-4" /> PDF ডাউনলোড
-            </Button>
+          <DialogFooter className="no-print shrink-0 border-t border-border/60 bg-muted/20 px-4 sm:px-6 py-3 flex items-center justify-between gap-2">
+            <div className="text-xs font-semibold text-muted-foreground hidden sm:block">
+              {tab === "due"
+                ? `মোট বকেয়া: ${taka(filteredTotal)} (${toBn(filteredRows.length)} জন)`
+                : `মোট পেইড সদস্য: ${toBn(filteredRows.length)} জন`}
+            </div>
+            <div className="flex items-center gap-2 ml-auto">
+              <Button variant="outline" size="sm" className="h-8 px-4 text-xs font-medium rounded-xl" onClick={() => setOpen(false)}>
+                বন্ধ
+              </Button>
+              <Button
+                size="sm"
+                className="h-8 gap-1.5 px-4 text-xs font-semibold rounded-xl shadow-sm"
+                onClick={() => window.print()}
+                disabled={filteredRows.length === 0}
+              >
+                <Download className="h-3.5 w-3.5" /> PDF ডাউনলোড
+              </Button>
+            </div>
           </DialogFooter>
         </DialogContent>
       </Dialog>
 
       <Dialog open={!!payTarget} onOpenChange={(o) => { if (!o) setPayTarget(null); }}>
         <DialogContent
-          className="max-w-sm p-0"
+          className="max-w-sm max-h-[90dvh] overflow-y-auto p-0 rounded-2xl"
           onPointerDownOutside={(e) => e.preventDefault()}
           onInteractOutside={(e) => e.preventDefault()}
         >
