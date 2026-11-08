@@ -7,6 +7,7 @@ import { toast } from "sonner";
 import { InstallAppButton } from "@/components/install-app-button";
 import { PullToRefresh } from "@/components/pull-to-refresh";
 import { SettingsDialog } from "@/components/settings-dialog";
+import { GlobalSearchDialog } from "@/components/global-search-dialog";
 import { TopScrollingTicker } from "@/components/top-scrolling-ticker";
 import kmLogo from "@/assets/km-logo.png";
 
@@ -68,7 +69,7 @@ function AuthedLayout() {
   const pathname = useRouterState({ select: (s) => s.location.pathname });
   Route.useRouteContext();
   const [moreOpen, setMoreOpen] = useState(false);
-  const [searchVal, setSearchVal] = useState("");
+  const [searchOpen, setSearchOpen] = useState(false);
 
   const logout = async () => {
     await supabase.auth.signOut();
@@ -169,16 +170,19 @@ function AuthedLayout() {
         {/* Desktop Top Header Bar matching the design */}
         <header className="sticky top-0 z-30 hidden lg:flex items-center justify-between border-b border-border/70 bg-card/90 px-6 py-2.5 backdrop-blur-md">
           <div className="flex items-center gap-3 flex-1 max-w-md">
-            <div className="relative w-full">
-              <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-              <input
-                type="text"
-                placeholder="সদস্য, শুটিং বা কিছু খুঁজুন..."
-                value={searchVal}
-                onChange={(e) => setSearchVal(e.target.value)}
-                className="w-full rounded-full border border-border/80 bg-muted/40 py-2 pl-9 pr-4 text-xs placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary/40 focus:bg-background transition"
-              />
-            </div>
+            <button
+              type="button"
+              onClick={() => setSearchOpen(true)}
+              className="group flex items-center justify-between w-full rounded-full border border-border/80 bg-muted/40 py-2 pl-3.5 pr-3 text-xs text-muted-foreground hover:bg-muted/70 hover:border-primary/40 transition cursor-pointer shadow-2xs"
+            >
+              <div className="flex items-center gap-2.5 truncate">
+                <Search className="h-4 w-4 text-muted-foreground group-hover:text-primary transition-colors shrink-0" />
+                <span className="truncate">সদস্য, মোবাইল, পেমেন্ট টাকা বা শুটিং খুঁজুন...</span>
+              </div>
+              <kbd className="hidden sm:inline-flex items-center gap-0.5 rounded-md border border-border/70 bg-background px-1.5 py-0.5 text-[10px] font-mono text-muted-foreground shadow-2xs shrink-0">
+                ⌘K
+              </kbd>
+            </button>
           </div>
 
           <div className="flex items-center gap-3">
@@ -229,6 +233,15 @@ function AuthedLayout() {
               </div>
             </div>
             <div className="flex shrink-0 items-center gap-1">
+              <button
+                type="button"
+                onClick={() => setSearchOpen(true)}
+                className="grid h-10 w-10 place-items-center rounded-2xl text-white/85 transition-colors hover:bg-white/15 hover:text-white cursor-pointer"
+                aria-label="অনুসন্ধান"
+                title="সার্চ করুন"
+              >
+                <Search className="h-[18px] w-[18px]" />
+              </button>
               <InstallAppButton />
               <SettingsDialog
                 trigger={
@@ -347,6 +360,9 @@ function AuthedLayout() {
           </div>
         </nav>
       </div>
+
+      {/* Global Search Dialog (Search members by name, phone, rate; payments by amount/note; shootings by name/channel) */}
+      <GlobalSearchDialog open={searchOpen} onOpenChange={setSearchOpen} />
       </div>
     </div>
 
