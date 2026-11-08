@@ -61,7 +61,7 @@ import { useServerFn } from "@tanstack/react-start";
 import { sendBulkSmsToMembers, getBulkSmsBalance } from "@/lib/bulk-sms.functions";
 import { MemberAvatar } from "@/components/member-avatar";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, DialogFooter } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -206,36 +206,63 @@ function Dashboard() {
 
       {/* 3. Quick Action 4 Buttons Row: ১. পেমেন্ট, ২. ক্লায়েন্ট পেমেন্ট, ৩. হাজিরা, ৪. শুটিং */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-        {/* 1. পেমেন্ট (বকেয়া পরিশোধ) */}
-        <QuickDuePaymentDialog
-          membersWithDue={data?.breakdown}
-          trigger={
-            <button
-              type="button"
-              className="group relative flex flex-col justify-between overflow-hidden rounded-3xl border border-rose-200/80 bg-gradient-to-br from-rose-50/90 via-white to-red-50/40 p-5 shadow-xs transition hover:shadow-md hover:-translate-y-0.5 active:scale-[0.99] text-left cursor-pointer w-full"
-            >
-              <div className="flex items-center justify-between w-full">
-                <div className="grid h-12 w-12 place-items-center rounded-2xl bg-gradient-to-br from-rose-500 to-red-600 text-white shadow-md shadow-rose-500/25 group-hover:scale-105 transition-transform">
-                  <Wallet className="h-6 w-6" />
-                </div>
-                <span className="grid h-8 w-8 place-items-center rounded-full bg-rose-100 text-rose-700 group-hover:bg-rose-600 group-hover:text-white transition">
+        {/* 1. পেমেন্ট (বকেয়া পরিশোধ ও বকেয়া তালিকা) */}
+        <div className="group relative flex flex-col justify-between overflow-hidden rounded-3xl border border-rose-200/80 bg-gradient-to-br from-rose-50/90 via-white to-red-50/40 p-5 shadow-xs transition hover:shadow-md hover:-translate-y-0.5 w-full">
+          <div className="flex items-center justify-between w-full">
+            <div className="grid h-12 w-12 place-items-center rounded-2xl bg-gradient-to-br from-rose-500 to-red-600 text-white shadow-md shadow-rose-500/25 group-hover:scale-105 transition-transform">
+              <Wallet className="h-6 w-6" />
+            </div>
+            <QuickDuePaymentDialog
+              membersWithDue={data?.breakdown}
+              trigger={
+                <button
+                  type="button"
+                  title="পেমেন্ট পরিশোধ করুন"
+                  className="grid h-8 w-8 place-items-center rounded-full bg-rose-100 text-rose-700 hover:bg-rose-600 hover:text-white transition cursor-pointer"
+                >
                   <ArrowUpRight className="h-4 w-4" />
-                </span>
-              </div>
-              <div className="mt-4">
-                <div className="text-base font-bold text-slate-800 group-hover:text-rose-700 transition">
-                  পেমেন্ট
-                </div>
-                <div className="text-xs text-slate-500 font-medium mt-0.5">
-                  সদস্যদের বকেয়া পরিশোধ করুন
-                </div>
-                <span className="inline-flex items-center gap-1 rounded-full bg-rose-500/10 text-rose-700 px-2.5 py-0.5 text-[11px] font-bold mt-3">
-                  পরিশোধ করুন →
-                </span>
-              </div>
-            </button>
-          }
-        />
+                </button>
+              }
+            />
+          </div>
+          <div className="mt-4">
+            <div className="text-base font-bold text-slate-800 group-hover:text-rose-700 transition">
+              পেমেন্ট
+            </div>
+            <div className="text-xs text-slate-500 font-medium mt-0.5">
+              সদস্যদের বকেয়া পরিশোধ করুন
+            </div>
+            <div className="mt-3 flex items-center gap-2 flex-wrap">
+              <QuickDuePaymentDialog
+                membersWithDue={data?.breakdown}
+                trigger={
+                  <button
+                    type="button"
+                    className="inline-flex items-center gap-1 rounded-full bg-rose-500/15 text-rose-700 hover:bg-rose-600 hover:text-white px-2.5 py-1 text-[11px] font-bold transition cursor-pointer"
+                  >
+                    পরিশোধ করুন →
+                  </button>
+                }
+              />
+              <DueBreakdownDialog
+                which="all"
+                title="সদস্যদের বকেয়া তালিকা"
+                rows={data?.breakdown ?? []}
+                total={data?.outstanding ?? 0}
+                loading={isLoading}
+                trigger={
+                  <button
+                    type="button"
+                    className="inline-flex items-center gap-1 rounded-full border border-rose-200 bg-white/95 text-rose-700 hover:bg-rose-100 hover:border-rose-300 px-2.5 py-1 text-[11px] font-bold shadow-2xs transition cursor-pointer"
+                  >
+                    <Users className="h-3 w-3" />
+                    বকেয়া তালিকা
+                  </button>
+                }
+              />
+            </div>
+          </div>
+        </div>
 
         {/* 2. ক্লায়েন্ট পেমেন্ট */}
         <QuickClientPaymentDialog
@@ -1728,64 +1755,119 @@ function DuesDialog() {
 type BreakdownRow = { id: string; name: string; photo_url: string | null; prev: number; curr: number; total: number };
 
 function DueBreakdownDialog({
-  which,
-  title,
+  which = "all",
+  title = "বকেয়া তালিকা",
   rows,
   total,
   loading,
+  trigger,
 }: {
-  which: "prev" | "curr";
-  title: string;
+  which?: "prev" | "curr" | "all";
+  title?: string;
   rows: BreakdownRow[];
   total: number;
   loading?: boolean;
+  trigger?: React.ReactNode;
 }) {
   const [open, setOpen] = useState(false);
+  const [search, setSearch] = useState("");
+
   const filtered = rows
-    .map((r) => ({ ...r, amount: which === "prev" ? r.prev : r.curr }))
-    .filter((r) => r.amount > 0)
+    .map((r) => ({
+      ...r,
+      amount: which === "prev" ? r.prev : which === "curr" ? r.curr : r.total,
+    }))
+    .filter((r) => r.amount > 0 && r.name.toLowerCase().includes(search.toLowerCase()))
     .sort((a, b) => b.amount - a.amount);
 
   return (
     <Dialog open={open} onOpenChange={setOpen}>
-      <button
-        type="button"
-        onClick={() => setOpen(true)}
-        className="rounded-xl bg-white/15 px-3 py-2 text-left backdrop-blur-sm transition hover:bg-white/25"
-      >
-        <div className="text-[10px] text-primary-foreground/80">{title}</div>
-        <div className="text-sm font-bold text-primary-foreground">{loading ? "…" : taka(total)}</div>
-      </button>
-      <DialogContent className="max-w-md p-0">
-        <DialogHeader className="border-b border-border/60 px-5 py-3">
-          <DialogTitle className="flex items-center justify-between text-base">
-            <span>{title}</span>
-            <span className="text-primary">{taka(total)}</span>
+      {trigger ? (
+        <DialogTrigger asChild>{trigger}</DialogTrigger>
+      ) : (
+        <button
+          type="button"
+          onClick={() => setOpen(true)}
+          className="rounded-xl bg-white/15 px-3 py-2 text-left backdrop-blur-sm transition hover:bg-white/25"
+        >
+          <div className="text-[10px] text-primary-foreground/80">{title}</div>
+          <div className="text-sm font-bold text-primary-foreground">{loading ? "…" : taka(total)}</div>
+        </button>
+      )}
+      <DialogContent className="max-w-md p-0 overflow-hidden rounded-3xl">
+        <DialogHeader className="border-b border-border/60 bg-muted/20 px-5 py-4">
+          <DialogTitle className="flex items-center justify-between text-base font-bold">
+            <span className="flex items-center gap-2">
+              <Users className="h-5 w-5 text-rose-600" />
+              {title}
+            </span>
+            <span className="rounded-full bg-rose-50 px-3 py-0.5 text-sm font-bold text-rose-600 border border-rose-200">
+              {loading ? "…" : taka(total)}
+            </span>
           </DialogTitle>
         </DialogHeader>
-        <div className="max-h-[70vh] overflow-y-auto p-3">
+
+        <div className="border-b border-border/40 px-4 py-2.5 bg-muted/10">
+          <div className="relative">
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-muted-foreground" />
+            <Input
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
+              placeholder="সদস্যের নাম দিয়ে খুঁজুন..."
+              className="h-8 pl-8 text-xs rounded-xl bg-background"
+            />
+          </div>
+        </div>
+
+        <div className="max-h-[60vh] overflow-y-auto p-3 space-y-1.5">
           {filtered.length === 0 ? (
-            <div className="py-8 text-center text-xs text-muted-foreground">কোনো বকেয়া নেই</div>
+            <div className="py-8 text-center text-xs text-muted-foreground">
+              {search ? "কোনো সদস্য পাওয়া যায়নি" : "কোনো বকেয়া নেই"}
+            </div>
           ) : (
             <ul className="space-y-1.5">
               {filtered.map((r, i) => (
-                <li key={r.id} className="flex items-center gap-3 rounded-xl border bg-background p-2.5">
-                  <span className="w-5 shrink-0 text-center text-[10px] text-muted-foreground">{toBn(i + 1)}.</span>
+                <li
+                  key={r.id}
+                  className="flex items-center gap-3 rounded-2xl border border-border/70 bg-card p-2.5 shadow-2xs hover:border-rose-300 hover:bg-rose-50/30 transition"
+                >
+                  <span className="w-5 shrink-0 text-center text-[10px] font-bold text-muted-foreground">
+                    {toBn(i + 1)}.
+                  </span>
                   <MemberAvatar name={r.name} photoUrl={r.photo_url} size="sm" />
                   <div className="min-w-0 flex-1">
-                    <div className="truncate text-sm font-medium">{r.name}</div>
-                    <div className="text-[10px] text-muted-foreground">
-                      মোট বকেয়া: {taka(Math.max(0, r.total))}
+                    <div className="truncate text-sm font-bold text-slate-800">{r.name}</div>
+                    <div className="text-[10px] text-muted-foreground flex items-center gap-1.5 mt-0.5">
+                      <span>পূর্বের: {taka(r.prev)}</span>
+                      <span>•</span>
+                      <span>এই মাসের: {taka(r.curr)}</span>
                     </div>
                   </div>
-                  <div className="text-sm font-bold text-destructive">{taka(r.amount)}</div>
+                  <div className="text-right">
+                    <div className="text-sm font-black text-rose-600">{taka(r.amount)}</div>
+                    <Link
+                      to="/p/$memberId"
+                      params={{ memberId: r.id }}
+                      search={{ t: "" }}
+                      className="text-[10px] font-semibold text-rose-500 hover:underline"
+                      onClick={() => setOpen(false)}
+                    >
+                      হিসাব দেখুন →
+                    </Link>
+                  </div>
                 </li>
               ))}
             </ul>
           )}
         </div>
-        <DialogFooter className="border-t border-border/60 px-5 py-3">
-          <Button variant="outline" onClick={() => setOpen(false)}>বন্ধ</Button>
+
+        <DialogFooter className="flex items-center justify-between border-t border-border/60 bg-muted/20 px-5 py-3">
+          <div className="text-xs text-muted-foreground">
+            মোট বকেয়া সদস্য: <span className="font-bold text-foreground">{toBn(filtered.length)} জন</span>
+          </div>
+          <Button variant="outline" size="sm" className="rounded-xl" onClick={() => setOpen(false)}>
+            বন্ধ
+          </Button>
         </DialogFooter>
       </DialogContent>
     </Dialog>
