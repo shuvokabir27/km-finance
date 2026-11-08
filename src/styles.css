@@ -301,6 +301,24 @@
 .animate-splash-pulse { animation: splash-pulse 1.8s ease-in-out infinite; }
 .animate-splash-dot { animation: splash-dot 1.2s ease-in-out infinite; }
 
+/* Top scrolling marquee ticker */
+@keyframes km-marquee {
+  0% { transform: translateX(0); }
+  100% { transform: translateX(-50%); }
+}
+
+.animate-km-marquee {
+  display: flex;
+  width: max-content;
+  animation: km-marquee 50s linear infinite;
+  will-change: transform;
+}
+
+.animate-km-marquee:hover,
+.animate-km-marquee:active {
+  animation-play-state: paused;
+}
+
 @media print {
   body * { visibility: hidden !important; }
   #print-area, #print-area * { visibility: visible !important; }

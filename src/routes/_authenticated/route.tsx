@@ -7,6 +7,7 @@ import { toast } from "sonner";
 import { InstallAppButton } from "@/components/install-app-button";
 import { PullToRefresh } from "@/components/pull-to-refresh";
 import { SettingsDialog } from "@/components/settings-dialog";
+import { TopScrollingTicker } from "@/components/top-scrolling-ticker";
 import kmLogo from "@/assets/km-logo.png";
 
 
@@ -174,6 +175,8 @@ function AuthedLayout() {
           </div>
         </div>
       </header>
+
+      <TopScrollingTicker />
 
       <main className="flex-1 px-5 pb-24 pt-5 min-[700px]:px-8 min-[700px]:pt-7 lg:px-10 xl:px-12">
         <div key={pathname} className={`mx-auto w-full max-w-7xl ${pageAnimClass(pathname)}`}>
