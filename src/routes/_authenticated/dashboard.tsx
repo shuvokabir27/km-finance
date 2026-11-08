@@ -209,7 +209,7 @@ function Dashboard() {
   }, [clientSummaryList]);
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-4 sm:space-y-6">
       {/* 1. Top Stats 4 Cards Row: ১. মোট বকেয়া, ২. ক্লায়েন্ট বকেয়া, ৩. মোট পেমেন্ট, ৪. মোট সদস্য */}
       <TopStatsRow
         totalDue={data?.outstanding || 0}
@@ -230,16 +230,16 @@ function Dashboard() {
       <KuakataBeachBanner />
 
       {/* 3. বকেয়া তালিকা বাটন (পূর্বের ৪টি কার্ডের জায়গায় শুধু ১টি বকেয়া তালিকা বাটন) */}
-      <div className="flex items-center justify-between overflow-hidden rounded-3xl border border-rose-200/80 bg-gradient-to-r from-rose-50/90 via-white to-red-50/40 p-4 sm:p-5 shadow-xs">
-        <div className="flex items-center gap-3.5">
-          <div className="grid h-12 w-12 shrink-0 place-items-center rounded-2xl bg-gradient-to-br from-rose-500 to-red-600 text-white shadow-md shadow-rose-500/25">
-            <Users className="h-6 w-6" />
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 overflow-hidden rounded-2xl sm:rounded-3xl border border-rose-200/80 bg-gradient-to-r from-rose-50/90 via-white to-red-50/40 p-3.5 sm:p-5 shadow-xs">
+        <div className="flex items-center gap-3">
+          <div className="grid h-10 w-10 sm:h-12 sm:w-12 shrink-0 place-items-center rounded-xl sm:rounded-2xl bg-gradient-to-br from-rose-500 to-red-600 text-white shadow-md shadow-rose-500/25">
+            <Users className="h-5 w-5 sm:h-6 sm:w-6" />
           </div>
-          <div>
-            <div className="text-base font-bold text-slate-800">
+          <div className="min-w-0">
+            <div className="text-sm sm:text-base font-bold text-slate-800 truncate">
               সদস্যদের বকেয়া তালিকা
             </div>
-            <div className="text-xs text-muted-foreground mt-0.5">
+            <div className="text-[11px] sm:text-xs text-muted-foreground mt-0.5 truncate">
               মোট বকেয়া: <span className="font-bold text-rose-600">{isLoading ? "…" : taka(data?.outstanding || 0)}</span> · {toBn(String(data?.breakdown?.filter((b) => b.total > 0).length || 0))} জন সদস্যের বকেয়া আছে
             </div>
           </div>
@@ -254,7 +254,7 @@ function Dashboard() {
           trigger={
             <button
               type="button"
-              className="inline-flex items-center gap-1.5 rounded-2xl bg-rose-600 hover:bg-rose-700 text-white px-4 py-2.5 text-xs font-bold shadow-xs transition hover:scale-[1.02] active:scale-95 cursor-pointer"
+              className="inline-flex items-center justify-center gap-1.5 rounded-xl sm:rounded-2xl bg-rose-600 hover:bg-rose-700 text-white px-3.5 py-2 sm:px-4 sm:py-2.5 text-xs font-bold shadow-xs transition hover:scale-[1.02] active:scale-95 cursor-pointer w-full sm:w-auto shrink-0"
             >
               <Users className="h-4 w-4" />
               <span>বকেয়া তালিকা</span>
@@ -1908,7 +1908,7 @@ function KuakataBeachBanner() {
   const formattedTime = `${hoursBn}:${minutes} ${ampm}`;
 
   return (
-    <div className="relative overflow-hidden rounded-3xl border border-sky-200/80 bg-slate-900 p-5 sm:p-7 shadow-sm">
+    <div className="relative overflow-hidden rounded-2xl sm:rounded-3xl border border-sky-200/80 bg-slate-900 p-4 sm:p-7 shadow-sm">
       {/* Real Kuakata Beach Cover Photo */}
       <div className="pointer-events-none absolute inset-0 select-none overflow-hidden">
         <img
@@ -1922,13 +1922,13 @@ function KuakataBeachBanner() {
       </div>
 
       {/* Content Row */}
-      <div className="relative z-10 flex flex-col gap-5 lg:flex-row lg:items-center lg:justify-between">
+      <div className="relative z-10 flex flex-col gap-4 sm:gap-5 lg:flex-row lg:items-center lg:justify-between">
         {/* Left: 3D Clapperboard & Greeting */}
-        <div className="flex items-center gap-4">
+        <div className="flex items-center gap-3 sm:gap-4">
           {/* 3D Clapperboard Icon */}
-          <div className="relative grid h-16 w-16 shrink-0 place-items-center rounded-2xl bg-gradient-to-br from-red-500 via-rose-600 to-red-700 p-2 text-white shadow-lg shadow-red-500/30">
+          <div className="relative grid h-13 w-13 sm:h-16 sm:w-16 shrink-0 place-items-center rounded-xl sm:rounded-2xl bg-gradient-to-br from-red-500 via-rose-600 to-red-700 p-1.5 sm:p-2 text-white shadow-lg shadow-red-500/30">
             {/* Diagonal striped clapper top */}
-            <div className="flex h-3 w-full items-center overflow-hidden rounded-xs bg-slate-900 border border-white/40 mb-0.5">
+            <div className="flex h-2.5 sm:h-3 w-full items-center overflow-hidden rounded-xs bg-slate-900 border border-white/40 mb-0.5">
               <div className="h-full w-2 bg-white -skew-x-12" />
               <div className="h-full w-2 bg-slate-900 -skew-x-12" />
               <div className="h-full w-2 bg-white -skew-x-12" />
@@ -1936,39 +1936,39 @@ function KuakataBeachBanner() {
               <div className="h-full w-2 bg-white -skew-x-12" />
               <div className="h-full w-2 bg-slate-900 -skew-x-12" />
             </div>
-            <Clapperboard className="h-6 w-6 text-white" />
+            <Clapperboard className="h-5 w-5 sm:h-6 sm:w-6 text-white" />
           </div>
 
-          <div>
-            <h1 className="text-xl sm:text-2xl lg:text-3xl font-black text-slate-900 tracking-tight drop-shadow-xs">
+          <div className="min-w-0">
+            <h1 className="text-lg sm:text-2xl lg:text-3xl font-black text-slate-900 tracking-tight drop-shadow-xs truncate">
               স্বাগতম, কবির হোসেন শুভ!
             </h1>
-            <p className="mt-1 text-xs sm:text-sm font-semibold text-slate-700 drop-shadow-xs">
+            <p className="mt-0.5 sm:mt-1 text-xs sm:text-sm font-semibold text-slate-700 drop-shadow-xs">
               Kuakata Multimedia এর টিম ম্যানেজমেন্ট ড্যাশবোর্ডে আপনাকে স্বাগতম।
             </p>
           </div>
         </div>
 
         {/* Right: Floating Glossy Colorful Glass Cards */}
-        <div className="flex items-center gap-3 self-start lg:self-auto flex-wrap sm:flex-nowrap">
+        <div className="grid grid-cols-2 gap-2 sm:flex sm:items-center sm:gap-3 w-full lg:w-auto">
           {/* 1. Date Card (Glossy Colorful Translucent Glass) */}
-          <div className="group relative overflow-hidden rounded-2xl border border-white/70 bg-gradient-to-br from-white/45 via-rose-500/10 to-amber-500/10 px-4 py-3 shadow-[0_8px_24px_rgba(244,63,94,0.12)] backdrop-blur-xl transition hover:shadow-xl hover:scale-[1.02]">
+          <div className="group relative overflow-hidden rounded-xl sm:rounded-2xl border border-white/70 bg-gradient-to-br from-white/45 via-rose-500/10 to-amber-500/10 p-2.5 sm:px-4 sm:py-3 shadow-[0_8px_24px_rgba(244,63,94,0.12)] backdrop-blur-xl transition hover:shadow-xl hover:scale-[1.02]">
             {/* Top specular highlight line for glossy finish */}
             <div className="pointer-events-none absolute inset-x-0 top-0 h-[1.5px] bg-gradient-to-r from-transparent via-white to-transparent opacity-90" />
 
-            <div className="relative z-10 flex items-center gap-3">
-              <div className="grid h-11 w-11 place-items-center rounded-xl bg-gradient-to-br from-rose-500 via-red-500 to-amber-500 text-white shadow-md shadow-rose-500/30 ring-2 ring-white/80 group-hover:rotate-6 transition-transform">
-                <Calendar className="h-5 w-5 drop-shadow-xs" />
+            <div className="relative z-10 flex items-center gap-2 sm:gap-3">
+              <div className="grid h-9 w-9 sm:h-11 sm:w-11 shrink-0 place-items-center rounded-lg sm:rounded-xl bg-gradient-to-br from-rose-500 via-red-500 to-amber-500 text-white shadow-md shadow-rose-500/30 ring-2 ring-white/80 group-hover:rotate-6 transition-transform">
+                <Calendar className="h-4 w-4 sm:h-5 sm:w-5 drop-shadow-xs" />
               </div>
-              <div>
-                <div className="flex items-center gap-1.5 text-[11px] font-bold tracking-wide text-rose-950/80">
+              <div className="min-w-0">
+                <div className="flex items-center gap-1 text-[10px] sm:text-[11px] font-bold tracking-wide text-rose-950/80">
                   <span className="h-1.5 w-1.5 rounded-full bg-rose-500 animate-pulse" />
                   আজকের তারিখ
                 </div>
-                <div className="text-xs sm:text-sm font-black text-slate-900 tracking-tight drop-shadow-2xs">
+                <div className="text-xs sm:text-sm font-black text-slate-900 tracking-tight drop-shadow-2xs truncate">
                   {formattedDate}
                 </div>
-                <div className="text-[10px] font-bold text-rose-700 bg-rose-500/15 rounded-full px-2 py-0.5 inline-block mt-0.5 border border-rose-300/50">
+                <div className="text-[9px] sm:text-[10px] font-bold text-rose-700 bg-rose-500/15 rounded-full px-1.5 py-0.5 inline-block mt-0.5 border border-rose-300/50">
                   {dayName}
                 </div>
               </div>
@@ -1976,24 +1976,24 @@ function KuakataBeachBanner() {
           </div>
 
           {/* 2. Time Card (Glossy Colorful Translucent Glass) */}
-          <div className="group relative overflow-hidden rounded-2xl border border-white/70 bg-gradient-to-br from-white/45 via-sky-500/10 to-indigo-500/10 px-4 py-3 shadow-[0_8px_24px_rgba(14,165,233,0.12)] backdrop-blur-xl transition hover:shadow-xl hover:scale-[1.02]">
+          <div className="group relative overflow-hidden rounded-xl sm:rounded-2xl border border-white/70 bg-gradient-to-br from-white/45 via-sky-500/10 to-indigo-500/10 p-2.5 sm:px-4 sm:py-3 shadow-[0_8px_24px_rgba(14,165,233,0.12)] backdrop-blur-xl transition hover:shadow-xl hover:scale-[1.02]">
             {/* Top specular highlight line for glossy finish */}
             <div className="pointer-events-none absolute inset-x-0 top-0 h-[1.5px] bg-gradient-to-r from-transparent via-white to-transparent opacity-90" />
 
-            <div className="relative z-10 flex items-center gap-3">
-              <div className="grid h-11 w-11 place-items-center rounded-xl bg-gradient-to-br from-sky-500 via-blue-600 to-indigo-600 text-white shadow-md shadow-sky-500/30 ring-2 ring-white/80 group-hover:rotate-6 transition-transform">
-                <Clock className="h-5 w-5 drop-shadow-xs" />
+            <div className="relative z-10 flex items-center gap-2 sm:gap-3">
+              <div className="grid h-9 w-9 sm:h-11 sm:w-11 shrink-0 place-items-center rounded-lg sm:rounded-xl bg-gradient-to-br from-sky-500 via-blue-600 to-indigo-600 text-white shadow-md shadow-sky-500/30 ring-2 ring-white/80 group-hover:rotate-6 transition-transform">
+                <Clock className="h-4 w-4 sm:h-5 sm:w-5 drop-shadow-xs" />
               </div>
-              <div>
-                <div className="flex items-center gap-1.5 text-[11px] font-bold tracking-wide text-sky-950/80">
+              <div className="min-w-0">
+                <div className="flex items-center gap-1 text-[10px] sm:text-[11px] font-bold tracking-wide text-sky-950/80">
                   <span className="h-1.5 w-1.5 rounded-full bg-emerald-500 animate-ping" />
                   বর্তমান সময়
                 </div>
-                <div className="text-base sm:text-lg font-black font-mono tracking-tight text-slate-900 drop-shadow-2xs">
+                <div className="text-xs sm:text-base font-black font-mono tracking-tight text-slate-900 drop-shadow-2xs truncate">
                   <span className="text-transparent bg-clip-text bg-gradient-to-r from-red-600 via-rose-600 to-red-500 font-extrabold">
                     {hoursBn}:{minutes}
                   </span>{" "}
-                  <span className="text-[11px] font-bold text-indigo-700 bg-indigo-500/15 rounded-md px-1.5 py-0.5 border border-indigo-300/50 align-middle">
+                  <span className="text-[10px] sm:text-[11px] font-bold text-indigo-700 bg-indigo-500/15 rounded-md px-1 py-0.5 border border-indigo-300/50 align-middle">
                     {ampm}
                   </span>
                 </div>
@@ -2065,7 +2065,7 @@ function TopStatsRow({
   activeMembers: number;
 }) {
   return (
-    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+    <div className="grid grid-cols-2 lg:grid-cols-4 gap-2.5 sm:gap-4">
       {/* 1. মোট বকেয়া (ক্লিক করলে সরাসরি বকেয়া তালিকা ওপেন হয়) */}
       <DueBreakdownDialog
         which="all"
@@ -2076,22 +2076,22 @@ function TopStatsRow({
         trigger={
           <button
             type="button"
-            className="group relative overflow-hidden rounded-3xl border border-rose-200/70 bg-gradient-to-br from-rose-50/90 via-white to-red-50/40 p-5 shadow-xs transition hover:shadow-md hover:-translate-y-0.5 text-left cursor-pointer w-full"
+            className="group relative overflow-hidden rounded-2xl sm:rounded-3xl border border-rose-200/70 bg-gradient-to-br from-rose-50/90 via-white to-red-50/40 p-3 sm:p-5 shadow-xs transition hover:shadow-md hover:-translate-y-0.5 text-left cursor-pointer w-full flex flex-col justify-between"
           >
-            <div className="flex items-center justify-between">
-              <div className="grid h-12 w-12 place-items-center rounded-2xl bg-rose-600 text-white shadow-md shadow-rose-600/25 group-hover:scale-105 transition-transform">
-                <AlertCircle className="h-6 w-6" />
+            <div className="flex items-center justify-between gap-1.5">
+              <div className="grid h-9 w-9 sm:h-12 sm:w-12 shrink-0 place-items-center rounded-xl sm:rounded-2xl bg-rose-600 text-white shadow-md shadow-rose-600/25 group-hover:scale-105 transition-transform">
+                <AlertCircle className="h-4.5 w-4.5 sm:h-6 sm:w-6" />
               </div>
-              <span className="inline-flex items-center gap-1 rounded-full bg-rose-100 px-2.5 py-0.5 text-[11px] font-bold text-rose-700">
+              <span className="inline-flex items-center gap-1 rounded-full bg-rose-100 px-2 py-0.5 text-[10px] sm:text-[11px] font-bold text-rose-700 shrink-0">
                 বকেয়া তালিকা
               </span>
             </div>
-            <div className="mt-3">
-              <div className="text-xs font-semibold text-rose-800">মোট বকেয়া</div>
-              <div className="text-2xl sm:text-3xl font-black text-rose-600 tracking-tight">
+            <div className="mt-2.5 sm:mt-3">
+              <div className="text-[11px] sm:text-xs font-semibold text-rose-800">মোট বকেয়া</div>
+              <div className="text-lg sm:text-2xl lg:text-3xl font-black text-rose-600 tracking-tight leading-tight mt-0.5 truncate">
                 {taka(totalDue)}
               </div>
-              <div className="mt-1 text-[11px] text-slate-500 font-medium">
+              <div className="mt-1 text-[10px] sm:text-[11px] text-slate-500 font-medium truncate">
                 {toBn(String(dueMembersCount))} জন সদস্যের বকেয়া
               </div>
             </div>
@@ -2102,22 +2102,22 @@ function TopStatsRow({
       {/* 2. ক্লায়েন্ট বকেয়া */}
       <Link
         to="/client-dues"
-        className="group relative overflow-hidden rounded-3xl border border-emerald-200/70 bg-gradient-to-br from-emerald-50/90 via-white to-green-50/40 p-5 shadow-xs transition hover:shadow-md hover:-translate-y-0.5"
+        className="group relative overflow-hidden rounded-2xl sm:rounded-3xl border border-emerald-200/70 bg-gradient-to-br from-emerald-50/90 via-white to-green-50/40 p-3 sm:p-5 shadow-xs transition hover:shadow-md hover:-translate-y-0.5 flex flex-col justify-between"
       >
-        <div className="flex items-center justify-between">
-          <div className="grid h-12 w-12 place-items-center rounded-2xl bg-emerald-600 text-white shadow-md shadow-emerald-600/25 group-hover:scale-105 transition-transform">
-            <Handshake className="h-6 w-6" />
+        <div className="flex items-center justify-between gap-1.5">
+          <div className="grid h-9 w-9 sm:h-12 sm:w-12 shrink-0 place-items-center rounded-xl sm:rounded-2xl bg-emerald-600 text-white shadow-md shadow-emerald-600/25 group-hover:scale-105 transition-transform">
+            <Handshake className="h-4.5 w-4.5 sm:h-6 sm:w-6" />
           </div>
-          <span className="inline-flex items-center gap-1 rounded-full bg-emerald-100 px-2.5 py-0.5 text-[11px] font-bold text-emerald-800">
+          <span className="inline-flex items-center gap-1 rounded-full bg-emerald-100 px-2 py-0.5 text-[10px] sm:text-[11px] font-bold text-emerald-800 shrink-0">
             ক্লায়েন্ট
           </span>
         </div>
-        <div className="mt-3">
-          <div className="text-xs font-semibold text-emerald-800">ক্লায়েন্ট বকেয়া</div>
-          <div className="text-2xl sm:text-3xl font-black text-emerald-700 tracking-tight">
+        <div className="mt-2.5 sm:mt-3">
+          <div className="text-[11px] sm:text-xs font-semibold text-emerald-800">ক্লায়েন্ট বকেয়া</div>
+          <div className="text-lg sm:text-2xl lg:text-3xl font-black text-emerald-700 tracking-tight leading-tight mt-0.5 truncate">
             {taka(clientDue)}
           </div>
-          <div className="mt-1 text-[11px] text-slate-500 font-medium">
+          <div className="mt-1 text-[10px] sm:text-[11px] text-slate-500 font-medium truncate">
             {toBn(String(clientDueChannelsCount))} টি চ্যানেলের বকেয়া
           </div>
         </div>
@@ -2126,22 +2126,22 @@ function TopStatsRow({
       {/* 3. মোট পেমেন্ট */}
       <Link
         to="/payments"
-        className="group relative overflow-hidden rounded-3xl border border-amber-200/70 bg-gradient-to-br from-amber-50/90 via-white to-orange-50/40 p-5 shadow-xs transition hover:shadow-md hover:-translate-y-0.5"
+        className="group relative overflow-hidden rounded-2xl sm:rounded-3xl border border-amber-200/70 bg-gradient-to-br from-amber-50/90 via-white to-orange-50/40 p-3 sm:p-5 shadow-xs transition hover:shadow-md hover:-translate-y-0.5 flex flex-col justify-between"
       >
-        <div className="flex items-center justify-between">
-          <div className="grid h-12 w-12 place-items-center rounded-2xl bg-amber-500 text-white shadow-md shadow-amber-500/25 group-hover:scale-105 transition-transform">
-            <Wallet className="h-6 w-6" />
+        <div className="flex items-center justify-between gap-1.5">
+          <div className="grid h-9 w-9 sm:h-12 sm:w-12 shrink-0 place-items-center rounded-xl sm:rounded-2xl bg-amber-500 text-white shadow-md shadow-amber-500/25 group-hover:scale-105 transition-transform">
+            <Wallet className="h-4.5 w-4.5 sm:h-6 sm:w-6" />
           </div>
-          <span className="inline-flex items-center gap-0.5 rounded-full bg-emerald-100 px-2 py-0.5 text-[11px] font-bold text-emerald-700">
+          <span className="inline-flex items-center gap-0.5 rounded-full bg-emerald-100 px-1.5 sm:px-2 py-0.5 text-[10px] sm:text-[11px] font-bold text-emerald-700 shrink-0">
             ↑ +৫%
           </span>
         </div>
-        <div className="mt-3">
-          <div className="text-xs font-semibold text-amber-800">মোট পেমেন্ট</div>
-          <div className="text-2xl sm:text-3xl font-black text-slate-800 tracking-tight">
+        <div className="mt-2.5 sm:mt-3">
+          <div className="text-[11px] sm:text-xs font-semibold text-amber-800">মোট পেমেন্ট</div>
+          <div className="text-lg sm:text-2xl lg:text-3xl font-black text-slate-800 tracking-tight leading-tight mt-0.5 truncate">
             {taka(paidThisMonth)}
           </div>
-          <div className="mt-1 text-[11px] text-slate-500 font-medium">
+          <div className="mt-1 text-[10px] sm:text-[11px] text-slate-500 font-medium truncate">
             এই মাসে পরিশোধ
           </div>
         </div>
@@ -2150,22 +2150,22 @@ function TopStatsRow({
       {/* 4. মোট সদস্য */}
       <Link
         to="/members"
-        className="group relative overflow-hidden rounded-3xl border border-sky-200/70 bg-gradient-to-br from-sky-50/90 via-white to-blue-50/40 p-5 shadow-xs transition hover:shadow-md hover:-translate-y-0.5"
+        className="group relative overflow-hidden rounded-2xl sm:rounded-3xl border border-sky-200/70 bg-gradient-to-br from-sky-50/90 via-white to-blue-50/40 p-3 sm:p-5 shadow-xs transition hover:shadow-md hover:-translate-y-0.5 flex flex-col justify-between"
       >
-        <div className="flex items-center justify-between">
-          <div className="grid h-12 w-12 place-items-center rounded-2xl bg-sky-600 text-white shadow-md shadow-sky-600/25 group-hover:scale-105 transition-transform">
-            <Users className="h-6 w-6" />
+        <div className="flex items-center justify-between gap-1.5">
+          <div className="grid h-9 w-9 sm:h-12 sm:w-12 shrink-0 place-items-center rounded-xl sm:rounded-2xl bg-sky-600 text-white shadow-md shadow-sky-600/25 group-hover:scale-105 transition-transform">
+            <Users className="h-4.5 w-4.5 sm:h-6 sm:w-6" />
           </div>
-          <span className="inline-flex items-center gap-0.5 rounded-full bg-emerald-100 px-2 py-0.5 text-[11px] font-bold text-emerald-700">
+          <span className="inline-flex items-center gap-0.5 rounded-full bg-emerald-100 px-1.5 sm:px-2 py-0.5 text-[10px] sm:text-[11px] font-bold text-emerald-700 shrink-0">
             ↑ +২
           </span>
         </div>
-        <div className="mt-3">
-          <div className="text-xs font-semibold text-sky-800">মোট সদস্য</div>
-          <div className="text-3xl font-black text-slate-800 tracking-tight">
+        <div className="mt-2.5 sm:mt-3">
+          <div className="text-[11px] sm:text-xs font-semibold text-sky-800">মোট সদস্য</div>
+          <div className="text-lg sm:text-2xl lg:text-3xl font-black text-slate-800 tracking-tight leading-tight mt-0.5 truncate">
             {toBn(String(totalMembers))}
           </div>
-          <div className="mt-1 text-[11px] text-slate-500 font-medium">
+          <div className="mt-1 text-[10px] sm:text-[11px] text-slate-500 font-medium truncate">
             সক্রিয়: {toBn(String(activeMembers))} জন
           </div>
         </div>
@@ -2592,40 +2592,40 @@ function RecentActivityFeed({
 
 function QuickActionsCard({ membersWithDue }: { membersWithDue?: BreakdownRow[] }) {
   return (
-    <section className="relative overflow-hidden rounded-3xl border border-white/60 dark:border-white/10 bg-white/70 dark:bg-slate-900/60 backdrop-blur-xl p-5 shadow-xs">
+    <section className="relative overflow-hidden rounded-2xl sm:rounded-3xl border border-white/60 dark:border-white/10 bg-white/70 dark:bg-slate-900/60 backdrop-blur-xl p-3.5 sm:p-5 shadow-xs">
       {/* Background ambient light */}
       <div className="pointer-events-none absolute -top-10 left-1/4 h-32 w-80 rounded-full bg-gradient-to-r from-amber-400/10 via-rose-400/10 to-purple-400/10 blur-3xl" />
 
-      <div className="relative z-10 flex items-center justify-between mb-4">
-        <h2 className="flex items-center gap-2 text-sm font-bold text-slate-800 dark:text-slate-100">
+      <div className="relative z-10 flex items-center justify-between mb-3 sm:mb-4">
+        <h2 className="flex items-center gap-2 text-xs sm:text-sm font-bold text-slate-800 dark:text-slate-100">
           <span className="grid h-6 w-6 place-items-center rounded-lg bg-amber-500/15 text-amber-500 shadow-xs shadow-amber-500/20">
-            <Zap className="h-4 w-4 fill-amber-500" />
+            <Zap className="h-3.5 w-3.5 sm:h-4 sm:w-4 fill-amber-500" />
           </span>
           দ্রুত অ্যাকশন
         </h2>
-        <span className="text-[11px] font-semibold text-muted-foreground flex items-center gap-1.5 bg-muted/40 px-2.5 py-0.5 rounded-full border border-border/40">
+        <span className="text-[10px] sm:text-[11px] font-semibold text-muted-foreground flex items-center gap-1.5 bg-muted/40 px-2 py-0.5 sm:px-2.5 rounded-full border border-border/40">
           <span className="h-1.5 w-1.5 rounded-full bg-emerald-500 animate-pulse" />
           সরাসরি শর্টকাট
         </span>
       </div>
 
-      <div className="relative z-10 grid grid-cols-2 gap-3 sm:gap-4">
+      <div className="relative z-10 grid grid-cols-2 gap-2.5 sm:gap-4">
         {/* 1. Payment */}
         <QuickDuePaymentDialog
           membersWithDue={membersWithDue}
           trigger={
             <button
               type="button"
-              className="group relative flex flex-col items-center gap-2.5 overflow-hidden rounded-2xl border border-amber-200/70 dark:border-amber-500/25 bg-gradient-to-b from-amber-50/80 via-white/70 to-amber-50/30 dark:from-amber-950/20 dark:via-slate-900/40 dark:to-slate-900/20 backdrop-blur-md p-4 sm:p-5 text-center transition-all duration-300 hover:border-amber-400 hover:shadow-lg hover:shadow-amber-500/15 hover:-translate-y-1 active:scale-95 cursor-pointer w-full shadow-[inset_0_1px_1px_rgba(255,255,255,0.95),0_2px_8px_rgba(245,158,11,0.06)]"
+              className="group relative flex flex-col items-center gap-2 sm:gap-2.5 overflow-hidden rounded-xl sm:rounded-2xl border border-amber-200/70 dark:border-amber-500/25 bg-gradient-to-b from-amber-50/80 via-white/70 to-amber-50/30 dark:from-amber-950/20 dark:via-slate-900/40 dark:to-slate-900/20 backdrop-blur-md p-3 sm:p-5 text-center transition-all duration-300 hover:border-amber-400 hover:shadow-lg hover:shadow-amber-500/15 hover:-translate-y-1 active:scale-95 cursor-pointer w-full shadow-[inset_0_1px_1px_rgba(255,255,255,0.95),0_2px_8px_rgba(245,158,11,0.06)]"
             >
               {/* Light glow aura */}
               <div className="pointer-events-none absolute -top-6 -right-6 h-24 w-24 rounded-full bg-amber-400/25 blur-xl opacity-60 group-hover:opacity-100 group-hover:scale-125 transition-all duration-500" />
               {/* Glass sheen reflection */}
               <div className="pointer-events-none absolute inset-0 -translate-x-full group-hover:translate-x-full transition-transform duration-1000 bg-gradient-to-r from-transparent via-white/50 to-transparent ease-out" />
 
-              <div className="relative grid h-12 w-12 sm:h-14 sm:w-14 place-items-center rounded-2xl bg-gradient-to-br from-amber-400 via-amber-500 to-amber-600 text-white shadow-md shadow-amber-500/35 transition-all duration-300 group-hover:scale-110 group-hover:shadow-amber-500/50">
-                <div className="pointer-events-none absolute inset-0 rounded-2xl bg-gradient-to-b from-white/35 to-transparent" />
-                <Wallet className="relative z-10 h-6 w-6 sm:h-7 sm:w-7 drop-shadow-xs" />
+              <div className="relative grid h-10 w-10 sm:h-14 sm:w-14 place-items-center rounded-xl sm:rounded-2xl bg-gradient-to-br from-amber-400 via-amber-500 to-amber-600 text-white shadow-md shadow-amber-500/35 transition-all duration-300 group-hover:scale-110 group-hover:shadow-amber-500/50">
+                <div className="pointer-events-none absolute inset-0 rounded-xl sm:rounded-2xl bg-gradient-to-b from-white/35 to-transparent" />
+                <Wallet className="relative z-10 h-5 w-5 sm:h-7 sm:w-7 drop-shadow-xs" />
               </div>
               <span className="relative z-10 text-xs sm:text-sm font-bold text-slate-700 dark:text-slate-200 transition-colors group-hover:text-amber-700 dark:group-hover:text-amber-400">
                 পেমেন্ট
@@ -2637,16 +2637,16 @@ function QuickActionsCard({ membersWithDue }: { membersWithDue?: BreakdownRow[] 
         {/* 2. Hazira */}
         <Link
           to="/attendance"
-          className="group relative flex flex-col items-center gap-2.5 overflow-hidden rounded-2xl border border-purple-200/70 dark:border-purple-500/25 bg-gradient-to-b from-purple-50/80 via-white/70 to-purple-50/30 dark:from-purple-950/20 dark:via-slate-900/40 dark:to-slate-900/20 backdrop-blur-md p-4 sm:p-5 text-center transition-all duration-300 hover:border-purple-400 hover:shadow-lg hover:shadow-purple-500/15 hover:-translate-y-1 active:scale-95 cursor-pointer w-full shadow-[inset_0_1px_1px_rgba(255,255,255,0.95),0_2px_8px_rgba(168,85,247,0.06)]"
+          className="group relative flex flex-col items-center gap-2 sm:gap-2.5 overflow-hidden rounded-xl sm:rounded-2xl border border-purple-200/70 dark:border-purple-500/25 bg-gradient-to-b from-purple-50/80 via-white/70 to-purple-50/30 dark:from-purple-950/20 dark:via-slate-900/40 dark:to-slate-900/20 backdrop-blur-md p-3 sm:p-5 text-center transition-all duration-300 hover:border-purple-400 hover:shadow-lg hover:shadow-purple-500/15 hover:-translate-y-1 active:scale-95 cursor-pointer w-full shadow-[inset_0_1px_1px_rgba(255,255,255,0.95),0_2px_8px_rgba(168,85,247,0.06)]"
         >
           {/* Light glow aura */}
           <div className="pointer-events-none absolute -top-6 -right-6 h-24 w-24 rounded-full bg-purple-400/25 blur-xl opacity-60 group-hover:opacity-100 group-hover:scale-125 transition-all duration-500" />
           {/* Glass sheen reflection */}
           <div className="pointer-events-none absolute inset-0 -translate-x-full group-hover:translate-x-full transition-transform duration-1000 bg-gradient-to-r from-transparent via-white/50 to-transparent ease-out" />
 
-          <div className="relative grid h-12 w-12 sm:h-14 sm:w-14 place-items-center rounded-2xl bg-gradient-to-br from-purple-400 via-purple-500 to-fuchsia-600 text-white shadow-md shadow-purple-500/35 transition-all duration-300 group-hover:scale-110 group-hover:shadow-purple-500/50">
-            <div className="pointer-events-none absolute inset-0 rounded-2xl bg-gradient-to-b from-white/35 to-transparent" />
-            <CalendarDays className="relative z-10 h-6 w-6 sm:h-7 sm:w-7 drop-shadow-xs" />
+          <div className="relative grid h-10 w-10 sm:h-14 sm:w-14 place-items-center rounded-xl sm:rounded-2xl bg-gradient-to-br from-purple-400 via-purple-500 to-fuchsia-600 text-white shadow-md shadow-purple-500/35 transition-all duration-300 group-hover:scale-110 group-hover:shadow-purple-500/50">
+            <div className="pointer-events-none absolute inset-0 rounded-xl sm:rounded-2xl bg-gradient-to-b from-white/35 to-transparent" />
+            <CalendarDays className="relative z-10 h-5 w-5 sm:h-7 sm:w-7 drop-shadow-xs" />
           </div>
           <span className="relative z-10 text-xs sm:text-sm font-bold text-slate-700 dark:text-slate-200 transition-colors group-hover:text-purple-700 dark:group-hover:text-purple-400">
             হাজিরা
@@ -2659,9 +2659,9 @@ function QuickActionsCard({ membersWithDue }: { membersWithDue?: BreakdownRow[] 
 
 function BottomTwoCards({ upcomingShootingName }: { upcomingShootingName?: string }) {
   return (
-    <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-5">
       {/* 1. গুরুত্বপূর্ণ বার্তা */}
-      <section className="relative overflow-hidden rounded-3xl border border-emerald-200/70 bg-gradient-to-br from-emerald-50/90 via-green-50/50 to-teal-50/40 p-5 shadow-xs flex flex-col justify-between">
+      <section className="relative overflow-hidden rounded-2xl sm:rounded-3xl border border-emerald-200/70 bg-gradient-to-br from-emerald-50/90 via-green-50/50 to-teal-50/40 p-4 sm:p-5 shadow-xs flex flex-col justify-between">
         <div className="relative z-10">
           <div className="flex items-center gap-2 text-xs font-bold text-emerald-800 mb-2">
             <Megaphone className="h-4 w-4 text-emerald-600" />
@@ -2681,12 +2681,12 @@ function BottomTwoCards({ upcomingShootingName }: { upcomingShootingName?: strin
           >
             বিস্তারিত দেখুন <ArrowUpRight className="h-3.5 w-3.5" />
           </Link>
-          <Clapperboard className="h-10 w-10 text-emerald-800/20" />
+          <Clapperboard className="h-8 w-8 sm:h-10 sm:w-10 text-emerald-800/20" />
         </div>
       </section>
 
       {/* 2. টিমের অনুপ্রেরণা */}
-      <section className="rounded-3xl border border-amber-200/70 bg-gradient-to-br from-amber-50/90 via-yellow-50/40 to-orange-50/30 p-5 shadow-xs flex flex-col justify-between text-center">
+      <section className="rounded-2xl sm:rounded-3xl border border-amber-200/70 bg-gradient-to-br from-amber-50/90 via-yellow-50/40 to-orange-50/30 p-4 sm:p-5 shadow-xs flex flex-col justify-between text-center">
         <div className="flex items-center justify-center gap-2 text-xs font-bold text-amber-800 mb-1">
           <Trophy className="h-4 w-4 text-amber-600" />
           টিমের অনুপ্রেরণা
