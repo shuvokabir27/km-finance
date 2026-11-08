@@ -7,6 +7,11 @@ import tsconfigPaths from "vite-tsconfig-paths";
 import path from "node:path";
 
 export default defineConfig(({ command }) => ({
+  server: {
+    watch: {
+      ignored: ["**/.output/**", "**/.nitro/**", "**/dist/**", "**/.git/**"],
+    },
+  },
   resolve: {
     alias: {
       "@": path.resolve(__dirname, "./src"),
