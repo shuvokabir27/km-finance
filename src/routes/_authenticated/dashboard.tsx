@@ -204,83 +204,121 @@ function Dashboard() {
         activeMembers={activeMembers}
       />
 
-      {/* 3. Financial Summary Overview Cards (Keeping all financial data 100% intact!) */}
-      <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-4 items-stretch">
-        {/* Card 1: মোট বকেয়া (Hero balance card) */}
-        <div className="hero-gradient relative overflow-hidden rounded-3xl p-5 shadow-md flex flex-col justify-between">
-          <div className="absolute -right-10 -top-10 h-40 w-40 rounded-full bg-white/10 blur-2xl pointer-events-none" />
-          <div className="absolute -bottom-12 -left-6 h-32 w-32 rounded-full bg-white/10 blur-2xl pointer-events-none" />
-          <div className="relative">
-            <div className="flex items-center justify-between text-primary-foreground/80">
-              <span className="text-xs font-semibold">মোট বকেয়া</span>
-              <span className="rounded-full bg-white/15 px-2 py-0.5 text-[10px]">{monthName}</span>
-            </div>
-            <div className="mt-2 text-3xl font-black tracking-tight text-primary-foreground">
-              {isLoading ? "…" : taka(data!.outstanding)}
-            </div>
-
-            <div className="mt-3 grid grid-cols-2 gap-2">
-              <DueBreakdownDialog
-                which="prev"
-                title="পূর্বের বকেয়া"
-                rows={data?.breakdown ?? []}
-                total={data?.prevDue ?? 0}
-                loading={isLoading}
-              />
-              <DueBreakdownDialog
-                which="curr"
-                title="এই মাসের বকেয়া"
-                rows={data?.breakdown ?? []}
-                total={data?.currDue ?? 0}
-                loading={isLoading}
-              />
-            </div>
-
-            <div className="mt-4 flex items-center justify-between gap-2 pt-2 border-t border-white/15">
-              <div className="text-[11px] text-primary-foreground/80">
-                এই মাসে পরিশোধ
-                <div className="text-sm font-semibold text-primary-foreground">
-                  {isLoading ? "…" : taka(data!.paidThisMonth)}
+      {/* 3. Quick Action 4 Buttons Row: ১. পেমেন্ট, ২. ক্লায়েন্ট পেমেন্ট, ৩. হাজিরা, ৪. শুটিং */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+        {/* 1. পেমেন্ট (বকেয়া পরিশোধ) */}
+        <QuickDuePaymentDialog
+          membersWithDue={data?.breakdown}
+          trigger={
+            <button
+              type="button"
+              className="group relative flex flex-col justify-between overflow-hidden rounded-3xl border border-rose-200/80 bg-gradient-to-br from-rose-50/90 via-white to-red-50/40 p-5 shadow-xs transition hover:shadow-md hover:-translate-y-0.5 active:scale-[0.99] text-left cursor-pointer w-full"
+            >
+              <div className="flex items-center justify-between w-full">
+                <div className="grid h-12 w-12 place-items-center rounded-2xl bg-gradient-to-br from-rose-500 to-red-600 text-white shadow-md shadow-rose-500/25 group-hover:scale-105 transition-transform">
+                  <Wallet className="h-6 w-6" />
                 </div>
+                <span className="grid h-8 w-8 place-items-center rounded-full bg-rose-100 text-rose-700 group-hover:bg-rose-600 group-hover:text-white transition">
+                  <ArrowUpRight className="h-4 w-4" />
+                </span>
               </div>
-              <div className="flex items-center gap-1.5 flex-wrap justify-end">
-                <QuickDuePaymentDialog
-                  membersWithDue={data?.breakdown}
-                  trigger={
-                    <button
-                      type="button"
-                      className="inline-flex items-center gap-1 rounded-full bg-white text-primary px-2.5 py-1 text-xs font-bold shadow-sm transition hover:bg-white/90 active:scale-95"
-                    >
-                      <Wallet className="h-3 w-3" /> পরিশোধ
-                    </button>
-                  }
-                />
-                <DuesDialog />
-                <Link
-                  to="/payments"
-                  className="inline-flex items-center gap-0.5 rounded-full bg-white/15 px-2.5 py-1 text-xs font-semibold text-primary-foreground backdrop-blur-sm transition hover:bg-white/25"
-                >
-                  <ArrowUpRight className="h-3.5 w-3.5" />
-                </Link>
+              <div className="mt-4">
+                <div className="text-base font-bold text-slate-800 group-hover:text-rose-700 transition">
+                  পেমেন্ট
+                </div>
+                <div className="text-xs text-slate-500 font-medium mt-0.5">
+                  সদস্যদের বকেয়া পরিশোধ করুন
+                </div>
+                <span className="inline-flex items-center gap-1 rounded-full bg-rose-500/10 text-rose-700 px-2.5 py-0.5 text-[11px] font-bold mt-3">
+                  পরিশোধ করুন →
+                </span>
               </div>
+            </button>
+          }
+        />
+
+        {/* 2. ক্লায়েন্ট পেমেন্ট */}
+        <QuickClientPaymentDialog
+          channelsSummary={clientSummaryList}
+          trigger={
+            <button
+              type="button"
+              className="group relative flex flex-col justify-between overflow-hidden rounded-3xl border border-emerald-200/80 bg-gradient-to-br from-emerald-50/90 via-white to-teal-50/40 p-5 shadow-xs transition hover:shadow-md hover:-translate-y-0.5 active:scale-[0.99] text-left cursor-pointer w-full"
+            >
+              <div className="flex items-center justify-between w-full">
+                <div className="grid h-12 w-12 place-items-center rounded-2xl bg-gradient-to-br from-emerald-500 to-teal-600 text-white shadow-md shadow-emerald-500/25 group-hover:scale-105 transition-transform">
+                  <Handshake className="h-6 w-6" />
+                </div>
+                <span className="grid h-8 w-8 place-items-center rounded-full bg-emerald-100 text-emerald-700 group-hover:bg-emerald-600 group-hover:text-white transition">
+                  <ArrowUpRight className="h-4 w-4" />
+                </span>
+              </div>
+              <div className="mt-4">
+                <div className="text-base font-bold text-slate-800 group-hover:text-emerald-700 transition">
+                  ক্লায়েন্ট পেমেন্ট
+                </div>
+                <div className="text-xs text-slate-500 font-medium mt-0.5">
+                  চ্যানেল থেকে পাওনা গ্রহণ করুন
+                </div>
+                <span className="inline-flex items-center gap-1 rounded-full bg-emerald-500/10 text-emerald-800 px-2.5 py-0.5 text-[11px] font-bold mt-3">
+                  পেমেন্ট গ্রহণ →
+                </span>
+              </div>
+            </button>
+          }
+        />
+
+        {/* 3. হাজিরা */}
+        <Link
+          to="/attendance"
+          className="group relative flex flex-col justify-between overflow-hidden rounded-3xl border border-sky-200/80 bg-gradient-to-br from-sky-50/90 via-white to-blue-50/40 p-5 shadow-xs transition hover:shadow-md hover:-translate-y-0.5 active:scale-[0.99] text-left cursor-pointer w-full"
+        >
+          <div className="flex items-center justify-between w-full">
+            <div className="grid h-12 w-12 place-items-center rounded-2xl bg-gradient-to-br from-sky-500 to-blue-600 text-white shadow-md shadow-sky-500/25 group-hover:scale-105 transition-transform">
+              <CalendarDays className="h-6 w-6" />
             </div>
+            <span className="grid h-8 w-8 place-items-center rounded-full bg-sky-100 text-sky-700 group-hover:bg-sky-600 group-hover:text-white transition">
+              <ArrowUpRight className="h-4 w-4" />
+            </span>
           </div>
-        </div>
+          <div className="mt-4">
+            <div className="text-base font-bold text-slate-800 group-hover:text-sky-700 transition">
+              হাজিরা
+            </div>
+            <div className="text-xs text-slate-500 font-medium mt-0.5">
+              টিমের উপস্থিতি ও হাজিরা শিট
+            </div>
+            <span className="inline-flex items-center gap-1 rounded-full bg-sky-500/10 text-sky-800 px-2.5 py-0.5 text-[11px] font-bold mt-3">
+              হাজিরা দিন →
+            </span>
+          </div>
+        </Link>
 
-        {/* Card 2: ক্লায়েন্ট হিসাব */}
-        <ClientDuesCard />
-
-        {/* Card 3: শেয়ার চ্যানেল */}
-        <SharedChannelsCard />
-
-        {/* Card 4: মোট খরচ */}
-        <TotalCostSection />
-      </div>
-
-      {/* Quick Action dialog shortcuts */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-        <QuickDuePaymentDialog membersWithDue={data?.breakdown} />
-        <QuickClientPaymentDialog channelsSummary={clientSummaryList} />
+        {/* 4. শুটিং */}
+        <Link
+          to="/shootings"
+          className="group relative flex flex-col justify-between overflow-hidden rounded-3xl border border-amber-200/80 bg-gradient-to-br from-amber-50/90 via-white to-orange-50/40 p-5 shadow-xs transition hover:shadow-md hover:-translate-y-0.5 active:scale-[0.99] text-left cursor-pointer w-full"
+        >
+          <div className="flex items-center justify-between w-full">
+            <div className="grid h-12 w-12 place-items-center rounded-2xl bg-gradient-to-br from-amber-500 to-orange-600 text-white shadow-md shadow-amber-500/25 group-hover:scale-105 transition-transform">
+              <Clapperboard className="h-6 w-6" />
+            </div>
+            <span className="grid h-8 w-8 place-items-center rounded-full bg-amber-100 text-amber-700 group-hover:bg-amber-600 group-hover:text-white transition">
+              <ArrowUpRight className="h-4 w-4" />
+            </span>
+          </div>
+          <div className="mt-4">
+            <div className="text-base font-bold text-slate-800 group-hover:text-amber-700 transition">
+              শুটিং
+            </div>
+            <div className="text-xs text-slate-500 font-medium mt-0.5">
+              নতুন শুটিং শিডিউল ও খরচ তৈরি
+            </div>
+            <span className="inline-flex items-center gap-1 rounded-full bg-amber-500/10 text-amber-800 px-2.5 py-0.5 text-[11px] font-bold mt-3">
+              শুটিং দেখুন →
+            </span>
+          </div>
+        </Link>
       </div>
 
       {/* 4. Middle 3-Column Section (মাসিক সারাংশ, মাসিক ক্যালেন্ডার, সাম্প্রতিক কার্যক্রম) */}
