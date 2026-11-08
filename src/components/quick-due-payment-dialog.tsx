@@ -245,6 +245,14 @@ export function QuickDuePaymentDialog({
     setOpen(v);
   };
 
+  // Sync member when opened controlled with defaultMemberId
+  useEffect(() => {
+    if (open && defaultMemberId) {
+      handleSelectMember(defaultMemberId);
+      setDate(new Date().toISOString().slice(0, 10));
+    }
+  }, [open, defaultMemberId, dueMap]);
+
   // Auto-fill account number when method matches a saved member account
   useEffect(() => {
     if (method === "cash") {
@@ -312,9 +320,9 @@ export function QuickDuePaymentDialog({
 
   return (
     <Dialog open={open} onOpenChange={handleOpenChange}>
-      {trigger ? (
-        <DialogTrigger asChild>{trigger}</DialogTrigger>
-      ) : (
+      {trigger !== undefined ? (
+        trigger ? <DialogTrigger asChild>{trigger}</DialogTrigger> : null
+      ) : isControlled ? null : (
         <DialogTrigger asChild>
           <button
             type="button"
