@@ -92,7 +92,7 @@ function AccountCheckPage() {
           .from("monthly_salaries")
           .select("amount, month")
           .eq("member_id", memberId),
-        supabase.rpc("member_balance", { _member_id: memberId }),
+        supabase.rpc("member_balance", { _member_id: memberId, _channel_id: null }),
         supabase.from("channels").select("id, name").eq("is_shared", true),
       ]);
 

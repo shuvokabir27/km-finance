@@ -84,7 +84,7 @@ export const sendBulkSmsToMembers = createServerFn({ method: "POST" })
         .eq("is_shared", true);
       for (const m of members ?? []) {
         let total = 0;
-        const { data: gen } = await supabase.rpc("member_balance", { _member_id: m.id });
+        const { data: gen } = await supabase.rpc("member_balance", { _member_id: m.id, _channel_id: null });
         total += Number(gen ?? 0);
         for (const c of sharedChannels ?? []) {
           const { data: ch } = await supabase.rpc("member_balance", {

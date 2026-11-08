@@ -1313,6 +1313,8 @@ ON CONFLICT DO NOTHING;
 ALTER TABLE public.payments
   ADD COLUMN IF NOT EXISTS channel_id uuid REFERENCES public.channels(id) ON DELETE SET NULL;
 
+DROP FUNCTION IF EXISTS public.member_balance(uuid);
+
 CREATE OR REPLACE FUNCTION public.member_balance(_member_id uuid, _channel_id uuid DEFAULT NULL)
 RETURNS numeric
 LANGUAGE plpgsql

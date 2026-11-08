@@ -58,7 +58,7 @@ function PaymentsPage() {
     queryKey: ["balance", memberId],
     enabled: !!memberId && memberId !== "all",
     queryFn: async () => {
-      const { data, error } = await supabase.rpc("member_balance", { _member_id: memberId });
+      const { data, error } = await supabase.rpc("member_balance", { _member_id: memberId, _channel_id: null });
       if (error) throw error;
       return Number(data ?? 0);
     },

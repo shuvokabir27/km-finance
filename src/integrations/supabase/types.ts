@@ -839,7 +839,7 @@ export type Database = {
         Returns: boolean
       }
       member_balance: {
-        Args: { _channel_id?: string; _member_id: string }
+        Args: { _channel_id?: string | null; _member_id: string }
         Returns: number
       }
       partner_ledger: {

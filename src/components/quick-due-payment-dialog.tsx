@@ -128,7 +128,7 @@ export function QuickDuePaymentDialog({
       const out: Record<string, number> = {};
       await Promise.all(
         members.map(async (m) => {
-          const { data } = await supabase.rpc("member_balance", { _member_id: m.id });
+          const { data } = await supabase.rpc("member_balance", { _member_id: m.id, _channel_id: null });
           out[m.id] = Number(data ?? 0);
         }),
       );

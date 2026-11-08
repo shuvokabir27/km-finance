@@ -42,9 +42,10 @@ function Dashboard() {
   const { data, isLoading } = useQuery({
     queryKey: ["dashboard"],
     queryFn: async () => {
-      const monthStartDate = new Date(new Date().getFullYear(), new Date().getMonth(), 1);
+      const now = new Date();
+      const monthStartDay = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, "0")}-01`;
+      const monthStartDate = new Date(now.getFullYear(), now.getMonth(), 1);
       const monthStartISO = monthStartDate.toISOString();
-      const monthStartDay = monthStartISO.slice(0, 10);
 
       const [membersRes, attRes, salRes, bonRes, payRes, chRes, shRes] = await Promise.all([
         supabase.from("members").select("id, name, photo_url, type, rate"),
@@ -1151,7 +1152,7 @@ function DuesDialog() {
       const rows = await Promise.all(
         (members ?? []).map(async (m) => {
           const [{ data: bal }, { data: lastPay }] = await Promise.all([
-            supabase.rpc("member_balance", { _member_id: m.id }),
+            supabase.rpc("member_balance", { _member_id: m.id, _channel_id: null }),
             supabase
               .from("payments")
               .select("amount, paid_at")
