@@ -90,3 +90,4 @@ export function calculateMemberAverageIncome(input: IncomeInput): MemberIncomeSt
     monthlyBreakdown,
   };
 }
+

@@ -588,16 +588,34 @@ type PickerMember = { id: string; name: string; role: string | null; photo_url: 
 function MemberPicker({ members, value, onChange }: { members: PickerMember[]; value: string; onChange: (id: string) => void }) {
   const [open, setOpen] = useState(false);
   const [q, setQ] = useState("");
+  const touchStartY = useRef(0);
+  const isDragging = useRef(false);
+
   const selected = members.find((m) => m.id === value) ?? null;
   const filtered = useMemo(() => {
     const s = q.trim().toLowerCase();
     if (!s) return members;
     return members.filter((m) => m.name.toLowerCase().includes(s) || (m.role ?? "").toLowerCase().includes(s));
   }, [members, q]);
+
+  const handleTouchStart = (e: React.TouchEvent) => {
+    touchStartY.current = e.touches[0].clientY;
+    isDragging.current = false;
+  };
+
+  const handleTouchMove = (e: React.TouchEvent) => {
+    if (Math.abs(e.touches[0].clientY - touchStartY.current) > 6) {
+      isDragging.current = true;
+    }
+  };
+
   return (
     <Popover open={open} onOpenChange={setOpen}>
       <PopoverTrigger asChild>
-        <button type="button" className="flex w-full items-center gap-2 rounded-2xl border bg-background px-3 py-2 text-left text-sm">
+        <button
+          type="button"
+          className="flex w-full items-center gap-2 rounded-2xl border bg-background px-3 py-2 text-left text-sm transition hover:border-primary/40 focus:outline-none focus:ring-2 focus:ring-primary/20"
+        >
           {selected ? (
             <>
               <MemberAvatar name={selected.name} photoUrl={selected.photo_url} size="sm" />
@@ -612,28 +630,67 @@ function MemberPicker({ members, value, onChange }: { members: PickerMember[]; v
           <ChevronDown className="h-4 w-4 shrink-0 text-muted-foreground" />
         </button>
       </PopoverTrigger>
-      <PopoverContent className="w-[var(--radix-popover-trigger-width)] p-0" align="start">
-        <div className="flex items-center gap-2 border-b px-3 py-2">
-          <Search className="h-4 w-4 text-muted-foreground" />
-          <input value={q} onChange={(e) => setQ(e.target.value)} placeholder="খুঁজুন…" className="w-full bg-transparent text-sm outline-none" autoFocus />
+      <PopoverContent
+        className="w-[var(--radix-popover-trigger-width)] max-w-[calc(100vw-2rem)] p-0 shadow-xl border-border/80"
+        align="start"
+        sideOffset={6}
+        onOpenAutoFocus={(e) => {
+          // Prevent virtual keyboard from popping up and blocking scrolling
+          e.preventDefault();
+        }}
+      >
+        <div className="flex items-center gap-2 border-b px-3 py-2 bg-muted/20">
+          <Search className="h-4 w-4 text-muted-foreground shrink-0" />
+          <input
+            value={q}
+            onChange={(e) => setQ(e.target.value)}
+            placeholder="নাম বা পদবী দিয়ে খুঁজুন…"
+            className="w-full bg-transparent text-sm outline-none placeholder:text-muted-foreground/60"
+          />
+          {q && (
+            <button
+              type="button"
+              onClick={() => setQ("")}
+              className="text-xs text-muted-foreground hover:text-foreground px-1"
+            >
+              ✕
+            </button>
+          )}
         </div>
-        <div className="max-h-72 overflow-y-auto p-1">
+        <div
+          className="max-h-72 overflow-y-auto overscroll-contain p-1 touch-pan-y"
+          style={{
+            scrollbarWidth: "thin",
+            WebkitOverflowScrolling: "touch",
+          }}
+          onTouchStart={handleTouchStart}
+          onTouchMove={handleTouchMove}
+          onWheel={(e) => e.stopPropagation()}
+        >
           {filtered.length === 0 && (
-            <div className="px-3 py-6 text-center text-xs text-muted-foreground">কোনো সদস্য নেই</div>
+            <div className="px-3 py-6 text-center text-xs text-muted-foreground">কোনো সদস্য পাওয়া যায়নি</div>
           )}
           {filtered.map((m) => (
             <button
               key={m.id}
               type="button"
-              onClick={() => { onChange(m.id); setOpen(false); setQ(""); }}
-              className="flex w-full items-center gap-2 rounded-lg px-2 py-1.5 text-left text-sm hover:bg-accent"
+              onClick={() => {
+                if (isDragging.current) {
+                  isDragging.current = false;
+                  return;
+                }
+                onChange(m.id);
+                setOpen(false);
+                setQ("");
+              }}
+              className="flex w-full items-center gap-2 rounded-xl px-2.5 py-2 text-left text-sm transition hover:bg-accent active:bg-accent/80 cursor-pointer"
             >
               <MemberAvatar name={m.name} photoUrl={m.photo_url} size="sm" />
               <div className="min-w-0 flex-1">
                 <div className="truncate font-medium">{m.name}</div>
                 {m.role && <div className="truncate text-[11px] text-muted-foreground">{m.role}</div>}
               </div>
-              {value === m.id && <Check className="h-4 w-4 text-primary" />}
+              {value === m.id && <Check className="h-4 w-4 text-primary shrink-0" />}
             </button>
           ))}
         </div>
