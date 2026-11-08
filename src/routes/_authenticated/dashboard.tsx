@@ -50,7 +50,6 @@ import {
   CalendarDays,
   ChevronLeft,
   ChevronRight,
-  Zap,
   AlertCircle,
 } from "lucide-react";
 import { useServerFn } from "@tanstack/react-start";
@@ -223,9 +222,6 @@ function Dashboard() {
         totalMembers={totalMembers}
         activeMembers={activeMembers}
       />
-
-      {/* 3. দ্রুত অ্যাকশন (অ্যাকশন বাটন) */}
-      <QuickActionsCard membersWithDue={data?.breakdown} />
 
       {/* 3. বকেয়া তালিকা বাটন (পূর্বের ৪টি কার্ডের জায়গায় শুধু ১টি বকেয়া তালিকা বাটন) */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 overflow-hidden rounded-2xl sm:rounded-3xl border border-rose-200/80 bg-gradient-to-r from-rose-50/90 via-white to-red-50/40 p-3.5 sm:p-5 shadow-xs">
@@ -2578,73 +2574,6 @@ function RecentActivityFeed({
             </Link>
           ))
         )}
-      </div>
-    </section>
-  );
-}
-
-function QuickActionsCard({ membersWithDue }: { membersWithDue?: BreakdownRow[] }) {
-  return (
-    <section className="relative overflow-hidden rounded-2xl sm:rounded-3xl border border-white/60 dark:border-white/10 bg-white/70 dark:bg-slate-900/60 backdrop-blur-xl p-3.5 sm:p-5 shadow-xs">
-      {/* Background ambient light */}
-      <div className="pointer-events-none absolute -top-10 left-1/4 h-32 w-80 rounded-full bg-gradient-to-r from-amber-400/10 via-rose-400/10 to-purple-400/10 blur-3xl" />
-
-      <div className="relative z-10 flex items-center justify-between mb-3 sm:mb-4">
-        <h2 className="flex items-center gap-2 text-xs sm:text-sm font-bold text-slate-800 dark:text-slate-100">
-          <span className="grid h-6 w-6 place-items-center rounded-lg bg-amber-500/15 text-amber-500 shadow-xs shadow-amber-500/20">
-            <Zap className="h-3.5 w-3.5 sm:h-4 sm:w-4 fill-amber-500" />
-          </span>
-          দ্রুত অ্যাকশন
-        </h2>
-        <span className="text-[10px] sm:text-[11px] font-semibold text-muted-foreground flex items-center gap-1.5 bg-muted/40 px-2 py-0.5 sm:px-2.5 rounded-full border border-border/40">
-          <span className="h-1.5 w-1.5 rounded-full bg-emerald-500 animate-pulse" />
-          সরাসরি শর্টকাট
-        </span>
-      </div>
-
-      <div className="relative z-10 grid grid-cols-2 gap-2.5 sm:gap-4">
-        {/* 1. Payment */}
-        <QuickDuePaymentDialog
-          membersWithDue={membersWithDue}
-          trigger={
-            <button
-              type="button"
-              className="group relative flex flex-col items-center gap-2 sm:gap-2.5 overflow-hidden rounded-xl sm:rounded-2xl border border-amber-200/70 dark:border-amber-500/25 bg-gradient-to-b from-amber-50/80 via-white/70 to-amber-50/30 dark:from-amber-950/20 dark:via-slate-900/40 dark:to-slate-900/20 backdrop-blur-md p-3 sm:p-5 text-center transition-all duration-300 hover:border-amber-400 hover:shadow-lg hover:shadow-amber-500/15 hover:-translate-y-1 active:scale-95 cursor-pointer w-full shadow-[inset_0_1px_1px_rgba(255,255,255,0.95),0_2px_8px_rgba(245,158,11,0.06)]"
-            >
-              {/* Light glow aura */}
-              <div className="pointer-events-none absolute -top-6 -right-6 h-24 w-24 rounded-full bg-amber-400/25 blur-xl opacity-60 group-hover:opacity-100 group-hover:scale-125 transition-all duration-500" />
-              {/* Glass sheen reflection */}
-              <div className="pointer-events-none absolute inset-0 -translate-x-full group-hover:translate-x-full transition-transform duration-1000 bg-gradient-to-r from-transparent via-white/50 to-transparent ease-out" />
-
-              <div className="relative grid h-10 w-10 sm:h-14 sm:w-14 place-items-center rounded-xl sm:rounded-2xl bg-gradient-to-br from-amber-400 via-amber-500 to-amber-600 text-white shadow-md shadow-amber-500/35 transition-all duration-300 group-hover:scale-110 group-hover:shadow-amber-500/50">
-                <div className="pointer-events-none absolute inset-0 rounded-xl sm:rounded-2xl bg-gradient-to-b from-white/35 to-transparent" />
-                <Wallet className="relative z-10 h-5 w-5 sm:h-7 sm:w-7 drop-shadow-xs" />
-              </div>
-              <span className="relative z-10 text-xs sm:text-sm font-bold text-slate-700 dark:text-slate-200 transition-colors group-hover:text-amber-700 dark:group-hover:text-amber-400">
-                পেমেন্ট
-              </span>
-            </button>
-          }
-        />
-
-        {/* 2. Hazira */}
-        <Link
-          to="/attendance"
-          className="group relative flex flex-col items-center gap-2 sm:gap-2.5 overflow-hidden rounded-xl sm:rounded-2xl border border-purple-200/70 dark:border-purple-500/25 bg-gradient-to-b from-purple-50/80 via-white/70 to-purple-50/30 dark:from-purple-950/20 dark:via-slate-900/40 dark:to-slate-900/20 backdrop-blur-md p-3 sm:p-5 text-center transition-all duration-300 hover:border-purple-400 hover:shadow-lg hover:shadow-purple-500/15 hover:-translate-y-1 active:scale-95 cursor-pointer w-full shadow-[inset_0_1px_1px_rgba(255,255,255,0.95),0_2px_8px_rgba(168,85,247,0.06)]"
-        >
-          {/* Light glow aura */}
-          <div className="pointer-events-none absolute -top-6 -right-6 h-24 w-24 rounded-full bg-purple-400/25 blur-xl opacity-60 group-hover:opacity-100 group-hover:scale-125 transition-all duration-500" />
-          {/* Glass sheen reflection */}
-          <div className="pointer-events-none absolute inset-0 -translate-x-full group-hover:translate-x-full transition-transform duration-1000 bg-gradient-to-r from-transparent via-white/50 to-transparent ease-out" />
-
-          <div className="relative grid h-10 w-10 sm:h-14 sm:w-14 place-items-center rounded-xl sm:rounded-2xl bg-gradient-to-br from-purple-400 via-purple-500 to-fuchsia-600 text-white shadow-md shadow-purple-500/35 transition-all duration-300 group-hover:scale-110 group-hover:shadow-purple-500/50">
-            <div className="pointer-events-none absolute inset-0 rounded-xl sm:rounded-2xl bg-gradient-to-b from-white/35 to-transparent" />
-            <CalendarDays className="relative z-10 h-5 w-5 sm:h-7 sm:w-7 drop-shadow-xs" />
-          </div>
-          <span className="relative z-10 text-xs sm:text-sm font-bold text-slate-700 dark:text-slate-200 transition-colors group-hover:text-purple-700 dark:group-hover:text-purple-400">
-            হাজিরা
-          </span>
-        </Link>
       </div>
     </section>
   );
