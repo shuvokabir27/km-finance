@@ -201,6 +201,8 @@ function Dashboard() {
       <TopStatsRow
         totalDue={data?.outstanding || 0}
         dueMembersCount={data?.breakdown?.filter((b) => b.total > 0).length || 0}
+        breakdownRows={data?.breakdown ?? []}
+        isLoading={isLoading}
         clientDue={totalClientDue}
         clientDueChannelsCount={dueChannelsCount}
         paidThisMonth={data?.paidThisMonth || 18600}
@@ -208,148 +210,39 @@ function Dashboard() {
         activeMembers={activeMembers}
       />
 
-      {/* 3. Quick Action 4 Buttons Row: ১. পেমেন্ট, ২. ক্লায়েন্ট পেমেন্ট, ৩. হাজিরা, ৪. শুটিং */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-        {/* 1. পেমেন্ট (বকেয়া পরিশোধ ও বকেয়া তালিকা) */}
-        <div className="group relative flex flex-col justify-between overflow-hidden rounded-3xl border border-rose-200/80 bg-gradient-to-br from-rose-50/90 via-white to-red-50/40 p-5 shadow-xs transition hover:shadow-md hover:-translate-y-0.5 w-full">
-          <div className="flex items-center justify-between w-full">
-            <div className="grid h-12 w-12 place-items-center rounded-2xl bg-gradient-to-br from-rose-500 to-red-600 text-white shadow-md shadow-rose-500/25 group-hover:scale-105 transition-transform">
-              <Wallet className="h-6 w-6" />
-            </div>
-            <QuickDuePaymentDialog
-              membersWithDue={data?.breakdown}
-              trigger={
-                <button
-                  type="button"
-                  title="পেমেন্ট পরিশোধ করুন"
-                  className="grid h-8 w-8 place-items-center rounded-full bg-rose-100 text-rose-700 hover:bg-rose-600 hover:text-white transition cursor-pointer"
-                >
-                  <ArrowUpRight className="h-4 w-4" />
-                </button>
-              }
-            />
+      {/* 3. বকেয়া তালিকা বাটন (পূর্বের ৪টি কার্ডের জায়গায় শুধু ১টি বকেয়া তালিকা বাটন) */}
+      <div className="flex items-center justify-between overflow-hidden rounded-3xl border border-rose-200/80 bg-gradient-to-r from-rose-50/90 via-white to-red-50/40 p-4 sm:p-5 shadow-xs">
+        <div className="flex items-center gap-3.5">
+          <div className="grid h-12 w-12 shrink-0 place-items-center rounded-2xl bg-gradient-to-br from-rose-500 to-red-600 text-white shadow-md shadow-rose-500/25">
+            <Users className="h-6 w-6" />
           </div>
-          <div className="mt-4">
-            <div className="text-base font-bold text-slate-800 group-hover:text-rose-700 transition">
-              পেমেন্ট
+          <div>
+            <div className="text-base font-bold text-slate-800">
+              সদস্যদের বকেয়া তালিকা
             </div>
-            <div className="text-xs text-slate-500 font-medium mt-0.5">
-              সদস্যদের বকেয়া পরিশোধ করুন
-            </div>
-            <div className="mt-3 flex items-center gap-2 flex-wrap">
-              <QuickDuePaymentDialog
-                membersWithDue={data?.breakdown}
-                trigger={
-                  <button
-                    type="button"
-                    className="inline-flex items-center gap-1 rounded-full bg-rose-500/15 text-rose-700 hover:bg-rose-600 hover:text-white px-2.5 py-1 text-[11px] font-bold transition cursor-pointer"
-                  >
-                    পরিশোধ করুন →
-                  </button>
-                }
-              />
-              <DueBreakdownDialog
-                which="all"
-                title="সদস্যদের বকেয়া তালিকা"
-                rows={data?.breakdown ?? []}
-                total={data?.outstanding ?? 0}
-                loading={isLoading}
-                trigger={
-                  <button
-                    type="button"
-                    className="inline-flex items-center gap-1 rounded-full border border-rose-200 bg-white/95 text-rose-700 hover:bg-rose-100 hover:border-rose-300 px-2.5 py-1 text-[11px] font-bold shadow-2xs transition cursor-pointer"
-                  >
-                    <Users className="h-3 w-3" />
-                    বকেয়া তালিকা
-                  </button>
-                }
-              />
+            <div className="text-xs text-muted-foreground mt-0.5">
+              মোট বকেয়া: <span className="font-bold text-rose-600">{isLoading ? "…" : taka(data?.outstanding || 0)}</span> · {toBn(String(data?.breakdown?.filter((b) => b.total > 0).length || 0))} জন সদস্যের বকেয়া আছে
             </div>
           </div>
         </div>
 
-        {/* 2. ক্লায়েন্ট পেমেন্ট */}
-        <QuickClientPaymentDialog
-          channelsSummary={clientSummaryList}
+        <DueBreakdownDialog
+          which="all"
+          title="সদস্যদের বকেয়া তালিকা"
+          rows={data?.breakdown ?? []}
+          total={data?.outstanding ?? 0}
+          loading={isLoading}
           trigger={
             <button
               type="button"
-              className="group relative flex flex-col justify-between overflow-hidden rounded-3xl border border-emerald-200/80 bg-gradient-to-br from-emerald-50/90 via-white to-teal-50/40 p-5 shadow-xs transition hover:shadow-md hover:-translate-y-0.5 active:scale-[0.99] text-left cursor-pointer w-full"
+              className="inline-flex items-center gap-1.5 rounded-2xl bg-rose-600 hover:bg-rose-700 text-white px-4 py-2.5 text-xs font-bold shadow-xs transition hover:scale-[1.02] active:scale-95 cursor-pointer"
             >
-              <div className="flex items-center justify-between w-full">
-                <div className="grid h-12 w-12 place-items-center rounded-2xl bg-gradient-to-br from-emerald-500 to-teal-600 text-white shadow-md shadow-emerald-500/25 group-hover:scale-105 transition-transform">
-                  <Handshake className="h-6 w-6" />
-                </div>
-                <span className="grid h-8 w-8 place-items-center rounded-full bg-emerald-100 text-emerald-700 group-hover:bg-emerald-600 group-hover:text-white transition">
-                  <ArrowUpRight className="h-4 w-4" />
-                </span>
-              </div>
-              <div className="mt-4">
-                <div className="text-base font-bold text-slate-800 group-hover:text-emerald-700 transition">
-                  ক্লায়েন্ট পেমেন্ট
-                </div>
-                <div className="text-xs text-slate-500 font-medium mt-0.5">
-                  চ্যানেল থেকে পাওনা গ্রহণ করুন
-                </div>
-                <span className="inline-flex items-center gap-1 rounded-full bg-emerald-500/10 text-emerald-800 px-2.5 py-0.5 text-[11px] font-bold mt-3">
-                  পেমেন্ট গ্রহণ →
-                </span>
-              </div>
+              <Users className="h-4 w-4" />
+              <span>বকেয়া তালিকা</span>
+              <ArrowUpRight className="h-4 w-4" />
             </button>
           }
         />
-
-        {/* 3. হাজিরা */}
-        <Link
-          to="/attendance"
-          className="group relative flex flex-col justify-between overflow-hidden rounded-3xl border border-sky-200/80 bg-gradient-to-br from-sky-50/90 via-white to-blue-50/40 p-5 shadow-xs transition hover:shadow-md hover:-translate-y-0.5 active:scale-[0.99] text-left cursor-pointer w-full"
-        >
-          <div className="flex items-center justify-between w-full">
-            <div className="grid h-12 w-12 place-items-center rounded-2xl bg-gradient-to-br from-sky-500 to-blue-600 text-white shadow-md shadow-sky-500/25 group-hover:scale-105 transition-transform">
-              <CalendarDays className="h-6 w-6" />
-            </div>
-            <span className="grid h-8 w-8 place-items-center rounded-full bg-sky-100 text-sky-700 group-hover:bg-sky-600 group-hover:text-white transition">
-              <ArrowUpRight className="h-4 w-4" />
-            </span>
-          </div>
-          <div className="mt-4">
-            <div className="text-base font-bold text-slate-800 group-hover:text-sky-700 transition">
-              হাজিরা
-            </div>
-            <div className="text-xs text-slate-500 font-medium mt-0.5">
-              টিমের উপস্থিতি ও হাজিরা শিট
-            </div>
-            <span className="inline-flex items-center gap-1 rounded-full bg-sky-500/10 text-sky-800 px-2.5 py-0.5 text-[11px] font-bold mt-3">
-              হাজিরা দিন →
-            </span>
-          </div>
-        </Link>
-
-        {/* 4. শুটিং */}
-        <Link
-          to="/shootings"
-          className="group relative flex flex-col justify-between overflow-hidden rounded-3xl border border-amber-200/80 bg-gradient-to-br from-amber-50/90 via-white to-orange-50/40 p-5 shadow-xs transition hover:shadow-md hover:-translate-y-0.5 active:scale-[0.99] text-left cursor-pointer w-full"
-        >
-          <div className="flex items-center justify-between w-full">
-            <div className="grid h-12 w-12 place-items-center rounded-2xl bg-gradient-to-br from-amber-500 to-orange-600 text-white shadow-md shadow-amber-500/25 group-hover:scale-105 transition-transform">
-              <Clapperboard className="h-6 w-6" />
-            </div>
-            <span className="grid h-8 w-8 place-items-center rounded-full bg-amber-100 text-amber-700 group-hover:bg-amber-600 group-hover:text-white transition">
-              <ArrowUpRight className="h-4 w-4" />
-            </span>
-          </div>
-          <div className="mt-4">
-            <div className="text-base font-bold text-slate-800 group-hover:text-amber-700 transition">
-              শুটিং
-            </div>
-            <div className="text-xs text-slate-500 font-medium mt-0.5">
-              নতুন শুটিং শিডিউল ও খরচ তৈরি
-            </div>
-            <span className="inline-flex items-center gap-1 rounded-full bg-amber-500/10 text-amber-800 px-2.5 py-0.5 text-[11px] font-bold mt-3">
-              শুটিং দেখুন →
-            </span>
-          </div>
-        </Link>
       </div>
 
       {/* 4. Middle 3-Column Section (মাসিক সারাংশ, মাসিক ক্যালেন্ডার, সাম্প্রতিক কার্যক্রম) */}
@@ -2098,6 +1991,8 @@ function CircularProgress({ percent }: { percent: number }) {
 function TopStatsRow({
   totalDue,
   dueMembersCount,
+  breakdownRows = [],
+  isLoading,
   clientDue,
   clientDueChannelsCount,
   paidThisMonth,
@@ -2106,6 +2001,8 @@ function TopStatsRow({
 }: {
   totalDue: number;
   dueMembersCount: number;
+  breakdownRows?: BreakdownRow[];
+  isLoading?: boolean;
   clientDue: number;
   clientDueChannelsCount: number;
   paidThisMonth: number;
@@ -2114,29 +2011,38 @@ function TopStatsRow({
 }) {
   return (
     <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-      {/* 1. মোট বকেয়া */}
-      <Link
-        to="/members"
-        className="group relative overflow-hidden rounded-3xl border border-rose-200/70 bg-gradient-to-br from-rose-50/90 via-white to-red-50/40 p-5 shadow-xs transition hover:shadow-md hover:-translate-y-0.5"
-      >
-        <div className="flex items-center justify-between">
-          <div className="grid h-12 w-12 place-items-center rounded-2xl bg-rose-600 text-white shadow-md shadow-rose-600/25 group-hover:scale-105 transition-transform">
-            <AlertCircle className="h-6 w-6" />
-          </div>
-          <span className="inline-flex items-center gap-1 rounded-full bg-rose-100 px-2.5 py-0.5 text-[11px] font-bold text-rose-700">
-            বকেয়া
-          </span>
-        </div>
-        <div className="mt-3">
-          <div className="text-xs font-semibold text-rose-800">মোট বকেয়া</div>
-          <div className="text-2xl sm:text-3xl font-black text-rose-600 tracking-tight">
-            {taka(totalDue)}
-          </div>
-          <div className="mt-1 text-[11px] text-slate-500 font-medium">
-            {toBn(String(dueMembersCount))} জন সদস্যের বকেয়া
-          </div>
-        </div>
-      </Link>
+      {/* 1. মোট বকেয়া (ক্লিক করলে সরাসরি বকেয়া তালিকা ওপেন হয়) */}
+      <DueBreakdownDialog
+        which="all"
+        title="সদস্যদের বকেয়া তালিকা"
+        rows={breakdownRows}
+        total={totalDue}
+        loading={isLoading}
+        trigger={
+          <button
+            type="button"
+            className="group relative overflow-hidden rounded-3xl border border-rose-200/70 bg-gradient-to-br from-rose-50/90 via-white to-red-50/40 p-5 shadow-xs transition hover:shadow-md hover:-translate-y-0.5 text-left cursor-pointer w-full"
+          >
+            <div className="flex items-center justify-between">
+              <div className="grid h-12 w-12 place-items-center rounded-2xl bg-rose-600 text-white shadow-md shadow-rose-600/25 group-hover:scale-105 transition-transform">
+                <AlertCircle className="h-6 w-6" />
+              </div>
+              <span className="inline-flex items-center gap-1 rounded-full bg-rose-100 px-2.5 py-0.5 text-[11px] font-bold text-rose-700">
+                বকেয়া তালিকা
+              </span>
+            </div>
+            <div className="mt-3">
+              <div className="text-xs font-semibold text-rose-800">মোট বকেয়া</div>
+              <div className="text-2xl sm:text-3xl font-black text-rose-600 tracking-tight">
+                {taka(totalDue)}
+              </div>
+              <div className="mt-1 text-[11px] text-slate-500 font-medium">
+                {toBn(String(dueMembersCount))} জন সদস্যের বকেয়া
+              </div>
+            </div>
+          </button>
+        }
+      />
 
       {/* 2. ক্লায়েন্ট বকেয়া */}
       <Link
