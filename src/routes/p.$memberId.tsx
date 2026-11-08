@@ -1,6 +1,8 @@
 import { createFileRoute, Link, useRouter } from "@tanstack/react-router";
 import { useQuery, useMutation } from "@tanstack/react-query";
 import { useEffect, useRef, useState, cloneElement } from "react";
+import { supabase } from "@/integrations/supabase/client";
+import { mintMemberSessionForAdmin } from "@/lib/admin-member-view.functions";
 import { MemberOtpGate } from "@/components/member-otp-gate";
 import { Landmark, Smartphone, User as UserIcon, Camera, ArrowLeft, Wallet, ReceiptText, CalendarDays, Gift, Clapperboard, CalendarRange, Plus, Trash2, Handshake, ChevronDown } from "lucide-react";
 import {
@@ -73,40 +75,146 @@ function PublicProfilePage() {
   const storageKey = `km-member-session:${memberId}`;
   const [session, setSession] = useState<string | null>(null);
   const [ready, setReady] = useState(false);
+  const [isAdminUser, setIsAdminUser] = useState(false);
+
   useEffect(() => {
-    setSession(localStorage.getItem(storageKey));
-    setReady(true);
-  }, [storageKey]);
+    let mounted = true;
+
+    async function initSession() {
+      // 1. First check if a session is already saved in localStorage
+      const stored = localStorage.getItem(storageKey);
+      if (stored) {
+        if (mounted) {
+          setSession(stored);
+          setReady(true);
+        }
+        return;
+      }
+
+      // 2. If no member session, check if the user is currently logged in as an Admin in KM Finance
+      try {
+        const { data: authData } = await supabase.auth.getSession();
+        if (authData.session?.user) {
+          const { data: hasRole } = await supabase.rpc("has_role", {
+            _user_id: authData.session.user.id,
+            _role: "admin",
+          });
+          if (hasRole) {
+            if (mounted) setIsAdminUser(true);
+            const res = await mintMemberSessionForAdmin({ data: { memberId } });
+            if (res?.session && mounted) {
+              localStorage.setItem(storageKey, res.session);
+              setSession(res.session);
+              setReady(true);
+              return;
+            }
+          }
+        }
+      } catch (err) {
+        console.warn("Admin auto-mint session check:", err);
+      }
+
+      if (mounted) {
+        setReady(true);
+      }
+    }
+
+    initSession();
+    return () => {
+      mounted = false;
+    };
+  }, [memberId, storageKey]);
+
   // ইনস্টল করলে যেন সরাসরি সদস্যের প্রফাইল খোলে — পেজভিত্তিক ম্যানিফেস্ট
   useEffect(() => {
     const link = document.querySelector<HTMLLinkElement>('link[rel="manifest"]');
     if (link) link.href = `/api/public/manifest?memberId=${memberId}`;
   }, [memberId]);
+
   const q = useQuery({
     queryKey: ["member-profile", memberId, session],
     queryFn: () => getPublicProfile({ data: { memberId, token: session! } }),
     enabled: !!session,
     retry: false,
   });
-  const logout = () => { localStorage.removeItem(storageKey); setSession(null); };
+
+  // If query returns error (e.g. token expired), check if user is admin and re-mint
+  useEffect(() => {
+    if (q.isError) {
+      supabase.auth.getSession().then(async ({ data: authData }) => {
+        if (authData.session?.user) {
+          const { data: hasRole } = await supabase.rpc("has_role", {
+            _user_id: authData.session.user.id,
+            _role: "admin",
+          });
+          if (hasRole) {
+            setIsAdminUser(true);
+            try {
+              const res = await mintMemberSessionForAdmin({ data: { memberId } });
+              if (res?.session) {
+                localStorage.setItem(storageKey, res.session);
+                setSession(res.session);
+                q.refetch();
+              }
+            } catch {}
+          }
+        }
+      });
+    }
+  }, [q.isError, memberId, storageKey]);
+
+  const logout = () => {
+    localStorage.removeItem(storageKey);
+    setSession(null);
+  };
+
   if (!ready || (session && q.isLoading)) {
-    return <div className="grid min-h-screen place-items-center"><div className="h-8 w-8 animate-spin rounded-full border-2 border-primary border-t-transparent" /></div>;
+    return (
+      <div className="grid min-h-screen place-items-center">
+        <div className="h-8 w-8 animate-spin rounded-full border-2 border-primary border-t-transparent" />
+      </div>
+    );
   }
+
   if (!session || q.isError) {
     return (
       <MemberOtpGate
         memberId={memberId}
         error={q.isError ? (q.error as Error).message : null}
-        onLogin={(s) => { localStorage.setItem(storageKey, s); setSession(s); }}
+        onLogin={(s) => {
+          localStorage.setItem(storageKey, s);
+          setSession(s);
+        }}
       />
     );
   }
-  return <ProfileView data={q.data!} token={session} refetch={() => q.refetch()} onLogout={logout} />;
+
+  return (
+    <ProfileView
+      data={q.data!}
+      token={session}
+      refetch={() => q.refetch()}
+      onLogout={logout}
+      isAdminView={isAdminUser}
+    />
+  );
 }
 
 
 
-function ProfileView({ data, token, refetch, onLogout }: { data: PublicProfile; token: string; refetch: () => void; onLogout: () => void }) {
+function ProfileView({
+  data,
+  token,
+  refetch,
+  onLogout,
+  isAdminView,
+}: {
+  data: PublicProfile;
+  token: string;
+  refetch: () => void;
+  onLogout: () => void;
+  isAdminView?: boolean;
+}) {
   const { member, balance, general_balance, channel_accounts, accounts, shootings_count, range } = data;
 
   const now = new Date();
@@ -166,10 +274,21 @@ function ProfileView({ data, token, refetch, onLogout }: { data: PublicProfile; 
     <div className="min-h-screen bg-gradient-to-b from-emerald-50/60 via-background to-background pb-20">
       <div className="mx-auto max-w-md px-4 pt-6">
         <div className="mb-3 flex items-center justify-between">
-          <Link to="/" className="inline-flex items-center gap-1.5 text-xs text-muted-foreground">
-            <ArrowLeft className="h-3.5 w-3.5" /> হোম
+          <Link
+            to={isAdminView ? "/dashboard" : "/"}
+            className="inline-flex items-center gap-1.5 rounded-full bg-white/80 dark:bg-zinc-800 px-3 py-1 text-xs font-semibold text-slate-700 shadow-2xs hover:bg-white transition"
+          >
+            <ArrowLeft className="h-3.5 w-3.5" /> {isAdminView ? "ড্যাশবোর্ড" : "হোম"}
           </Link>
-          <button onClick={onLogout} className="text-xs text-muted-foreground underline">লগআউট</button>
+          {isAdminView ? (
+            <span className="inline-flex items-center gap-1 rounded-full bg-rose-50 border border-rose-200 px-2.5 py-0.5 text-[10px] font-bold text-rose-700 shadow-2xs">
+              👑 অ্যাডমিন ভিউ (লগইন সক্রিয়)
+            </span>
+          ) : (
+            <button onClick={onLogout} className="text-xs text-muted-foreground underline cursor-pointer">
+              লগআউট
+            </button>
+          )}
         </div>
 
         <div className="rounded-3xl border border-white/60 bg-white/80 p-5 shadow-[0_20px_50px_-20px_rgba(5,150,105,0.35)] backdrop-blur-xl dark:bg-zinc-900/70">

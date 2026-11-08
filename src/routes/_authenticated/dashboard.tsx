@@ -1,7 +1,8 @@
-import { createFileRoute, Link } from "@tanstack/react-router";
+import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useEffect, useMemo, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
+import { mintMemberSessionForAdmin } from "@/lib/admin-member-view.functions";
 import { taka, toBn, bnDate } from "@/lib/format";
 import {
   fetchDashboardSummary,
@@ -1754,6 +1755,49 @@ function DuesDialog() {
 
 type BreakdownRow = { id: string; name: string; photo_url: string | null; prev: number; curr: number; total: number };
 
+function MemberHisabLink({
+  memberId,
+  onBeforeNavigate,
+}: {
+  memberId: string;
+  onBeforeNavigate?: () => void;
+}) {
+  const navigate = useNavigate();
+  const [loading, setLoading] = useState(false);
+
+  const handleClick = async (e: React.MouseEvent) => {
+    e.preventDefault();
+    setLoading(true);
+    try {
+      const res = await mintMemberSessionForAdmin({ data: { memberId } });
+      if (res?.session) {
+        localStorage.setItem(`km-member-session:${memberId}`, res.session);
+      }
+    } catch (err) {
+      console.warn("Could not pre-mint admin session:", err);
+    } finally {
+      setLoading(false);
+      onBeforeNavigate?.();
+      navigate({
+        to: "/p/$memberId",
+        params: { memberId },
+        search: { t: "" },
+      });
+    }
+  };
+
+  return (
+    <button
+      type="button"
+      onClick={handleClick}
+      disabled={loading}
+      className="text-[10px] font-semibold text-rose-500 hover:underline cursor-pointer disabled:opacity-50"
+    >
+      {loading ? "লোড হচ্ছে…" : "হিসাব দেখুন →"}
+    </button>
+  );
+}
+
 function DueBreakdownDialog({
   which = "all",
   title = "বকেয়া তালিকা",
@@ -1845,15 +1889,7 @@ function DueBreakdownDialog({
                   </div>
                   <div className="text-right">
                     <div className="text-sm font-black text-rose-600">{taka(r.amount)}</div>
-                    <Link
-                      to="/p/$memberId"
-                      params={{ memberId: r.id }}
-                      search={{ t: "" }}
-                      className="text-[10px] font-semibold text-rose-500 hover:underline"
-                      onClick={() => setOpen(false)}
-                    >
-                      হিসাব দেখুন →
-                    </Link>
+                    <MemberHisabLink memberId={r.id} onBeforeNavigate={() => setOpen(false)} />
                   </div>
                 </li>
               ))}
