@@ -126,10 +126,32 @@ function Dashboard() {
         .from("payments")
         .select("id, amount, paid_at, note, member:members(name, photo_url)")
         .order("paid_at", { ascending: false })
-        .limit(3);
+        .limit(4);
       if (error) throw error;
       return data as unknown as PaymentRow[];
     },
+  });
+
+  const recentAttendance = useQuery({
+    queryKey: ["dashboard-recent-shooting-attendance"],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("attendance")
+        .select("id, date, shooting_id, present, shooting:shootings(id, name, shoot_date)")
+        .not("shooting_id", "is", null)
+        .eq("present", true)
+        .order("date", { ascending: false })
+        .limit(100);
+      if (error) throw error;
+      return (data ?? []) as Array<{
+        id: string;
+        date: string;
+        shooting_id: string | null;
+        present: boolean;
+        shooting: { id: string; name: string; shoot_date: string } | null;
+      }>;
+    },
+    staleTime: 1000 * 60 * 2,
   });
 
   // Query all members for total & active count
@@ -257,6 +279,8 @@ function Dashboard() {
           <RecentActivityFeed
             recentPayments={recentPayments.data ?? []}
             recentShootings={recentShootings.data ?? []}
+            recentAttendance={recentAttendance.data ?? []}
+            todayStr={todayStr}
           />
         </div>
       </div>
@@ -2406,17 +2430,125 @@ function MonthlySummaryChart() {
   );
 }
 
+type AttendanceActivityRow = {
+  id: string;
+  date: string;
+  shooting_id: string | null;
+  present: boolean;
+  shooting: { id: string; name: string; shoot_date: string } | null;
+};
+
+type ActivityItem = {
+  id: string;
+  type: "payment" | "hazira" | "shooting";
+  title: string;
+  subtitle: string;
+  badge: string;
+  badgeClass: string;
+  icon: React.ReactNode;
+  iconBg: string;
+  to: string;
+  sortDate: string;
+};
+
 function RecentActivityFeed({
   recentPayments,
   recentShootings,
+  recentAttendance,
+  todayStr,
 }: {
   recentPayments: PaymentRow[];
   recentShootings: ShootingRow[];
+  recentAttendance: AttendanceActivityRow[];
+  todayStr: string;
 }) {
+  const activities = useMemo(() => {
+    const list: ActivityItem[] = [];
+
+    // 1. Payments (সদস্য পেমেন্ট)
+    for (const p of recentPayments) {
+      list.push({
+        id: `p-${p.id}`,
+        type: "payment",
+        title: `${p.member?.name || "সদস্য"} পেমেন্ট`,
+        subtitle: `${bnDate(p.paid_at)}${p.note ? ` • ${p.note}` : ""}`,
+        badge: taka(p.amount),
+        badgeClass: "text-rose-600 font-bold font-mono",
+        icon: <BadgeDollarSign className="h-4 w-4" />,
+        iconBg: "bg-rose-100 text-rose-600 dark:bg-rose-950/40 dark:text-rose-400",
+        to: "/payments",
+        sortDate: p.paid_at || "",
+      });
+    }
+
+    // 2. Shootings (নতুন শুটিং)
+    for (const s of recentShootings) {
+      list.push({
+        id: `s-${s.id}`,
+        type: "shooting",
+        title: `নতুন শুটিং: ${s.name}`,
+        subtitle: `শুটিং শিডিউল • ${bnDate(s.shoot_date)}`,
+        badge: bnDate(s.shoot_date),
+        badgeClass: "text-sky-600 font-semibold",
+        icon: <Clapperboard className="h-4 w-4" />,
+        iconBg: "bg-sky-100 text-sky-600 dark:bg-sky-950/40 dark:text-sky-400",
+        to: "/shootings",
+        sortDate: s.shoot_date || "",
+      });
+    }
+
+    // 3. Hazira (টিম হাজিরা - শুধুই শুটিংয়ের দিনে, অন্য দিনে নয়)
+    const shootingHaziraMap = new Map<
+      string,
+      {
+        shootingId: string;
+        shootingName: string;
+        date: string;
+        presentCount: number;
+      }
+    >();
+
+    for (const a of recentAttendance) {
+      if (!a.shooting_id || !a.shooting) continue;
+      const key = `${a.date || a.shooting.shoot_date}_${a.shooting_id}`;
+      const existing = shootingHaziraMap.get(key);
+      if (existing) {
+        existing.presentCount += 1;
+      } else {
+        shootingHaziraMap.set(key, {
+          shootingId: a.shooting_id,
+          shootingName: a.shooting.name,
+          date: a.date || a.shooting.shoot_date,
+          presentCount: 1,
+        });
+      }
+    }
+
+    for (const [key, item] of shootingHaziraMap.entries()) {
+      list.push({
+        id: `h-${key}`,
+        type: "hazira",
+        title: `টিম হাজিরা: ${item.shootingName}`,
+        subtitle: `${toBn(item.presentCount)} জন সদস্য উপস্থিত`,
+        badge: item.date === todayStr ? "আজ" : `${toBn(item.presentCount)} জন`,
+        badgeClass: "text-emerald-600 font-semibold",
+        icon: <CheckCircle2 className="h-4 w-4" />,
+        iconBg: "bg-emerald-100 text-emerald-600 dark:bg-emerald-950/40 dark:text-emerald-400",
+        to: "/attendance",
+        sortDate: item.date || "",
+      });
+    }
+
+    // Sort descending by date (সবচেয়ে সাম্প্রতিক কার্যক্রম সবার উপরে)
+    list.sort((a, b) => b.sortDate.localeCompare(a.sortDate));
+
+    return list.slice(0, 5);
+  }, [recentPayments, recentShootings, recentAttendance, todayStr]);
+
   return (
     <section className="rounded-3xl border border-border/70 bg-card p-5 shadow-xs flex flex-col h-full">
       <div className="mb-4 flex items-center justify-between">
-        <h2 className="flex items-center gap-2 text-sm font-bold text-slate-800">
+        <h2 className="flex items-center gap-2 text-sm font-bold text-slate-800 dark:text-slate-100">
           <CalendarDays className="h-4 w-4 text-red-600" /> সাম্প্রতিক কার্যক্রম
         </h2>
         <Link
@@ -2427,54 +2559,35 @@ function RecentActivityFeed({
         </Link>
       </div>
 
-      <div className="space-y-3 flex-1 overflow-y-auto">
-        {/* Attendance activity */}
-        <div className="flex items-center gap-3 rounded-2xl border border-border/50 bg-background/60 p-2.5 transition hover:bg-muted/40">
-          <div className="grid h-8 w-8 shrink-0 place-items-center rounded-xl bg-emerald-100 text-emerald-600">
-            <CheckCircle2 className="h-4 w-4" />
+      <div className="space-y-2.5 flex-1 overflow-y-auto">
+        {activities.length === 0 ? (
+          <div className="py-8 text-center text-xs text-muted-foreground">
+            কোনো সাম্প্রতিক কার্যক্রম পাওয়া যায়নি
           </div>
-          <div className="min-w-0 flex-1">
-            <div className="truncate text-xs font-bold text-slate-800">টিম হাজিরা সম্পন্ন</div>
-            <div className="text-[10px] text-slate-500">আজকের হাজিরা আপডেট হয়েছে</div>
-          </div>
-          <span className="text-[10px] font-semibold text-slate-500 shrink-0">আজ</span>
-        </div>
-
-        {/* Payments activities */}
-        {recentPayments.slice(0, 2).map((p, idx) => (
-          <div key={p.id || idx} className="flex items-center gap-3 rounded-2xl border border-border/50 bg-background/60 p-2.5 transition hover:bg-muted/40">
-            <div className="grid h-8 w-8 shrink-0 place-items-center rounded-xl bg-rose-100 text-rose-600">
-              <BadgeDollarSign className="h-4 w-4" />
-            </div>
-            <div className="min-w-0 flex-1">
-              <div className="truncate text-xs font-bold text-slate-800">
-                {p.member?.name || "সদস্য"} পেমেন্ট: ৳ {taka(p.amount)}
+        ) : (
+          activities.map((act) => (
+            <Link
+              key={act.id}
+              to={act.to}
+              className="flex items-center gap-3 rounded-2xl border border-border/50 bg-background/60 p-2.5 transition-all hover:bg-muted/50 hover:border-border hover:shadow-2xs active:scale-[0.99] group cursor-pointer"
+            >
+              <div
+                className={`grid h-8 w-8 shrink-0 place-items-center rounded-xl ${act.iconBg} transition-transform group-hover:scale-105`}
+              >
+                {act.icon}
               </div>
-              <div className="text-[10px] text-slate-500">{bnDate(p.paid_at)}</div>
-            </div>
-            <span className="text-[10px] font-semibold text-rose-600 shrink-0 font-mono">
-              ৳ {taka(p.amount)}
-            </span>
-          </div>
-        ))}
-
-        {/* Shootings activities */}
-        {recentShootings.slice(0, 2).map((s, idx) => (
-          <div key={s.id || idx} className="flex items-center gap-3 rounded-2xl border border-border/50 bg-background/60 p-2.5 transition hover:bg-muted/40">
-            <div className="grid h-8 w-8 shrink-0 place-items-center rounded-xl bg-sky-100 text-sky-600">
-              <Clapperboard className="h-4 w-4" />
-            </div>
-            <div className="min-w-0 flex-1">
-              <div className="truncate text-xs font-bold text-slate-800">
-                নতুন শুটিং: {s.name}
+              <div className="min-w-0 flex-1">
+                <div className="truncate text-xs font-bold text-slate-800 dark:text-slate-100 group-hover:text-primary transition-colors">
+                  {act.title}
+                </div>
+                <div className="text-[10px] text-muted-foreground truncate">{act.subtitle}</div>
               </div>
-              <div className="text-[10px] text-slate-500">{bnDate(s.shoot_date)}</div>
-            </div>
-            <span className="text-[10px] font-semibold text-sky-600 shrink-0">
-              {bnDate(s.shoot_date)}
-            </span>
-          </div>
-        ))}
+              <span className={`text-[10px] shrink-0 ${act.badgeClass}`}>
+                {act.badge}
+              </span>
+            </Link>
+          ))
+        )}
       </div>
     </section>
   );
