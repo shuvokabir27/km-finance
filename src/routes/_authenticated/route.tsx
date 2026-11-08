@@ -34,11 +34,11 @@ const NAV = [
   { to: "/dashboard", label: "ড্যাশবোর্ড", icon: LayoutDashboard },
   { to: "/members", label: "সদস্য", icon: Users },
   { to: "/shootings", label: "শুটিং তৈরি", icon: Clapperboard },
-  { to: "/attendance", label: "উপস্থিতি", icon: CalendarCheck },
-  { to: "/payments", label: "পেমেন্ট হিসাব", icon: BadgeDollarSign },
 ] as const;
 
 const MORE_NAV = [
+  { to: "/payments", label: "পেমেন্ট হিসাব", icon: BadgeDollarSign },
+  { to: "/attendance", label: "উপস্থিতি", icon: CalendarCheck },
   { to: "/client-dues", label: "ক্লায়েন্ট হিসাব", icon: Wallet },
   { to: "/shared-channels", label: "শেয়ার চ্যানেল", icon: Handshake },
   { to: "/reports", label: "রিপোর্টস", icon: FileText },
@@ -294,7 +294,7 @@ function AuthedLayout() {
             })}
             <Sheet open={moreOpen} onOpenChange={setMoreOpen}>
               <SheetTrigger asChild>
-                <button className="group flex flex-col items-center gap-0.5 py-1.5">
+                <button type="button" className="group flex flex-col items-center gap-0.5 py-1.5 cursor-pointer">
                   <span
                     className={`grid h-7 w-10 place-items-center rounded-full transition-colors ${
                       MORE_NAV.some((n) => n.to === pathname)
@@ -304,7 +304,13 @@ function AuthedLayout() {
                   >
                     <MoreHorizontal className="h-[15px] w-[15px]" />
                   </span>
-                  <span className="text-[10px] font-medium text-white/75">আরও</span>
+                  <span
+                    className={`text-[10px] font-medium transition-colors ${
+                      MORE_NAV.some((n) => n.to === pathname) ? "text-white font-bold" : "text-white/75"
+                    }`}
+                  >
+                    আরও
+                  </span>
                 </button>
               </SheetTrigger>
               <SheetContent
