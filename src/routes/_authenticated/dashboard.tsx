@@ -2548,29 +2548,7 @@ function QuickActionsCard({ membersWithDue }: { membersWithDue?: BreakdownRow[] 
       </h2>
 
       <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3">
-        {/* Shooting */}
-        <Link
-          to="/shootings"
-          className="flex flex-col items-center gap-2 rounded-2xl border border-rose-200/60 bg-rose-50/50 p-3 sm:p-3.5 text-center transition hover:bg-rose-100/70 hover:border-rose-300 hover:shadow-xs active:scale-95 cursor-pointer"
-        >
-          <div className="grid h-12 w-12 place-items-center rounded-2xl bg-rose-500 text-white shadow-xs">
-            <Camera className="h-6 w-6" />
-          </div>
-          <span className="text-xs font-bold text-slate-700 dark:text-slate-200">শুটিং তৈরি</span>
-        </Link>
-
-        {/* Member */}
-        <Link
-          to="/members"
-          className="flex flex-col items-center gap-2 rounded-2xl border border-emerald-200/60 bg-emerald-50/50 p-3 sm:p-3.5 text-center transition hover:bg-emerald-100/70 hover:border-emerald-300 hover:shadow-xs active:scale-95 cursor-pointer"
-        >
-          <div className="grid h-12 w-12 place-items-center rounded-2xl bg-emerald-500 text-white shadow-xs">
-            <UserPlus className="h-6 w-6" />
-          </div>
-          <span className="text-xs font-bold text-slate-700 dark:text-slate-200">সদস্য যুক্ত</span>
-        </Link>
-
-        {/* Payment */}
+        {/* 1. Payment */}
         <QuickDuePaymentDialog
           membersWithDue={membersWithDue}
           trigger={
@@ -2586,7 +2564,29 @@ function QuickActionsCard({ membersWithDue }: { membersWithDue?: BreakdownRow[] 
           }
         />
 
-        {/* Report */}
+        {/* 2. Shooting */}
+        <Link
+          to="/shootings"
+          className="flex flex-col items-center gap-2 rounded-2xl border border-rose-200/60 bg-rose-50/50 p-3 sm:p-3.5 text-center transition hover:bg-rose-100/70 hover:border-rose-300 hover:shadow-xs active:scale-95 cursor-pointer"
+        >
+          <div className="grid h-12 w-12 place-items-center rounded-2xl bg-rose-500 text-white shadow-xs">
+            <Camera className="h-6 w-6" />
+          </div>
+          <span className="text-xs font-bold text-slate-700 dark:text-slate-200">শুটিং তৈরি</span>
+        </Link>
+
+        {/* 3. Member */}
+        <Link
+          to="/members"
+          className="flex flex-col items-center gap-2 rounded-2xl border border-emerald-200/60 bg-emerald-50/50 p-3 sm:p-3.5 text-center transition hover:bg-emerald-100/70 hover:border-emerald-300 hover:shadow-xs active:scale-95 cursor-pointer"
+        >
+          <div className="grid h-12 w-12 place-items-center rounded-2xl bg-emerald-500 text-white shadow-xs">
+            <UserPlus className="h-6 w-6" />
+          </div>
+          <span className="text-xs font-bold text-slate-700 dark:text-slate-200">সদস্য যুক্ত</span>
+        </Link>
+
+        {/* 4. Report */}
         <Link
           to="/reports"
           className="flex flex-col items-center gap-2 rounded-2xl border border-blue-200/60 bg-blue-50/50 p-3 sm:p-3.5 text-center transition hover:bg-blue-100/70 hover:border-blue-300 hover:shadow-xs active:scale-95 cursor-pointer"
@@ -2597,7 +2597,7 @@ function QuickActionsCard({ membersWithDue }: { membersWithDue?: BreakdownRow[] 
           <span className="text-xs font-bold text-slate-700 dark:text-slate-200">রিপোর্ট</span>
         </Link>
 
-        {/* Attendance */}
+        {/* 5. Attendance */}
         <Link
           to="/attendance"
           className="flex flex-col items-center gap-2 rounded-2xl border border-purple-200/60 bg-purple-50/50 p-3 sm:p-3.5 text-center transition hover:bg-purple-100/70 hover:border-purple-300 hover:shadow-xs active:scale-95 cursor-pointer"
