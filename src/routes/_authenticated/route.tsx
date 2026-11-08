@@ -1,7 +1,7 @@
 import { createFileRoute, Outlet, redirect, Link, useNavigate, useRouterState } from "@tanstack/react-router";
 import { useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
-import { Users, CalendarCheck, BadgeDollarSign, LogOut, LayoutDashboard, Clapperboard, Settings as SettingsIcon, UserSearch, MoreHorizontal, MessageSquare, Tv, FileText, PartyPopper, Wallet, Handshake } from "lucide-react";
+import { Users, CalendarCheck, BadgeDollarSign, LogOut, LayoutDashboard, Clapperboard, Settings as SettingsIcon, UserSearch, MoreHorizontal, MessageSquare, Tv, FileText, PartyPopper, Wallet, Handshake, Search, Bell, User } from "lucide-react";
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from "@/components/ui/sheet";
 import { toast } from "sonner";
 import { InstallAppButton } from "@/components/install-app-button";
@@ -31,20 +31,20 @@ export const Route = createFileRoute("/_authenticated")({
 });
 
 const NAV = [
-  { to: "/dashboard", label: "হোম", icon: LayoutDashboard },
-  { to: "/attendance", label: "হাজিরা", icon: CalendarCheck },
-  { to: "/payments", label: "পেমেন্ট", icon: BadgeDollarSign },
+  { to: "/dashboard", label: "ড্যাশবোর্ড", icon: LayoutDashboard },
+  { to: "/members", label: "সদস্য", icon: Users },
+  { to: "/shootings", label: "শুটিং তৈরি", icon: Clapperboard },
+  { to: "/attendance", label: "উপস্থিতি", icon: CalendarCheck },
+  { to: "/payments", label: "পেমেন্ট হিসাব", icon: BadgeDollarSign },
 ] as const;
 
 const MORE_NAV = [
-  { to: "/members", label: "সদস্য", icon: Users },
-  { to: "/shootings", label: "শুটিং", icon: Clapperboard },
-  { to: "/directory", label: "চ্যানেল/পরিচালক", icon: Tv },
   { to: "/client-dues", label: "ক্লায়েন্ট হিসাব", icon: Wallet },
   { to: "/shared-channels", label: "শেয়ার চ্যানেল", icon: Handshake },
-  { to: "/reports", label: "রিপোর্ট/PDF", icon: FileText },
+  { to: "/reports", label: "রিপোর্টস", icon: FileText },
   { to: "/account-check", label: "একাউন্ট চেকিং", icon: UserSearch },
-  { to: "/sms", label: "গ্রুপ SMS", icon: MessageSquare },
+  { to: "/sms", label: "SMS", icon: MessageSquare },
+  { to: "/directory", label: "ক্লায়েন্ট সাপোর্ট", icon: Tv },
   { to: "/congrats", label: "অভিনন্দন কার্ড", icon: PartyPopper },
 ] as const;
 
@@ -68,6 +68,7 @@ function AuthedLayout() {
   const pathname = useRouterState({ select: (s) => s.location.pathname });
   Route.useRouteContext();
   const [moreOpen, setMoreOpen] = useState(false);
+  const [searchVal, setSearchVal] = useState("");
 
   const logout = async () => {
     await supabase.auth.signOut();
@@ -79,102 +80,176 @@ function AuthedLayout() {
 
   return (
     <div className="lg:flex lg:min-h-dvh lg:bg-background">
-      {/* Desktop sidebar */}
-      <aside className="hero-gradient sticky top-0 hidden h-dvh w-64 shrink-0 flex-col text-white lg:flex xl:w-72">
-        <div className="flex items-center gap-3 px-5 py-5">
+      {/* Desktop sidebar with Cinema Studio Red styling */}
+      <aside className="hero-gradient sticky top-0 hidden h-dvh w-64 shrink-0 flex-col text-white lg:flex xl:w-72 shadow-xl z-20">
+        <div className="flex items-center gap-3 px-5 py-5 border-b border-white/10">
           <img
             src={kmLogo}
             alt="Kuakata Multimedia"
             className="h-11 w-11 shrink-0 rounded-2xl bg-white/95 p-1 object-contain shadow-sm"
           />
           <div className="min-w-0 leading-tight">
-            <div className="truncate text-[15px] font-bold">Kuakata Multimedia</div>
-            <div className="truncate text-[11px] text-white/75">Finance · টিম ব্যবস্থাপনা</div>
+            <div className="truncate text-base font-black tracking-tight">Kuakata Multimedia</div>
+            <div className="truncate text-[10px] uppercase tracking-wider text-white/80 font-medium">Create · Produce · Inspire</div>
           </div>
         </div>
-        <nav className="flex-1 space-y-1 overflow-y-auto px-3 pb-4">
+
+        <nav className="flex-1 space-y-1 overflow-y-auto px-3 py-3">
           {ALL_NAV.map(({ to, label, icon: Icon }) => {
             const active = pathname === to;
             return (
               <Link
                 key={to}
                 to={to}
-                className={`flex items-center gap-3 rounded-2xl px-3 py-2.5 text-sm font-medium transition-colors ${
+                className={`flex items-center gap-3 rounded-2xl px-3.5 py-2.5 text-xs font-semibold transition-all ${
                   active
-                    ? "bg-white text-primary shadow-sm"
-                    : "text-white/80 hover:bg-white/15 hover:text-white"
+                    ? "bg-white text-primary shadow-md font-bold scale-[1.02]"
+                    : "text-white/85 hover:bg-white/15 hover:text-white"
                 }`}
               >
-                <Icon className="h-[18px] w-[18px] shrink-0" />
+                <Icon className={`h-4 w-4 shrink-0 ${active ? "text-primary" : ""}`} />
                 <span className="truncate">{label}</span>
               </Link>
             );
           })}
         </nav>
-        <div className="flex items-center gap-1 border-t border-white/15 px-3 py-3">
+
+        {/* Silhouette Cameraman Artwork & Footer */}
+        <div className="mt-auto border-t border-white/15 bg-black/10 px-4 pt-3 pb-2 text-center select-none">
+          <div className="mb-2 flex justify-center opacity-40">
+            <svg viewBox="0 0 160 65" className="h-12 w-28 text-white fill-current" aria-hidden="true">
+              {/* Palm tree */}
+              <path d="M22 65 Q25 40 23 20 Q21 12 32 8 Q25 16 26 28 Q26 48 24 65 Z" />
+              <path d="M23 20 Q10 16 0 22 Q12 20 23 20 Z" />
+              <path d="M23 20 Q19 8 12 4 Q20 12 23 20 Z" />
+              <path d="M23 20 Q32 8 40 6 Q32 14 23 20 Z" />
+              <path d="M23 20 Q36 17 48 24 Q34 21 23 20 Z" />
+              {/* Tripod legs */}
+              <line x1="105" y1="35" x2="88" y2="65" stroke="currentColor" strokeWidth="2" />
+              <line x1="105" y1="35" x2="105" y2="65" stroke="currentColor" strokeWidth="2" />
+              <line x1="105" y1="35" x2="122" y2="65" stroke="currentColor" strokeWidth="2" />
+              {/* Camera head & lens */}
+              <rect x="96" y="27" width="18" height="10" rx="2" />
+              <polygon points="114,29 123,26 123,38 114,35" />
+              {/* Videographer */}
+              <circle cx="87" cy="27" r="5" />
+              <path d="M83 34 Q87 32 91 34 L93 50 L84 50 Z" />
+              <line x1="89" y1="35" x2="98" y2="32" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" />
+            </svg>
+          </div>
+          <p className="text-[10px] font-medium text-white/75">© 2026 Kuakata Multimedia™</p>
+          <p className="text-[9px] text-white/50">All Rights Reserved</p>
+        </div>
+
+        <div className="flex items-center gap-1 border-t border-white/15 px-3 py-2.5 bg-black/15">
           <InstallAppButton />
           <SettingsDialog
             trigger={
               <button
-                className="grid h-10 w-10 place-items-center rounded-2xl text-white/85 transition-colors hover:bg-white/15 hover:text-white"
+                className="grid h-9 w-9 place-items-center rounded-xl text-white/85 transition-colors hover:bg-white/15 hover:text-white"
                 aria-label="সেটিংস"
               >
-                <SettingsIcon className="h-[18px] w-[18px]" />
+                <SettingsIcon className="h-4 w-4" />
               </button>
             }
           />
           <button
             onClick={logout}
-            className="ml-auto flex items-center gap-2 rounded-2xl px-3 py-2 text-sm text-white/85 transition-colors hover:bg-white/15 hover:text-white"
+            className="ml-auto flex items-center gap-1.5 rounded-xl px-2.5 py-1.5 text-xs text-white/85 transition-colors hover:bg-white/15 hover:text-white"
           >
-            <LogOut className="h-[18px] w-[18px]" />
+            <LogOut className="h-3.5 w-3.5" />
             লগআউট
           </button>
         </div>
       </aside>
 
       <div className="app-shell flex min-w-0 flex-col lg:flex-1">
-      <PullToRefresh />
-      <header
-        className="hero-gradient z-10 border-b border-white/10 text-white shadow-sm lg:hidden"
-        style={{ paddingTop: "env(safe-area-inset-top)" }}
-      >
+        <PullToRefresh />
 
-        <div className="grid grid-cols-[minmax(0,1fr)_auto] items-center gap-3 px-5 py-3 min-[700px]:px-8">
-          <div className="flex min-w-0 items-center gap-3">
-            <img
-              src={kmLogo}
-              alt="Kuakata Multimedia"
-              className="h-10 w-10 shrink-0 rounded-xl bg-white/95 p-1 object-contain shadow-sm"
-            />
-
-            <div className="min-w-0 leading-tight">
-              <div className="truncate text-[15px] font-bold text-white">Kuakata Multimedia Finance</div>
-              <div className="truncate text-[11px] text-white/75">টিম ব্যবস্থাপনা</div>
+        {/* Desktop Top Header Bar matching the design */}
+        <header className="sticky top-0 z-30 hidden lg:flex items-center justify-between border-b border-border/70 bg-card/90 px-6 py-2.5 backdrop-blur-md">
+          <div className="flex items-center gap-3 flex-1 max-w-md">
+            <div className="relative w-full">
+              <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+              <input
+                type="text"
+                placeholder="সদস্য, শুটিং বা কিছু খুঁজুন..."
+                value={searchVal}
+                onChange={(e) => setSearchVal(e.target.value)}
+                className="w-full rounded-full border border-border/80 bg-muted/40 py-2 pl-9 pr-4 text-xs placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary/40 focus:bg-background transition"
+              />
             </div>
           </div>
-          <div className="flex shrink-0 items-center gap-1">
-            <InstallAppButton />
-            <SettingsDialog
-              trigger={
-                <button
-                  className="grid h-10 w-10 place-items-center rounded-2xl text-white/85 transition-colors hover:bg-white/15 hover:text-white"
-                  aria-label="সেটিংস"
-                >
-                  <SettingsIcon className="h-[18px] w-[18px]" />
-                </button>
-              }
-            />
+
+          <div className="flex items-center gap-3">
+            {/* Notification Bell */}
             <button
-              onClick={logout}
-              className="grid h-10 w-10 place-items-center rounded-2xl text-white/85 transition-colors hover:bg-white/15 hover:text-white"
-              aria-label="লগআউট"
+              type="button"
+              className="relative grid h-9 w-9 place-items-center rounded-full border border-border/80 bg-card text-foreground hover:bg-muted transition shadow-2xs"
+              title="বিজ্ঞপ্তি"
+              aria-label="বিজ্ঞপ্তি"
             >
-              <LogOut className="h-[18px] w-[18px]" />
+              <Bell className="h-4 w-4 text-muted-foreground" />
+              <span className="absolute -top-1 -right-1 flex h-4 w-4 items-center justify-center rounded-full bg-red-600 text-[10px] font-bold text-white shadow-xs">
+                ৩
+              </span>
             </button>
+
+            {/* Admin Profile Pill */}
+            <div className="flex items-center gap-2.5 rounded-full border border-border/80 bg-card pl-1.5 pr-3.5 py-1 shadow-2xs">
+              <div className="grid h-8 w-8 place-items-center rounded-full bg-gradient-to-tr from-primary to-rose-500 text-white font-bold text-xs shadow-xs">
+                <span>KH</span>
+              </div>
+              <div className="leading-tight text-left">
+                <div className="text-xs font-bold text-foreground">Kabir Hossen Shuvo</div>
+                <div className="flex items-center gap-1 text-[10px] text-emerald-600 font-semibold">
+                  <span className="h-1.5 w-1.5 rounded-full bg-emerald-500 animate-pulse"></span>
+                  Admin
+                </div>
+              </div>
+            </div>
           </div>
-        </div>
-      </header>
+        </header>
+
+        {/* Mobile header */}
+        <header
+          className="hero-gradient z-10 border-b border-white/10 text-white shadow-sm lg:hidden"
+          style={{ paddingTop: "env(safe-area-inset-top)" }}
+        >
+          <div className="grid grid-cols-[minmax(0,1fr)_auto] items-center gap-3 px-5 py-3 min-[700px]:px-8">
+            <div className="flex min-w-0 items-center gap-3">
+              <img
+                src={kmLogo}
+                alt="Kuakata Multimedia"
+                className="h-10 w-10 shrink-0 rounded-xl bg-white/95 p-1 object-contain shadow-sm"
+              />
+              <div className="min-w-0 leading-tight">
+                <div className="truncate text-[15px] font-bold text-white">Kuakata Multimedia</div>
+                <div className="truncate text-[10px] text-white/80 uppercase font-medium">Create · Produce · Inspire</div>
+              </div>
+            </div>
+            <div className="flex shrink-0 items-center gap-1">
+              <InstallAppButton />
+              <SettingsDialog
+                trigger={
+                  <button
+                    className="grid h-10 w-10 place-items-center rounded-2xl text-white/85 transition-colors hover:bg-white/15 hover:text-white"
+                    aria-label="সেটিংস"
+                  >
+                    <SettingsIcon className="h-[18px] w-[18px]" />
+                  </button>
+                }
+              />
+              <button
+                onClick={logout}
+                className="grid h-10 w-10 place-items-center rounded-2xl text-white/85 transition-colors hover:bg-white/15 hover:text-white"
+                aria-label="লগআউট"
+              >
+                <LogOut className="h-[18px] w-[18px]" />
+              </button>
+            </div>
+          </div>
+        </header>
 
       <TopScrollingTicker />
 

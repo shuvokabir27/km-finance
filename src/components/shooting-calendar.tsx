@@ -71,27 +71,27 @@ export function ShootingCalendar() {
     : [];
 
   return (
-    <section className="rounded-3xl border border-border/70 bg-card p-4">
-      <div className="mb-3 flex items-center justify-between">
-        <h2 className="flex items-center gap-2 text-sm font-semibold">
-          <CalendarDays className="h-4 w-4 text-primary" /> শুটিং ক্যালেন্ডার
+    <section className="rounded-3xl border border-border/70 bg-card p-5 shadow-xs flex flex-col h-full">
+      <div className="mb-4 flex items-center justify-between">
+        <h2 className="flex items-center gap-2 text-sm font-bold text-slate-800">
+          <CalendarDays className="h-4 w-4 text-red-600" /> মাসিক ক্যালেন্ডার
         </h2>
-        <div className="flex items-center gap-1">
+        <div className="flex items-center gap-1.5">
           <button
             type="button"
             onClick={() => setCursor(new Date(year, month - 1, 1))}
-            className="grid h-7 w-7 place-items-center rounded-full bg-muted hover:bg-muted/70"
+            className="grid h-7 w-7 place-items-center rounded-full bg-muted/60 hover:bg-muted text-muted-foreground transition active:scale-95"
             aria-label="আগের মাস"
           >
             <ChevronLeft className="h-4 w-4" />
           </button>
-          <span className="min-w-[110px] text-center text-xs font-medium">
+          <span className="min-w-[100px] text-center text-xs font-bold text-slate-700">
             {BN_MONTHS[month]} {toBn(String(year))}
           </span>
           <button
             type="button"
             onClick={() => setCursor(new Date(year, month + 1, 1))}
-            className="grid h-7 w-7 place-items-center rounded-full bg-muted hover:bg-muted/70"
+            className="grid h-7 w-7 place-items-center rounded-full bg-muted/60 hover:bg-muted text-muted-foreground transition active:scale-95"
             aria-label="পরের মাস"
           >
             <ChevronRight className="h-4 w-4" />
@@ -99,12 +99,12 @@ export function ShootingCalendar() {
         </div>
       </div>
 
-      <div className="mb-2 grid grid-cols-7 gap-1 text-center text-[10px] text-muted-foreground">
+      <div className="mb-2 grid grid-cols-7 gap-1 text-center text-[11px] font-bold text-slate-600">
         {BN_WEEKDAYS.map((w) => <div key={w}>{w}</div>)}
       </div>
-      <div className="grid grid-cols-7 gap-1">
+      <div className="grid grid-cols-7 gap-1.5 flex-1">
         {cells.map((d, i) => {
-          if (d === null) return <div key={i} />;
+          if (d === null) return <div key={i} className="aspect-square" />;
           const items = byDay[d];
           const has = !!items?.length;
           const isToday = isCurrentMonth && d === today.getDate();
@@ -112,33 +112,32 @@ export function ShootingCalendar() {
             <button
               type="button"
               key={i}
-              disabled={!has}
-              onClick={() => has && setSelectedDate(fmt(new Date(year, month, d)))}
+              disabled={!has && !isToday}
+              onClick={() => setSelectedDate(fmt(new Date(year, month, d)))}
               title={items?.map((x) => x.name).join(", ")}
-              className={`relative aspect-square rounded-lg text-center text-xs flex flex-col items-center justify-center transition ${
-                has
-                  ? "bg-primary/15 text-primary font-semibold hover:bg-primary/25 cursor-pointer"
-                  : "bg-muted/30 text-muted-foreground cursor-default"
-              } ${isToday ? "ring-2 ring-primary" : ""}`}
+              className={`relative aspect-square rounded-xl text-center text-xs flex flex-col items-center justify-center transition-all ${
+                isToday
+                  ? "bg-red-600 text-white font-black shadow-md shadow-red-500/30 scale-105"
+                  : has
+                  ? "bg-emerald-50 text-emerald-800 font-bold border border-emerald-200/80 hover:bg-emerald-100 cursor-pointer"
+                  : "bg-muted/20 text-slate-700 hover:bg-muted/40 cursor-pointer"
+              }`}
             >
               <span>{toBn(d)}</span>
               {has && (
-                <span className="mt-0.5 inline-flex items-center gap-0.5 text-[9px]">
-                  <Clapperboard className="h-2.5 w-2.5" />
-                  {toBn(items.length)}
-                </span>
+                <span className={`mt-0.5 inline-block h-1.5 w-1.5 rounded-full ${isToday ? "bg-white" : "bg-emerald-500"}`} />
               )}
             </button>
           );
         })}
       </div>
 
-      <div className="mt-3 flex items-center gap-3 text-[10px] text-muted-foreground">
-        <span className="inline-flex items-center gap-1">
-          <span className="h-3 w-3 rounded bg-primary/15" /> শুটিং হয়েছে
+      <div className="mt-3 flex items-center justify-between text-[10px] text-muted-foreground pt-2 border-t border-border/40">
+        <span className="inline-flex items-center gap-1.5">
+          <span className="h-2 w-2 rounded-full bg-emerald-500" /> শুটিং অনুষ্ঠিত
         </span>
-        <span className="inline-flex items-center gap-1">
-          <span className="h-3 w-3 rounded ring-2 ring-primary" /> আজ
+        <span className="inline-flex items-center gap-1.5">
+          <span className="h-2 w-2 rounded-full bg-red-600" /> আজকের দিন
         </span>
       </div>
 
