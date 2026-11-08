@@ -33,13 +33,13 @@ export const Route = createFileRoute("/_authenticated")({
 
 const NAV = [
   { to: "/dashboard", label: "ড্যাশবোর্ড", icon: LayoutDashboard },
-  { to: "/members", label: "সদস্য", icon: Users },
+  { to: "/attendance", label: "হাজিরা", icon: CalendarCheck },
   { to: "/shootings", label: "শুটিং তৈরি", icon: Clapperboard },
 ] as const;
 
 const MORE_NAV = [
+  { to: "/members", label: "সদস্য", icon: Users },
   { to: "/payments", label: "পেমেন্ট হিসাব", icon: BadgeDollarSign },
-  { to: "/attendance", label: "উপস্থিতি", icon: CalendarCheck },
   { to: "/client-dues", label: "ক্লায়েন্ট হিসাব", icon: Wallet },
   { to: "/shared-channels", label: "শেয়ার চ্যানেল", icon: Handshake },
   { to: "/reports", label: "রিপোর্টস", icon: FileText },
