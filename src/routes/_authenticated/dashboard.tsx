@@ -1839,29 +1839,54 @@ function KuakataBeachBanner() {
           </div>
         </div>
 
-        {/* Right: Floating Glass Cards */}
+        {/* Right: Floating Glossy Colorful Glass Cards */}
         <div className="flex items-center gap-3 self-start lg:self-auto flex-wrap sm:flex-nowrap">
-          {/* Date Card */}
-          <div className="flex items-center gap-3 rounded-2xl border border-white/80 bg-white/90 px-4 py-2.5 shadow-md shadow-sky-950/5 backdrop-blur-md">
-            <div className="grid h-10 w-10 place-items-center rounded-xl bg-red-50 text-red-600 border border-red-100 shadow-2xs">
-              <Calendar className="h-5 w-5" />
-            </div>
-            <div>
-              <div className="text-[11px] font-semibold text-slate-500">আজকের তারিখ</div>
-              <div className="text-xs sm:text-sm font-bold text-slate-800">{formattedDate}</div>
-              <div className="text-[10px] text-slate-500 font-medium">{dayName}</div>
+          {/* 1. Date Card (Glossy Colorful Translucent Glass) */}
+          <div className="group relative overflow-hidden rounded-2xl border border-white/70 bg-gradient-to-br from-white/45 via-rose-500/10 to-amber-500/10 px-4 py-3 shadow-[0_8px_24px_rgba(244,63,94,0.12)] backdrop-blur-xl transition hover:shadow-xl hover:scale-[1.02]">
+            {/* Top specular highlight line for glossy finish */}
+            <div className="pointer-events-none absolute inset-x-0 top-0 h-[1.5px] bg-gradient-to-r from-transparent via-white to-transparent opacity-90" />
+
+            <div className="relative z-10 flex items-center gap-3">
+              <div className="grid h-11 w-11 place-items-center rounded-xl bg-gradient-to-br from-rose-500 via-red-500 to-amber-500 text-white shadow-md shadow-rose-500/30 ring-2 ring-white/80 group-hover:rotate-6 transition-transform">
+                <Calendar className="h-5 w-5 drop-shadow-xs" />
+              </div>
+              <div>
+                <div className="flex items-center gap-1.5 text-[11px] font-bold tracking-wide text-rose-950/80">
+                  <span className="h-1.5 w-1.5 rounded-full bg-rose-500 animate-pulse" />
+                  আজকের তারিখ
+                </div>
+                <div className="text-xs sm:text-sm font-black text-slate-900 tracking-tight drop-shadow-2xs">
+                  {formattedDate}
+                </div>
+                <div className="text-[10px] font-bold text-rose-700 bg-rose-500/15 rounded-full px-2 py-0.5 inline-block mt-0.5 border border-rose-300/50">
+                  {dayName}
+                </div>
+              </div>
             </div>
           </div>
 
-          {/* Time Card */}
-          <div className="flex items-center gap-3 rounded-2xl border border-white/80 bg-white/90 px-4 py-2.5 shadow-md shadow-sky-950/5 backdrop-blur-md">
-            <div className="grid h-10 w-10 place-items-center rounded-xl bg-red-50 text-red-600 border border-red-100 shadow-2xs">
-              <Clock className="h-5 w-5" />
-            </div>
-            <div>
-              <div className="text-[11px] font-semibold text-slate-500">বর্তমান সময়</div>
-              <div className="text-sm sm:text-base font-black text-red-600 font-mono tracking-tight">
-                {formattedTime}
+          {/* 2. Time Card (Glossy Colorful Translucent Glass) */}
+          <div className="group relative overflow-hidden rounded-2xl border border-white/70 bg-gradient-to-br from-white/45 via-sky-500/10 to-indigo-500/10 px-4 py-3 shadow-[0_8px_24px_rgba(14,165,233,0.12)] backdrop-blur-xl transition hover:shadow-xl hover:scale-[1.02]">
+            {/* Top specular highlight line for glossy finish */}
+            <div className="pointer-events-none absolute inset-x-0 top-0 h-[1.5px] bg-gradient-to-r from-transparent via-white to-transparent opacity-90" />
+
+            <div className="relative z-10 flex items-center gap-3">
+              <div className="grid h-11 w-11 place-items-center rounded-xl bg-gradient-to-br from-sky-500 via-blue-600 to-indigo-600 text-white shadow-md shadow-sky-500/30 ring-2 ring-white/80 group-hover:rotate-6 transition-transform">
+                <Clock className="h-5 w-5 drop-shadow-xs" />
+              </div>
+              <div>
+                <div className="flex items-center gap-1.5 text-[11px] font-bold tracking-wide text-sky-950/80">
+                  <span className="h-1.5 w-1.5 rounded-full bg-emerald-500 animate-ping" />
+                  বর্তমান সময়
+                </div>
+                <div className="text-base sm:text-lg font-black font-mono tracking-tight text-slate-900 drop-shadow-2xs">
+                  <span className="text-transparent bg-clip-text bg-gradient-to-r from-red-600 via-rose-600 to-red-500 font-extrabold">
+                    {hoursBn}:{minutes}
+                  </span>{" "}
+                  <span className="text-[11px] font-bold text-indigo-700 bg-indigo-500/15 rounded-md px-1.5 py-0.5 border border-indigo-300/50 align-middle">
+                    {ampm}
+                  </span>
+                </div>
               </div>
             </div>
           </div>
