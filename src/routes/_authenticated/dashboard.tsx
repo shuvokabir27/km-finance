@@ -178,17 +178,24 @@ function Dashboard() {
   const monthShootingsCount = allShootingsList.filter((s) => s.shoot_date.slice(0, 7) === todayStr.slice(0, 7)).length || 3;
   const presentCount = todayAttendance.filter((a) => a.present).length || (todayAttendance.length > 0 ? 0 : totalMembers);
 
+  const { totalClientDue, dueChannelsCount } = useMemo(() => {
+    const rows = clientSummaryList ?? [];
+    const total = rows.reduce((acc, r) => acc + Number(r.due || 0), 0);
+    const count = rows.filter((r) => Number(r.due || 0) > 0).length;
+    return { totalClientDue: total, dueChannelsCount: count };
+  }, [clientSummaryList]);
+
   return (
     <div className="space-y-6">
       {/* 1. Welcome Hero Banner (Kuakata Beach Panorama + 3D Clapperboard + Date & Time Cards) */}
       <KuakataBeachBanner />
 
-      {/* 2. Top Stats 4 Cards Row: মোট সদস্য, মোট শুটিং, মোট বকেয়া, মোট পেমেন্ট */}
+      {/* 2. Top Stats 4 Cards Row: মোট সদস্য, ক্লায়েন্ট বকেয়া, মোট বকেয়া, মোট পেমেন্ট */}
       <TopStatsRow
         totalMembers={totalMembers}
         activeMembers={activeMembers}
-        totalShootings={totalShootings}
-        monthShootings={monthShootingsCount}
+        clientDue={totalClientDue}
+        clientDueChannelsCount={dueChannelsCount}
         totalDue={data?.outstanding || 0}
         dueMembersCount={data?.breakdown?.filter((b) => b.total > 0).length || 0}
         paidThisMonth={data?.paidThisMonth || 18600}
@@ -1936,16 +1943,16 @@ function CircularProgress({ percent }: { percent: number }) {
 function TopStatsRow({
   totalMembers,
   activeMembers,
-  totalShootings,
-  monthShootings,
+  clientDue,
+  clientDueChannelsCount,
   totalDue,
   dueMembersCount,
   paidThisMonth,
 }: {
   totalMembers: number;
   activeMembers: number;
-  totalShootings: number;
-  monthShootings: number;
+  clientDue: number;
+  clientDueChannelsCount: number;
   totalDue: number;
   dueMembersCount: number;
   paidThisMonth: number;
@@ -1976,26 +1983,26 @@ function TopStatsRow({
         </div>
       </Link>
 
-      {/* 2. মোট শুটিং */}
+      {/* 2. ক্লায়েন্ট বকেয়া (মোট শুটিং এর পরিবর্তে) */}
       <Link
-        to="/shootings"
+        to="/client-dues"
         className="group relative overflow-hidden rounded-3xl border border-emerald-200/70 bg-gradient-to-br from-emerald-50/90 via-white to-green-50/40 p-5 shadow-xs transition hover:shadow-md hover:-translate-y-0.5"
       >
         <div className="flex items-center justify-between">
-          <div className="grid h-12 w-12 place-items-center rounded-2xl bg-emerald-500 text-white shadow-md shadow-emerald-500/25 group-hover:scale-105 transition-transform">
-            <Clapperboard className="h-6 w-6" />
+          <div className="grid h-12 w-12 place-items-center rounded-2xl bg-emerald-600 text-white shadow-md shadow-emerald-600/25 group-hover:scale-105 transition-transform">
+            <Handshake className="h-6 w-6" />
           </div>
-          <span className="inline-flex items-center gap-0.5 rounded-full bg-emerald-100 px-2 py-0.5 text-[11px] font-bold text-emerald-700">
-            ↑ +১
+          <span className="inline-flex items-center gap-1 rounded-full bg-emerald-100 px-2.5 py-0.5 text-[11px] font-bold text-emerald-800">
+            ক্লায়েন্ট
           </span>
         </div>
         <div className="mt-3">
-          <div className="text-xs font-semibold text-emerald-800">মোট শুটিং</div>
-          <div className="text-3xl font-black text-slate-800 tracking-tight">
-            {toBn(String(totalShootings))}
+          <div className="text-xs font-semibold text-emerald-800">ক্লায়েন্ট বকেয়া</div>
+          <div className="text-2xl sm:text-3xl font-black text-emerald-700 tracking-tight">
+            ৳ {taka(clientDue)}
           </div>
           <div className="mt-1 text-[11px] text-slate-500 font-medium">
-            এই মাসে {toBn(String(monthShootings))} টি
+            {toBn(String(clientDueChannelsCount))} টি চ্যানেলের বকেয়া
           </div>
         </div>
       </Link>
