@@ -239,23 +239,38 @@ function Dashboard() {
           </div>
         </div>
 
-        <DueBreakdownDialog
-          which="all"
-          title="সদস্যদের বকেয়া তালিকা"
-          rows={data?.breakdown ?? []}
-          total={data?.outstanding ?? 0}
-          loading={isLoading}
-          trigger={
-            <button
-              type="button"
-              className="inline-flex items-center justify-center gap-1.5 rounded-xl sm:rounded-2xl bg-rose-600 hover:bg-rose-700 text-white px-3.5 py-2 sm:px-4 sm:py-2.5 text-xs font-bold shadow-xs transition hover:scale-[1.02] active:scale-95 cursor-pointer w-full sm:w-auto shrink-0"
-            >
-              <Users className="h-4 w-4" />
-              <span>বকেয়া তালিকা</span>
-              <ArrowUpRight className="h-4 w-4" />
-            </button>
-          }
-        />
+        <div className="grid grid-cols-2 sm:flex sm:items-center gap-2 w-full sm:w-auto shrink-0">
+          <QuickDuePaymentDialog
+            membersWithDue={data?.breakdown}
+            trigger={
+              <button
+                type="button"
+                className="inline-flex items-center justify-center gap-1.5 rounded-xl sm:rounded-2xl bg-emerald-600 hover:bg-emerald-700 text-white px-3.5 py-2 sm:px-4 sm:py-2.5 text-xs font-bold shadow-xs shadow-emerald-600/20 transition hover:scale-[1.02] active:scale-95 cursor-pointer w-full sm:w-auto"
+              >
+                <Wallet className="h-4 w-4" />
+                <span>বকেয়া পরিশোধ</span>
+              </button>
+            }
+          />
+
+          <DueBreakdownDialog
+            which="all"
+            title="সদস্যদের বকেয়া তালিকা"
+            rows={data?.breakdown ?? []}
+            total={data?.outstanding ?? 0}
+            loading={isLoading}
+            trigger={
+              <button
+                type="button"
+                className="inline-flex items-center justify-center gap-1.5 rounded-xl sm:rounded-2xl bg-rose-600 hover:bg-rose-700 text-white px-3.5 py-2 sm:px-4 sm:py-2.5 text-xs font-bold shadow-xs shadow-rose-600/20 transition hover:scale-[1.02] active:scale-95 cursor-pointer w-full sm:w-auto"
+              >
+                <Users className="h-4 w-4" />
+                <span>বকেয়া তালিকা</span>
+                <ArrowUpRight className="h-4 w-4" />
+              </button>
+            }
+          />
+        </div>
       </div>
 
       {/* 4. Middle 3-Column Section (মাসিক সারাংশ, মাসিক ক্যালেন্ডার, সাম্প্রতিক কার্যক্রম) */}

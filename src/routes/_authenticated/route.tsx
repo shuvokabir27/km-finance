@@ -9,6 +9,7 @@ import { PullToRefresh } from "@/components/pull-to-refresh";
 import { SettingsDialog } from "@/components/settings-dialog";
 import { GlobalSearchDialog } from "@/components/global-search-dialog";
 import { TopScrollingTicker } from "@/components/top-scrolling-ticker";
+import { QuickDuePaymentDialog } from "@/components/quick-due-payment-dialog";
 import kmLogo from "@/assets/km-logo.png";
 
 
@@ -70,6 +71,7 @@ function AuthedLayout() {
   Route.useRouteContext();
   const [moreOpen, setMoreOpen] = useState(false);
   const [searchOpen, setSearchOpen] = useState(false);
+  const [duePayOpen, setDuePayOpen] = useState(false);
 
   const logout = async () => {
     await supabase.auth.signOut();
@@ -95,7 +97,19 @@ function AuthedLayout() {
           </div>
         </div>
 
-        <nav className="flex-1 space-y-1 overflow-y-auto px-3 py-3">
+        {/* Quick Due Payment Action Button in Desktop Sidebar */}
+        <div className="px-3 pt-3 pb-1">
+          <button
+            type="button"
+            onClick={() => setDuePayOpen(true)}
+            className="flex w-full items-center justify-center gap-2 rounded-2xl bg-white/15 hover:bg-white text-white hover:text-primary px-3.5 py-2.5 text-xs font-bold shadow-sm transition hover:scale-[1.02] active:scale-95 cursor-pointer backdrop-blur-xs border border-white/20"
+          >
+            <Wallet className="h-4 w-4 shrink-0" />
+            <span className="truncate">বকেয়া পেমেন্ট দিন</span>
+          </button>
+        </div>
+
+        <nav className="flex-1 space-y-1 overflow-y-auto px-3 py-2">
           {ALL_NAV.map(({ to, label, icon: Icon }) => {
             const active = pathname === to;
             return (
@@ -186,6 +200,16 @@ function AuthedLayout() {
           </div>
 
           <div className="flex items-center gap-3">
+            {/* Quick Due Payment Button on Desktop Header */}
+            <button
+              type="button"
+              onClick={() => setDuePayOpen(true)}
+              className="inline-flex items-center gap-1.5 rounded-full bg-emerald-600 hover:bg-emerald-700 text-white px-3.5 py-1.5 text-xs font-bold shadow-2xs transition hover:scale-[1.02] active:scale-95 cursor-pointer"
+            >
+              <Wallet className="h-3.5 w-3.5" />
+              <span>বকেয়া পেমেন্ট</span>
+            </button>
+
             {/* Notification Bell */}
             <button
               type="button"
@@ -279,32 +303,85 @@ function AuthedLayout() {
           className="hero-gradient pointer-events-auto w-full max-w-md border-t border-white/15 text-white shadow-[0_-4px_16px_-4px_rgba(0,0,0,0.2)] min-[700px]:max-w-[calc(100%-3rem)] min-[700px]:rounded-t-2xl lg:hidden"
           style={{ paddingBottom: "max(0.25rem, env(safe-area-inset-bottom))" }}
         >
-          <div className="grid grid-cols-4 px-1 py-1">
-            {NAV.map(({ to, label, icon: Icon }) => {
-              const active = pathname === to;
-              return (
-                <Link
-                  key={to}
-                  to={to}
-                  className="group flex flex-col items-center gap-0.5 py-1.5"
-                >
-                  <span
-                    className={`grid h-7 w-10 place-items-center rounded-full transition-colors ${
-                      active ? "bg-white text-primary shadow-sm" : "text-white/75"
-                    }`}
-                  >
-                    <Icon className={`h-[15px] w-[15px] ${active ? "stroke-[2.4]" : ""}`} />
-                  </span>
-                  <span
-                    className={`text-[10px] font-medium transition-colors ${
-                      active ? "text-white" : "text-white/75"
-                    }`}
-                  >
-                    {label}
-                  </span>
-                </Link>
-              );
-            })}
+          <div className="grid grid-cols-5 px-1 py-1">
+            {/* 1. ড্যাশবোর্ড */}
+            <Link
+              to="/dashboard"
+              className="group flex flex-col items-center gap-0.5 py-1.5"
+            >
+              <span
+                className={`grid h-7 w-10 place-items-center rounded-full transition-colors ${
+                  pathname === "/dashboard" ? "bg-white text-primary shadow-sm" : "text-white/75"
+                }`}
+              >
+                <LayoutDashboard className={`h-[15px] w-[15px] ${pathname === "/dashboard" ? "stroke-[2.4]" : ""}`} />
+              </span>
+              <span
+                className={`text-[10px] font-medium transition-colors ${
+                  pathname === "/dashboard" ? "text-white font-bold" : "text-white/75"
+                }`}
+              >
+                ড্যাশবোর্ড
+              </span>
+            </Link>
+
+            {/* 2. হাজিরা */}
+            <Link
+              to="/attendance"
+              className="group flex flex-col items-center gap-0.5 py-1.5"
+            >
+              <span
+                className={`grid h-7 w-10 place-items-center rounded-full transition-colors ${
+                  pathname === "/attendance" ? "bg-white text-primary shadow-sm" : "text-white/75"
+                }`}
+              >
+                <CalendarCheck className={`h-[15px] w-[15px] ${pathname === "/attendance" ? "stroke-[2.4]" : ""}`} />
+              </span>
+              <span
+                className={`text-[10px] font-medium transition-colors ${
+                  pathname === "/attendance" ? "text-white font-bold" : "text-white/75"
+                }`}
+              >
+                হাজিরা
+              </span>
+            </Link>
+
+            {/* 3. বকেয়া পেমেন্ট (সরাসরি কুইক পেমেন্ট ডায়ালগ ওপেন হবে) */}
+            <button
+              type="button"
+              onClick={() => setDuePayOpen(true)}
+              className="group flex flex-col items-center gap-0.5 py-1.5 cursor-pointer"
+            >
+              <span className="grid h-7 w-10 place-items-center rounded-full transition-colors bg-white/20 text-white group-hover:bg-white group-hover:text-primary group-active:scale-95 shadow-2xs">
+                <Wallet className="h-[15px] w-[15px]" />
+              </span>
+              <span className="text-[10px] font-bold transition-colors text-white truncate max-w-[64px]">
+                বকেয়া
+              </span>
+            </button>
+
+            {/* 4. শুটিং তৈরি */}
+            <Link
+              to="/shootings"
+              className="group flex flex-col items-center gap-0.5 py-1.5"
+            >
+              <span
+                className={`grid h-7 w-10 place-items-center rounded-full transition-colors ${
+                  pathname === "/shootings" ? "bg-white text-primary shadow-sm" : "text-white/75"
+                }`}
+              >
+                <Clapperboard className={`h-[15px] w-[15px] ${pathname === "/shootings" ? "stroke-[2.4]" : ""}`} />
+              </span>
+              <span
+                className={`text-[10px] font-medium transition-colors ${
+                  pathname === "/shootings" ? "text-white font-bold" : "text-white/75"
+                }`}
+              >
+                শুটিং তৈরি
+              </span>
+            </Link>
+
+            {/* 5. আরও */}
             <Sheet open={moreOpen} onOpenChange={setMoreOpen}>
               <SheetTrigger asChild>
                 <button type="button" className="group flex flex-col items-center gap-0.5 py-1.5 cursor-pointer">
@@ -333,6 +410,22 @@ function AuthedLayout() {
                 <SheetHeader>
                   <SheetTitle className="more-menu-title">আরও মেনু</SheetTitle>
                 </SheetHeader>
+
+                {/* Quick Due Payment Action in More Menu */}
+                <div className="mt-3">
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setMoreOpen(false);
+                      setDuePayOpen(true);
+                    }}
+                    className="flex w-full items-center justify-center gap-2 rounded-2xl bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-700 hover:to-teal-700 text-white py-2.5 px-4 text-xs font-bold shadow-md transition hover:scale-[1.02] active:scale-95 cursor-pointer"
+                  >
+                    <Wallet className="h-4 w-4" />
+                    <span>দ্রুত বকেয়া পেমেন্ট দিন</span>
+                  </button>
+                </div>
+
                 <div className="mt-4 grid grid-cols-3 gap-3 pb-4">
                   {MORE_NAV.map(({ to, label, icon: Icon }, i) => {
                     const active = pathname === to;
@@ -360,6 +453,9 @@ function AuthedLayout() {
           </div>
         </nav>
       </div>
+
+      {/* Global Quick Due Payment Dialog */}
+      <QuickDuePaymentDialog open={duePayOpen} onOpenChange={setDuePayOpen} />
 
       {/* Global Search Dialog (Search members by name, phone, rate; payments by amount/note; shootings by name/channel) */}
       <GlobalSearchDialog open={searchOpen} onOpenChange={setSearchOpen} />

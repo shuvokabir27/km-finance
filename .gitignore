@@ -34,3 +34,4 @@ export-data/
 *.njsproj
 *.sln
 *.sw?
+fix-connection.bat
