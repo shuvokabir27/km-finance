@@ -96,14 +96,14 @@ export const SOURCE_LABEL: Record<string, string> = {
   other: "অন্যান্য",
 };
 
-const METHOD_LABEL: Record<string, string> = {
+export const METHOD_LABEL: Record<string, string> = {
   cash: "ক্যাশ",
   bkash: "বিকাশ",
   nagad: "নগদ",
   bank: "ব্যাংক",
 };
 
-type ChannelSummary = {
+export type ChannelSummary = {
   channel_id: string;
   channel_name: string;
   income_total: number;
@@ -112,7 +112,7 @@ type ChannelSummary = {
   partner_count: number;
 };
 
-type LedgerRow = {
+export type LedgerRow = {
   partner_id: string;
   partner_name: string;
   channel_id: string;
@@ -124,7 +124,7 @@ type LedgerRow = {
   due: number;
 };
 
-function useSharedSummary() {
+export function useSharedSummary() {
   return useQuery({
     queryKey: ["shared-channel-summary"],
     queryFn: async () => {
@@ -141,7 +141,7 @@ function useSharedSummary() {
   });
 }
 
-function useLedger() {
+export function useLedger() {
   return useQuery({
     queryKey: ["partner-ledger"],
     queryFn: async () => {
@@ -561,7 +561,10 @@ function ChannelDetail({
     return [...m.entries()];
   }, [incomes]);
 
-  const net = isFiltered ? filtered.net : summary.net_profit;
+  const displayIncome = isFiltered ? filtered.income : (filtered.income || summary.income_total);
+  const displayExpense = isFiltered ? filtered.expense : (filtered.expense || summary.expense_total);
+  const net = isFiltered ? filtered.net : (filtered.income > 0 || filtered.expense > 0 ? (filtered.income - filtered.expense) : summary.net_profit);
+
   return (
     <div className="space-y-4">
       <button onClick={onBack} className="text-xs font-medium text-primary hover:underline">
@@ -580,16 +583,23 @@ function ChannelDetail({
         </div>
         <div className="mt-4">
           <div className="text-[11px] opacity-80">নিট লাভ</div>
-          <div className={`text-3xl font-extrabold ${net >= 0 ? "text-emerald-100" : "text-red-200"}`}>{taka(net)}</div>
+          <div className={`text-3xl font-extrabold ${net >= 0 ? "text-emerald-100" : "text-red-200"}`}>
+            {net < 0 ? `-${taka(Math.abs(net))}` : taka(net)}
+          </div>
+          {net < 0 && (
+            <div className="mt-1 text-xs text-red-100/90 font-medium">
+              ⚠️ খরচ আয়ের চেয়ে বেশি হওয়ায় নিট ক্ষতি হয়েছে
+            </div>
+          )}
         </div>
         <div className="mt-4 grid grid-cols-2 gap-2">
           <div className="rounded-2xl bg-primary-foreground/15 p-3">
             <div className="text-[11px] opacity-80">ইনকাম</div>
-            <div className="text-lg font-bold text-emerald-100">{taka(isFiltered ? filtered.income : summary.income_total)}</div>
+            <div className="text-lg font-bold text-emerald-100">{taka(displayIncome)}</div>
           </div>
           <div className="rounded-2xl bg-primary-foreground/15 p-3">
             <div className="text-[11px] opacity-80">খরচ</div>
-            <div className="text-lg font-bold text-red-200">{taka(isFiltered ? filtered.expense : summary.expense_total)}</div>
+            <div className="text-lg font-bold text-red-200">{taka(displayExpense)}</div>
           </div>
         </div>
         {bySource.length > 0 && (
@@ -665,6 +675,10 @@ function ChannelDetail({
 
         {partners.map((p) => {
           const row = ledger.find((l) => l.partner_id === p.id);
+          const entitled = Math.max(0, Math.round((net * p.share_percent) / 100));
+          const paidTotal = row?.paid_total ?? 0;
+          const due = Math.max(0, entitled - paidTotal);
+
           return (
             <div key={p.id} className="rounded-2xl border bg-card p-4">
               <div className="flex items-start gap-2">
@@ -702,38 +716,39 @@ function ChannelDetail({
                     }
                   />
                 </div>
-
               </div>
 
               <div className="mt-3 grid grid-cols-3 gap-2 text-center">
                 <div className="rounded-xl bg-muted/40 p-2">
-                  <div className="text-[10px] text-muted-foreground">প্রাপ্য ভাগ</div>
-                  <div className="text-[12.5px] font-semibold">{taka(row?.entitled ?? 0)}</div>
+                  <div className="text-[10px] text-muted-foreground">
+                    প্রাপ্য ভাগ {net <= 0 ? "(লাভ হয়নি)" : ""}
+                  </div>
+                  <div className="text-[12.5px] font-semibold">{taka(entitled)}</div>
                 </div>
                 <div className="rounded-xl bg-emerald-500/10 p-2">
                   <div className="text-[10px] text-muted-foreground">পরিশোধ</div>
                   <div className="text-[12.5px] font-semibold text-emerald-600 dark:text-emerald-400">
-                    {taka(row?.paid_total ?? 0)}
+                    {taka(paidTotal)}
                   </div>
                 </div>
                 <div
                   className={`rounded-xl p-2 ${
-                    (row?.due ?? 0) > 0 ? "bg-destructive/10" : "bg-muted/40"
+                    due > 0 ? "bg-destructive/10" : "bg-muted/40"
                   }`}
                 >
                   <div className="text-[10px] text-muted-foreground">বকেয়া</div>
                   <div
                     className={`text-[12.5px] font-bold ${
-                      (row?.due ?? 0) > 0 ? "text-destructive" : ""
+                      due > 0 ? "text-destructive" : ""
                     }`}
                   >
-                    {taka(row?.due ?? 0)}
+                    {taka(due)}
                   </div>
                 </div>
               </div>
 
               <div className="mt-2 flex items-center gap-2">
-                <PayoutDialog partner={p} due={row?.due ?? 0} onDone={refresh} />
+                <PayoutDialog partner={p} due={due} onDone={refresh} />
                 <PayoutHistory partnerId={p.id} />
               </div>
             </div>
@@ -754,8 +769,21 @@ function ChannelDetail({
         </p>
 
         {memberEarnings.length === 0 && (
-          <div className="rounded-2xl border border-dashed bg-card p-6 text-center text-sm text-muted-foreground">
-            এই ফিল্টারে কোনো হাজিরা আয় নেই
+          <div className="rounded-2xl border border-dashed bg-card p-6 text-center text-sm text-muted-foreground space-y-2">
+            <div>{isFiltered ? "এই ফিল্টারে কোনো হাজিরা আয় নেই" : "কোনো হাজিরা আয় নেই"}</div>
+            {isFiltered && (
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => {
+                  setPeriod(defaultPeriod());
+                  setShootFilter("all");
+                }}
+                className="text-xs"
+              >
+                সব সময়ের তথ্য দেখুন
+              </Button>
+            )}
           </div>
         )}
 
@@ -796,10 +824,25 @@ function ChannelDetail({
         </div>
 
         {shownIncomes.length === 0 && (
-          <div className="rounded-2xl border border-dashed bg-card p-6 text-center text-sm text-muted-foreground">
-            {isFiltered
-              ? "এই ফিল্টারে কোনো আয় নেই"
-              : "ফেসবুক / ইউটিউব / বিজ্ঞাপন ইনকাম যোগ করুন"}
+          <div className="rounded-2xl border border-dashed bg-card p-6 text-center text-sm text-muted-foreground space-y-2">
+            <div>
+              {isFiltered
+                ? "এই ফিল্টারে কোনো আয় নেই"
+                : "ফেসবুক / ইউটিউব / বিজ্ঞাপন ইনকাম যোগ করুন"}
+            </div>
+            {isFiltered && (
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => {
+                  setPeriod(defaultPeriod());
+                  setShootFilter("all");
+                }}
+                className="text-xs"
+              >
+                সব সময়ের তথ্য দেখুন
+              </Button>
+            )}
           </div>
         )}
 
@@ -862,8 +905,21 @@ function ChannelDetail({
         </div>
 
         {shownExpenses.length === 0 && (
-          <div className="rounded-2xl border border-dashed bg-card p-6 text-center text-sm text-muted-foreground">
-            এই ফিল্টারে কোনো ব্যয় নেই
+          <div className="rounded-2xl border border-dashed bg-card p-6 text-center text-sm text-muted-foreground space-y-2">
+            <div>{isFiltered ? "এই ফিল্টারে কোনো ব্যয় নেই" : "কোনো ব্যয় নেই"}</div>
+            {isFiltered && (
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => {
+                  setPeriod(defaultPeriod());
+                  setShootFilter("all");
+                }}
+                className="text-xs"
+              >
+                সব সময়ের তথ্য দেখুন
+              </Button>
+            )}
           </div>
         )}
 
@@ -1839,8 +1895,8 @@ function ChannelPayDialog({
   return (
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>
-        <Button className="w-full">
-          <BadgeDollarSign className="mr-1.5 h-4 w-4" /> পেমেন্ট করুন
+        <Button className="w-full bg-emerald-600 hover:bg-emerald-700 text-white font-bold">
+          <BadgeDollarSign className="mr-1.5 h-4 w-4" /> ভাগ ও সদস্য হাজিরা পেমেন্ট
         </Button>
       </DialogTrigger>
       <DialogContent className="max-h-[85vh] overflow-y-auto sm:max-w-md">
@@ -2071,8 +2127,8 @@ function MemberPayDialog({
   return (
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>
-        <Button size="sm" className="mt-1 h-7 px-2 text-[11px]">
-          <BadgeDollarSign className="mr-1 h-3.5 w-3.5" /> পেমেন্ট
+        <Button size="sm" className="mt-1 h-7.5 px-3 text-xs font-bold bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg shadow-xs">
+          <BadgeDollarSign className="mr-1 h-3.5 w-3.5" /> হাজিরা পেমেন্ট
         </Button>
       </DialogTrigger>
       <DialogContent className="max-w-md">

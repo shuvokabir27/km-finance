@@ -44,12 +44,12 @@ const iso = (d: Date) => d.toISOString().slice(0, 10);
 export function defaultPeriod(): PeriodValue {
   const now = new Date();
   return {
-    preset: "running",
+    preset: "all",
     date: iso(now),
     month: iso(now).slice(0, 7),
     year: String(now.getFullYear()),
-    from: iso(new Date(now.getFullYear(), now.getMonth(), 1)),
-    to: iso(now),
+    from: "",
+    to: "",
   };
 }
 

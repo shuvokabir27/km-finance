@@ -65,6 +65,7 @@ import { MonthShootingsDetails } from "@/components/month-shootings-details";
 import { ShootingCalendar } from "@/components/shooting-calendar";
 import { QuickDuePaymentDialog } from "@/components/quick-due-payment-dialog";
 import { QuickClientPaymentDialog } from "@/components/quick-client-payment-dialog";
+import { DashboardSharedChannelsSection } from "@/components/dashboard-shared-channels-section";
 
 export const Route = createFileRoute("/_authenticated/dashboard")({
   component: Dashboard,
@@ -291,7 +292,10 @@ function Dashboard() {
         </div>
       </div>
 
-      {/* 5. Detailed Monthly Shooting Breakdown Table */}
+      {/* 5. শেয়ার চ্যানেল হিসাব ও ব্যবস্থাপনা (আয়-ব্যয়, পেমেন্ট ও পার্টনারদের ভাগ) */}
+      <DashboardSharedChannelsSection />
+
+      {/* 6. Detailed Monthly Shooting Breakdown Table */}
       <MonthShootingsDetails />
     </div>
   );
