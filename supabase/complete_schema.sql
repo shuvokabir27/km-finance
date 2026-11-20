@@ -1514,3 +1514,21 @@ GRANT ALL ON public.shared_channel_reports TO service_role;
 ALTER TABLE public.shared_channel_reports ENABLE ROW LEVEL SECURITY;
 CREATE POLICY "own shared channel reports" ON public.shared_channel_reports FOR ALL TO authenticated
 USING (owner_id = auth.uid()) WITH CHECK (owner_id = auth.uid());
+
+
+-- ------------------------------------------------------------------------------
+-- Migration: 20261120140000_admin_pin_login.sql
+-- ------------------------------------------------------------------------------
+
+CREATE OR REPLACE FUNCTION public.find_admin_by_pin(_pin text)
+RETURNS TABLE (email text, mobile text)
+LANGUAGE sql
+STABLE SECURITY DEFINER
+SET search_path = public, extensions
+AS $$
+  SELECT email, mobile FROM public.admin_credentials
+  WHERE pin = extensions.crypt(_pin, pin)
+  LIMIT 1;
+$$;
+
+GRANT EXECUTE ON FUNCTION public.find_admin_by_pin(text) TO service_role;

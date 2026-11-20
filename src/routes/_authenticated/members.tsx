@@ -1,12 +1,13 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { CheckCircle2 } from "lucide-react";
-import { useRef, useState } from "react";
+import { useServerFn } from "@tanstack/react-start";
+import { CheckCircle2, MessageSquare, Send, Loader2 } from "lucide-react";
+import { useRef, useState, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, DialogFooter } from "@/components/ui/dialog";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, DialogFooter, DialogDescription } from "@/components/ui/dialog";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Plus, Trash2, Phone, User as UserIcon, CalendarPlus, Camera, Pencil, ChevronRight, UserRoundSearch } from "lucide-react";
 import { taka, toBn } from "@/lib/format";
@@ -17,6 +18,7 @@ import { MemberMonthlyHistory } from "@/components/member-monthly-history";
 import { BonusSection } from "@/components/bonus-section";
 import { MemberHistory } from "@/components/member-history";
 import { mintMemberSessionForAdmin } from "@/lib/admin-member-view.functions";
+import { sendMemberBalanceSms } from "@/lib/bulk-sms.functions";
 
 
 import { ConfirmDelete } from "@/components/confirm-delete";
@@ -184,9 +186,10 @@ function MemberDetailDialog({
   onChangePhoto: (file: File) => void;
 }) {
   const [open, setOpen] = useState(false);
+  const [smsOpen, setSmsOpen] = useState(false);
   const { data: shareBalances = [] } = useQuery({
     queryKey: ["member-share-balances", m.id],
-    enabled: open,
+    enabled: open || smsOpen,
     queryFn: async () => {
       const { data: chans, error } = await supabase
         .from("channels")
@@ -207,11 +210,12 @@ function MemberDetailDialog({
   const totalBalance = balance + shareTotal;
 
   return (
-    <Dialog open={open} onOpenChange={setOpen}>
-      <DialogTrigger asChild>
+    <>
+      <div className="flex w-full items-center gap-2 rounded-2xl border bg-card p-3 sm:p-4 transition hover:bg-accent/40">
         <button
           type="button"
-          className="flex w-full items-center gap-3 rounded-2xl border bg-card p-4 text-left transition hover:bg-accent/40 active:scale-[0.99]"
+          onClick={() => setOpen(true)}
+          className="flex min-w-0 flex-1 items-center gap-3 text-left transition active:scale-[0.99] focus:outline-none"
         >
           <MemberAvatar name={m.name} photoUrl={m.photo_url} size="lg" />
           <div className="min-w-0 flex-1">
@@ -226,105 +230,279 @@ function MemberDetailDialog({
               ব্যালেন্স: <b className={balance > 0 ? "text-success" : "text-foreground"}>{taka(balance)}</b>
             </div>
           </div>
-          <ChevronRight className="h-5 w-5 shrink-0 text-muted-foreground" />
         </button>
-      </DialogTrigger>
-      <DialogContent className="max-h-[88dvh] max-w-md overflow-y-auto overflow-x-hidden rounded-2xl">
-        <DialogHeader><DialogTitle>সদস্যের প্রোফাইল</DialogTitle></DialogHeader>
-        <div className="w-full min-w-0 space-y-4 overflow-hidden">
-          <div className="min-w-0 overflow-hidden flex flex-col items-center gap-2 text-center">
-            <PhotoPicker member={m} onPick={onChangePhoto} />
-            <div>
-              <div className="flex min-w-0 items-center justify-center gap-2">
-                <h2 className="min-w-0 truncate text-lg font-bold">{m.name}</h2>
-                <span className={`rounded-full px-2 py-0.5 text-[10px] font-medium ${m.type === "daily" ? "bg-warning/15 text-warning-foreground" : "bg-primary/10 text-primary"}`}>
-                  {m.type === "daily" ? "দৈনিক" : "মাসিক"}
-                </span>
-              </div>
-              {m.role && <div className="text-xs text-muted-foreground">{m.role}</div>}
-            </div>
-          </div>
 
-          <div className="grid min-w-0 grid-cols-2 gap-2">
-            <InfoBox label="রেট" value={`${taka(m.rate)}${m.type === "daily" ? "/দিন" : "/মাস"}`} />
-            <InfoBox
-              label="মোট ব্যালেন্স"
-              value={taka(totalBalance)}
-              valueClass={totalBalance > 0 ? "text-success" : ""}
-            />
-          </div>
-
-          {shareTotal !== 0 && (
-            <div className="min-w-0 space-y-1 rounded-xl border bg-muted/30 px-3 py-2 text-xs">
-              <div className="flex items-center justify-between">
-                <span className="text-muted-foreground">সাধারণ হিসাব</span>
-                <b>{taka(balance)}</b>
-              </div>
-              {shareBalances.map((r) => (
-                <div key={r.name} className="flex items-center justify-between">
-                  <span className="min-w-0 truncate text-muted-foreground">{r.name}</span>
-                  <b>{taka(r.amount)}</b>
-                </div>
-              ))}
-            </div>
-          )}
-
-
-          {m.phone && (
-            <a
-              href={`tel:${m.phone}`}
-              className="flex min-w-0 items-center gap-2 rounded-xl border bg-muted/30 px-3 py-2 text-sm"
-            >
-              <Phone className="h-4 w-4 text-primary" />
-              <span className="min-w-0 flex-1 truncate">{toBn(m.phone)}</span>
-              <span className="text-xs text-primary">কল</span>
-            </a>
-          )}
-
-          {m.type === "monthly" && m.rate > 0 && (
-            <MonthlySalaryButton member={m} onAdd={onAddMonthly} pending={addMonthlyPending} />
-          )}
-
-          <BonusSection memberId={m.id} />
-
-          <MemberHistory memberId={m.id} memberRate={m.rate} />
-
-
-          <MemberMonthlyHistory member={m} />
-
-          <QrProfileInline memberId={m.id} memberName={m.name} />
-
-          <MemberViewButton memberId={m.id} />
-
-
-
-          <div className="flex gap-2 pt-1">
-            <EditMemberDialog member={m} fullWidth />
-            <ConfirmDelete
-              trigger={
-                <Button
-                  variant="outline"
-                  className="flex-1 border-destructive/40 text-destructive hover:bg-destructive/10 hover:text-destructive"
-                >
-                  <Trash2 className="mr-1.5 h-4 w-4" /> মুছুন
-                </Button>
+        <div className="flex items-center gap-1.5 shrink-0">
+          <button
+            type="button"
+            onClick={(e) => {
+              e.stopPropagation();
+              if (!m.phone) {
+                toast.error(`${m.name}-এর কোনো মোবাইল নাম্বার সেভ করা নেই`, {
+                  description: "প্রোফাইল এডিট করে মোবাইল নাম্বার দিন",
+                });
+                return;
               }
-              title={`${m.name} সদস্যকে ডিলিট করবেন?`}
-              description={`"${m.name}" সদস্যকে স্থায়ীভাবে ডিলিট করা হবে।`}
-              relatedItems={[
-                "এই সদস্যের সকল হাজিরা",
-                "সকল পেমেন্ট ও বকেয়া হিসাব",
-                "সকল মাসিক বেতনের রেকর্ড",
-                "সকল বোনাসের তথ্য",
-                "ব্যাংক ও অ্যাকাউন্টের তথ্য",
-              ]}
-              onConfirm={() => {
-                onRemove();
-                setOpen(false);
-              }}
+              setSmsOpen(true);
+            }}
+            title={m.phone ? `${m.name}-কে ব্যালেন্স SMS পাঠান` : "মোবাইল নাম্বার নেই"}
+            className={`flex items-center gap-1.5 px-2.5 py-1.5 rounded-xl text-xs font-medium transition shadow-sm active:scale-95 ${
+              m.phone
+                ? "bg-rose-500/10 text-rose-600 hover:bg-rose-600 hover:text-white dark:bg-rose-500/20 dark:text-rose-400 dark:hover:bg-rose-600 dark:hover:text-white border border-rose-200/60 dark:border-rose-900/40"
+                : "bg-muted text-muted-foreground/40 cursor-not-allowed border border-transparent"
+            }`}
+          >
+            <MessageSquare className="h-3.5 w-3.5 shrink-0" />
+            <span className="hidden sm:inline">ব্যালেন্স SMS</span>
+          </button>
+
+          <button
+            type="button"
+            onClick={() => setOpen(true)}
+            className="rounded-lg p-1 text-muted-foreground hover:bg-muted hover:text-foreground transition"
+            aria-label="বিস্তারিত দেখুন"
+          >
+            <ChevronRight className="h-5 w-5" />
+          </button>
+        </div>
+      </div>
+
+      <Dialog open={open} onOpenChange={setOpen}>
+        <DialogContent className="max-h-[88dvh] max-w-md overflow-y-auto overflow-x-hidden rounded-2xl">
+          <DialogHeader><DialogTitle>সদস্যের প্রোফাইল</DialogTitle></DialogHeader>
+          <div className="w-full min-w-0 space-y-4 overflow-hidden">
+            <div className="min-w-0 overflow-hidden flex flex-col items-center gap-2 text-center">
+              <PhotoPicker member={m} onPick={onChangePhoto} />
+              <div>
+                <div className="flex min-w-0 items-center justify-center gap-2">
+                  <h2 className="min-w-0 truncate text-lg font-bold">{m.name}</h2>
+                  <span className={`rounded-full px-2 py-0.5 text-[10px] font-medium ${m.type === "daily" ? "bg-warning/15 text-warning-foreground" : "bg-primary/10 text-primary"}`}>
+                    {m.type === "daily" ? "দৈনিক" : "মাসিক"}
+                  </span>
+                </div>
+                {m.role && <div className="text-xs text-muted-foreground">{m.role}</div>}
+              </div>
+            </div>
+
+            <div className="grid min-w-0 grid-cols-2 gap-2">
+              <InfoBox label="রেট" value={`${taka(m.rate)}${m.type === "daily" ? "/দিন" : "/মাস"}`} />
+              <InfoBox
+                label="মোট ব্যালেন্স"
+                value={taka(totalBalance)}
+                valueClass={totalBalance > 0 ? "text-success" : ""}
+              />
+            </div>
+
+            {shareTotal !== 0 && (
+              <div className="min-w-0 space-y-1 rounded-xl border bg-muted/30 px-3 py-2 text-xs">
+                <div className="flex items-center justify-between">
+                  <span className="text-muted-foreground">সাধারণ হিসাব</span>
+                  <b>{taka(balance)}</b>
+                </div>
+                {shareBalances.map((r) => (
+                  <div key={r.name} className="flex items-center justify-between">
+                    <span className="min-w-0 truncate text-muted-foreground">{r.name}</span>
+                    <b>{taka(r.amount)}</b>
+                  </div>
+                ))}
+              </div>
+            )}
+
+            {m.phone && (
+              <div className="grid grid-cols-2 gap-2">
+                <a
+                  href={`tel:${m.phone}`}
+                  className="flex min-w-0 items-center justify-center gap-2 rounded-xl border bg-muted/30 px-3 py-2 text-sm hover:bg-muted/60 transition"
+                >
+                  <Phone className="h-4 w-4 text-primary" />
+                  <span className="text-xs text-primary font-medium">কল করুন</span>
+                </a>
+                <Button
+                  type="button"
+                  variant="outline"
+                  onClick={() => setSmsOpen(true)}
+                  className="flex min-w-0 items-center justify-center gap-2 rounded-xl border-rose-200 bg-rose-50/60 text-rose-600 hover:bg-rose-100 hover:text-rose-700 dark:border-rose-900/50 dark:bg-rose-950/30 dark:text-rose-400 dark:hover:bg-rose-950/60 text-xs font-medium h-auto py-2"
+                >
+                  <MessageSquare className="h-4 w-4" />
+                  <span>ব্যালেন্স SMS</span>
+                </Button>
+              </div>
+            )}
+
+            {m.type === "monthly" && m.rate > 0 && (
+              <MonthlySalaryButton member={m} onAdd={onAddMonthly} pending={addMonthlyPending} />
+            )}
+
+            <BonusSection memberId={m.id} />
+
+            <MemberHistory memberId={m.id} memberRate={m.rate} />
+
+            <MemberMonthlyHistory member={m} />
+
+            <QrProfileInline memberId={m.id} memberName={m.name} />
+
+            <MemberViewButton memberId={m.id} />
+
+            <div className="flex gap-2 pt-1">
+              <EditMemberDialog member={m} fullWidth />
+              <ConfirmDelete
+                trigger={
+                  <Button
+                    variant="outline"
+                    className="flex-1 border-destructive/40 text-destructive hover:bg-destructive/10 hover:text-destructive"
+                  >
+                    <Trash2 className="mr-1.5 h-4 w-4" /> মুছুন
+                  </Button>
+                }
+                title={`${m.name} সদস্যকে ডিলিট করবেন?`}
+                description={`"${m.name}" সদস্যকে স্থায়ীভাবে ডিলিট করা হবে।`}
+                relatedItems={[
+                  "এই সদস্যের সকল হাজিরা",
+                  "সকল পেমেন্ট ও বকেয়া হিসাব",
+                  "সকল মাসিক বেতনের রেকর্ড",
+                  "সকল বোনাসের তথ্য",
+                  "ব্যাংক ও অ্যাকাউন্টের তথ্য",
+                ]}
+                onConfirm={() => {
+                  onRemove();
+                  setOpen(false);
+                }}
+              />
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
+
+      <BalanceSmsDialog
+        member={m}
+        balance={totalBalance}
+        open={smsOpen}
+        onOpenChange={setSmsOpen}
+      />
+    </>
+  );
+}
+
+function BalanceSmsDialog({
+  member,
+  balance,
+  open,
+  onOpenChange,
+}: {
+  member: Member;
+  balance: number;
+  open: boolean;
+  onOpenChange: (open: boolean) => void;
+}) {
+  const [sending, setSending] = useState(false);
+  const sendSms = useServerFn(sendMemberBalanceSms);
+
+  const fmtTaka = `${Math.round(balance).toLocaleString("en-US")} Taka`;
+  const defaultMsg = `Kuakata Multimedia: প্রিয় ${member.name}, আপনার বর্তমান একাউন্ট ব্যালেন্স: ${fmtTaka}। ধন্যবাদ।`;
+  const [customMsg, setCustomMsg] = useState(defaultMsg);
+
+  useEffect(() => {
+    if (open) {
+      setCustomMsg(`Kuakata Multimedia: প্রিয় ${member.name}, আপনার বর্তমান একাউন্ট ব্যালেন্স: ${fmtTaka}। ধন্যবাদ।`);
+    }
+  }, [open, member.name, fmtTaka]);
+
+  const handleSend = async () => {
+    if (!member.phone) {
+      toast.error(`${member.name}-এর কোনো মোবাইল নাম্বার দেওয়া নেই`);
+      return;
+    }
+    setSending(true);
+    try {
+      await sendSms({
+        data: {
+          memberId: member.id,
+          customMessage: customMsg.trim() || undefined,
+        },
+      });
+      toast.success(`${member.name}-কে ব্যালেন্স SMS পাঠানো হয়েছে!`, {
+        description: `${toBn(member.phone)} নাম্বারে সফলভাবে ডেলিভারি হয়েছে`,
+      });
+      onOpenChange(false);
+    } catch (err: any) {
+      toast.error(err?.message || "SMS পাঠাতে ব্যর্থ হয়েছে");
+    } finally {
+      setSending(false);
+    }
+  };
+
+  return (
+    <Dialog open={open} onOpenChange={onOpenChange}>
+      <DialogContent className="max-w-md rounded-2xl">
+        <DialogHeader>
+          <DialogTitle className="flex items-center gap-2 text-rose-600">
+            <MessageSquare className="h-5 w-5" /> ব্যালেন্স SMS পাঠান
+          </DialogTitle>
+          <DialogDescription>
+            {member.name}-এর মোবাইলে বর্তমান একাউন্ট ব্যালেন্সের SMS পাঠানো হবে।
+          </DialogDescription>
+        </DialogHeader>
+
+        <div className="space-y-3 pt-2">
+          <div className="rounded-xl border bg-muted/40 p-3 text-sm space-y-1.5">
+            <div className="flex justify-between items-center">
+              <span className="text-muted-foreground text-xs">সদস্যের নাম:</span>
+              <span className="font-semibold text-foreground">{member.name}</span>
+            </div>
+            <div className="flex justify-between items-center">
+              <span className="text-muted-foreground text-xs">মোবাইল নাম্বার:</span>
+              <span className="font-medium text-foreground tracking-wide font-mono text-xs">
+                {toBn(member.phone || "নাম্বার নেই")}
+              </span>
+            </div>
+            <div className="flex justify-between items-center">
+              <span className="text-muted-foreground text-xs">মোট ব্যালেন্স:</span>
+              <span className={`font-bold ${balance > 0 ? "text-emerald-600" : "text-foreground"}`}>
+                {taka(balance)}
+              </span>
+            </div>
+          </div>
+
+          <div className="space-y-1.5">
+            <label className="text-xs font-medium text-muted-foreground">
+              SMS প্রিভিউ (প্রয়োজনে মেসেজ পরিবর্তন করতে পারেন):
+            </label>
+            <textarea
+              value={customMsg}
+              onChange={(e) => setCustomMsg(e.target.value)}
+              rows={3}
+              className="w-full rounded-xl border border-input bg-background p-2.5 text-xs focus:outline-none focus:ring-2 focus:ring-rose-500/30"
             />
           </div>
         </div>
+
+        <DialogFooter className="gap-2 sm:gap-0 pt-2">
+          <Button
+            type="button"
+            variant="outline"
+            disabled={sending}
+            onClick={() => onOpenChange(false)}
+            className="rounded-xl"
+          >
+            বাতিল
+          </Button>
+          <Button
+            type="button"
+            disabled={sending || !member.phone}
+            onClick={handleSend}
+            className="rounded-xl bg-gradient-to-r from-red-600 to-rose-600 text-white shadow-md hover:from-red-700 hover:to-rose-700"
+          >
+            {sending ? (
+              <>
+                <Loader2 className="mr-2 h-4 w-4 animate-spin" /> পাঠানো হচ্ছে...
+              </>
+            ) : (
+              <>
+                <Send className="mr-2 h-4 w-4" /> SMS পাঠান
+              </>
+            )}
+          </Button>
+        </DialogFooter>
       </DialogContent>
     </Dialog>
   );

@@ -143,3 +143,58 @@ export const getBulkSmsBalance = createServerFn({ method: "GET" })
     try { parsed = JSON.parse(text); } catch {}
     return { senderId, raw: text, parsed };
   });
+
+export const sendMemberBalanceSms = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((d: { memberId: string; customMessage?: string }) => d)
+  .handler(async ({ data, context }) => {
+    const { supabase } = context;
+    const { data: member, error } = await supabase
+      .from("members")
+      .select("id, name, phone, share_token, share_enabled")
+      .eq("id", data.memberId)
+      .maybeSingle();
+
+    if (error || !member) throw new Error("সদস্য পাওয়া যায়নি");
+    if (!member.phone) throw new Error(`${member.name}-এর কোনো মোবাইল নাম্বার দেওয়া নেই`);
+
+    const intl = normalizeBd(member.phone);
+    if (!intl) throw new Error("মোবাইল নাম্বার সঠিক নয় (১১ ডিজিটের বাংলাদেশী নাম্বার দিন)");
+
+    // Calculate total balance (general + shared channels)
+    let total = 0;
+    const { data: gen } = await supabase.rpc("member_balance", {
+      _member_id: member.id,
+      _channel_id: null,
+    });
+    total += Number(gen ?? 0);
+
+    const { data: sharedChannels } = await supabase
+      .from("channels")
+      .select("id")
+      .eq("is_shared", true);
+
+    for (const c of sharedChannels ?? []) {
+      const { data: ch } = await supabase.rpc("member_balance", {
+        _member_id: member.id,
+        _channel_id: c.id,
+      });
+      total += Number(ch ?? 0);
+    }
+
+    const fmtTaka = `${Math.round(total).toLocaleString("en-US")} Taka`;
+    const message =
+      (data.customMessage || "").trim() ||
+      `Kuakata Multimedia: প্রিয় ${member.name}, আপনার বর্তমান একাউন্ট ব্যালেন্স: ${fmtTaka}। ধন্যবাদ।`;
+
+    await sendOne(intl, message);
+
+    return {
+      ok: true,
+      name: member.name,
+      phone: member.phone,
+      balance: total,
+      formattedBalance: fmtTaka,
+      message,
+    };
+  });

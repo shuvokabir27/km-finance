@@ -221,16 +221,27 @@ export function SettingsDialog({ trigger }: { trigger: ReactNode }) {
             </div>
           </div>
 
-          <div className="space-y-1.5">
-            <Label className="flex items-center gap-1.5 text-sm">
-              <Phone className="h-3.5 w-3.5" /> অ্যাডমিনের মোবাইল
-            </Label>
+          <div className="space-y-2 rounded-xl border bg-muted/30 p-3">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-1.5 text-sm font-medium">
+                <Phone className="h-4 w-4 text-primary" /> অ্যাডমিনের মোবাইল
+              </div>
+              {mobile && (
+                <span className="inline-flex items-center gap-1 rounded-full bg-primary/10 px-2 py-0.5 text-[11px] font-medium text-primary">
+                  <Check className="h-3 w-3" /> সংরক্ষিত
+                </span>
+              )}
+            </div>
+            <p className="text-xs text-muted-foreground">
+              লগইনের সময় মোবাইল নাম্বার গোপন থাকে। শুধু আপনি এখানে দেখতে ও পরিবর্তন করতে পারবেন।
+            </p>
             <Input
               type="tel"
               inputMode="numeric"
               pattern="[0-9]*"
               maxLength={11}
               placeholder="01XXXXXXXXX"
+              className="font-mono text-base font-semibold tracking-wide bg-background"
               value={mobile}
               disabled={loadingServer}
               onChange={(e) => setMobile(e.target.value.replace(/\D/g, "").slice(0, 11))}
@@ -243,8 +254,8 @@ export function SettingsDialog({ trigger }: { trigger: ReactNode }) {
             </div>
             <p className="text-xs text-muted-foreground">
               {pinExists
-                ? "এই পিন লগইন ও ডিলিট দুই জায়গাতেই ব্যবহার হবে। পরিবর্তন করতে নিচের ঘরগুলো পূরণ করুন।"
-                : "পিন সেট করলে মোবাইল + পিন দিয়ে লগইন করতে পারবেন এবং ডিলিটের সময়ও এটি চাইবে।"}
+                ? "এই পিন দিয়ে সরাসরি এডমিন লগইন ও ডিলিট কনফার্ম করা যায়। পরিবর্তন করতে নিচের ঘরগুলো পূরণ করুন।"
+                : "পিন সেট করলে শুধু পিন দিয়েই দ্রুত লগইন করতে পারবেন।"}
             </p>
 
             {pinExists && (
@@ -267,7 +278,13 @@ export function SettingsDialog({ trigger }: { trigger: ReactNode }) {
                   ) : revealStep === "idle" ? (
                     <button
                       type="button"
-                      onClick={requestRevealOtp}
+                      onClick={() => {
+                        if (getAdminPin()) {
+                          setPinRevealed(true);
+                        } else {
+                          requestRevealOtp();
+                        }
+                      }}
                       disabled={revealSending}
                       className="inline-flex items-center gap-1 rounded-full border border-primary/30 bg-primary/5 px-2.5 py-1 text-xs font-medium text-primary hover:bg-primary/10 disabled:opacity-60"
                     >
