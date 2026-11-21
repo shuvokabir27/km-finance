@@ -117,7 +117,17 @@ export function MemberAccounts({ memberId, memberName }: { memberId: string; mem
                 {ACCOUNT_KIND_LABEL[a.kind]}
                 {a.kind === "bank" && a.bank_name ? ` — ${a.bank_name}` : ""}
               </div>
-              <div className="font-mono text-sm">{toBn(a.account_number)}</div>
+              <div className="mt-1 flex items-center gap-1.5">
+                <span
+                  className={`inline-flex items-center gap-1.5 rounded-md px-2 py-0.5 font-roboto text-sm font-bold tracking-wider ${
+                    a.kind === "bank"
+                      ? "bg-amber-500/15 text-amber-900 dark:text-amber-200 border border-amber-500/35"
+                      : "bg-primary/15 text-primary border border-primary/30"
+                  }`}
+                >
+                  {a.account_number}
+                </span>
+              </div>
               {(a.account_holder || a.branch) && (
                 <div className="text-muted-foreground">
                   {a.account_holder}{a.account_holder && a.branch ? " • " : ""}{a.branch}

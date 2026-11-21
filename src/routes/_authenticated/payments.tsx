@@ -188,64 +188,136 @@ function PaymentsPage() {
         </div>
 
         {selectedMember && (
-          <div className="flex items-center gap-3 rounded-xl bg-primary/10 p-3">
+          <div className="flex items-center gap-3 rounded-2xl border border-primary/20 bg-primary/10 p-3.5 shadow-xs">
             <MemberAvatar name={selectedMember.name} photoUrl={selectedMember.photo_url} size="lg" />
             <div className="min-w-0 flex-1">
               <div className="truncate text-sm font-semibold">{selectedMember.name}</div>
-              <div className="text-xs text-muted-foreground">বর্তমান ব্যালেন্স</div>
-              <div className="text-xl font-bold text-primary">
-                {balance.isLoading ? "…" : taka(balance.data ?? 0)}
+              <div className="text-xs font-medium text-muted-foreground">বর্তমান ব্যালেন্স</div>
+              <div className="mt-1 inline-flex items-center gap-1.5 rounded-xl border border-primary/30 bg-background/90 px-3 py-0.5 shadow-xs">
+                <span className="font-roboto font-black text-2xl tracking-tight text-primary">
+                  {balance.isLoading ? "…" : taka(balance.data ?? 0)}
+                </span>
               </div>
             </div>
-            <Wallet className="h-7 w-7 shrink-0 text-primary" />
+            <div className="grid h-12 w-12 shrink-0 place-items-center rounded-xl bg-primary/15 text-primary">
+              <Wallet className="h-6 w-6" />
+            </div>
           </div>
         )}
 
         {selectedMember && accounts.length > 0 && (
-          <div className="space-y-1.5">
-            <div className="text-xs font-semibold text-muted-foreground">পেমেন্ট একাউন্ট</div>
-            <ul className="space-y-1.5">
-              {accounts.map((a) => (
-                <li key={a.id} className="flex items-start gap-2 rounded-lg border bg-muted/30 p-2">
-                  <span className="mt-0.5 grid h-8 w-8 shrink-0 place-items-center rounded-full bg-primary/10 text-primary">
-                    {a.kind === "bank" ? <Landmark className="h-4 w-4" /> : <Smartphone className="h-4 w-4" />}
-                  </span>
-                  <div className="min-w-0 flex-1 text-xs">
-                    <div className="font-medium">
-                      {ACCOUNT_KIND_LABEL[a.kind]}
-                      {a.kind === "bank" && a.bank_name ? ` — ${a.bank_name}` : ""}
-                    </div>
-                    <div className="font-mono text-sm">{a.account_number}</div>
-                    {(a.account_holder || a.branch) && (
-                      <div className="text-muted-foreground">
-                        {a.account_holder}{a.account_holder && a.branch ? " • " : ""}{a.branch}
-                      </div>
-                    )}
-                  </div>
-                  <button
-                    type="button"
-                    className="rounded p-1 text-muted-foreground hover:bg-primary/10 hover:text-primary"
-                    aria-label="কপি"
+          <div className="space-y-2">
+            <div className="flex items-center justify-between">
+              <div className="text-xs font-semibold text-muted-foreground">পেমেন্ট একাউন্ট (ক্লিক করে নির্বাচন করুন)</div>
+              <span className="text-[11px] text-muted-foreground">ক্লিক করলে কপি ও সিলেক্ট হবে</span>
+            </div>
+            <ul className="space-y-2">
+              {accounts.map((a) => {
+                const isSelected = method === a.kind && bankAcct === a.account_number;
+                return (
+                  <li
+                    key={a.id}
                     onClick={() => {
+                      setMethod(a.kind);
+                      setBankAcct(a.account_number);
                       navigator.clipboard.writeText(a.account_number);
-                      toast.success("নম্বর কপি হয়েছে");
+                      toast.success(`${a.kind === "bank" ? "ব্যাংক অ্যাকাউন্ট" : ACCOUNT_KIND_LABEL[a.kind]} কপি ও সিলেক্ট করা হয়েছে`);
                     }}
+                    className={`group flex cursor-pointer items-start gap-3 rounded-xl border p-2.5 transition-all shadow-xs ${
+                      isSelected
+                        ? "border-primary bg-primary/10 ring-2 ring-primary/25"
+                        : "border-border/70 bg-card hover:border-primary/40 hover:bg-muted/40"
+                    }`}
                   >
-                    <Copy className="h-3.5 w-3.5" />
-                  </button>
-                </li>
-              ))}
+                    <span
+                      className={`mt-0.5 grid h-9 w-9 shrink-0 place-items-center rounded-xl transition ${
+                        a.kind === "bank"
+                          ? "bg-amber-500/15 text-amber-700 dark:text-amber-400"
+                          : "bg-primary/15 text-primary"
+                      }`}
+                    >
+                      {a.kind === "bank" ? <Landmark className="h-4.5 w-4.5" /> : <Smartphone className="h-4.5 w-4.5" />}
+                    </span>
+                    <div className="min-w-0 flex-1">
+                      <div className="flex items-center gap-2">
+                        <span className="text-xs font-semibold">
+                          {ACCOUNT_KIND_LABEL[a.kind]}
+                          {a.kind === "bank" && a.bank_name ? ` — ${a.bank_name}` : ""}
+                        </span>
+                        {isSelected && (
+                          <span className="rounded-full bg-primary px-1.5 py-0.5 text-[10px] font-bold text-primary-foreground leading-none">
+                            সিলেক্টেড
+                          </span>
+                        )}
+                      </div>
+
+                      {/* Highlighted Bank / Mobile Account Number in Roboto Font */}
+                      <div className="mt-1 flex items-center gap-2">
+                        <div
+                          className={`inline-flex items-center gap-2 rounded-lg border px-2.5 py-1 font-roboto text-sm md:text-base font-black tracking-wider transition ${
+                            a.kind === "bank"
+                              ? "bg-amber-500/15 border-amber-500/40 text-amber-900 dark:text-amber-200 group-hover:bg-amber-500/25"
+                              : "bg-primary/15 border-primary/40 text-primary group-hover:bg-primary/25"
+                          }`}
+                        >
+                          <span className="font-roboto">{a.account_number}</span>
+                          <Copy className="h-3.5 w-3.5 opacity-70 group-hover:opacity-100" />
+                        </div>
+                      </div>
+
+                      {(a.account_holder || a.branch) && (
+                        <div className="mt-1 text-xs text-muted-foreground font-medium">
+                          {a.account_holder && (
+                            <span>
+                              হোল্ডার: <strong className="text-foreground/80">{a.account_holder}</strong>
+                            </span>
+                          )}
+                          {a.account_holder && a.branch ? " • " : ""}
+                          {a.branch && <span>শাখা: {a.branch}</span>}
+                        </div>
+                      )}
+                    </div>
+
+                    <button
+                      type="button"
+                      className="rounded-lg p-1.5 text-muted-foreground hover:bg-primary/10 hover:text-primary transition"
+                      aria-label="কপি"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        navigator.clipboard.writeText(a.account_number);
+                        toast.success("নম্বর কপি হয়েছে");
+                      }}
+                      title="নম্বর কপি করুন"
+                    >
+                      <Copy className="h-4 w-4" />
+                    </button>
+                  </li>
+                );
+              })}
             </ul>
           </div>
         )}
 
         <div className="space-y-1.5">
-          <Label>পরিমাণ</Label>
-          <Input type="text" inputMode="decimal" pattern="[0-9]*\.?[0-9]*" value={amount} onChange={(e) => setAmount(e.target.value.replace(/[^0-9.]/g, ""))} placeholder="0" />
+          <Label className="text-xs font-semibold">পরিমাণ (Tk)</Label>
+          <div className="relative">
+            <span className="pointer-events-none absolute left-3.5 top-1/2 -translate-y-1/2 font-roboto font-black text-xl text-primary">
+              ৳
+            </span>
+            <Input
+              type="text"
+              inputMode="decimal"
+              pattern="[0-9]*\.?[0-9]*"
+              value={amount}
+              onChange={(e) => setAmount(e.target.value.replace(/[^0-9.]/g, ""))}
+              placeholder="0"
+              className="h-12 pl-9 font-roboto font-bold text-xl tracking-wide border-primary/30 focus-visible:ring-primary shadow-xs"
+            />
+          </div>
         </div>
 
         <div className="space-y-1.5">
-          <Label>পেমেন্ট মাধ্যম</Label>
+          <Label className="text-xs font-semibold">পেমেন্ট মাধ্যম</Label>
           <Select value={method} onValueChange={(v) => setMethod(v as PayMethod)}>
             <SelectTrigger><SelectValue /></SelectTrigger>
             <SelectContent>
@@ -258,13 +330,34 @@ function PaymentsPage() {
 
         {method !== "cash" && (
           <div className="space-y-1.5">
-            <Label>{method === "bank" ? "ব্যাংক অ্যাকাউন্ট নম্বর (ঐচ্ছিক)" : "নম্বর (ঐচ্ছিক)"}</Label>
+            <div className="flex items-center justify-between">
+              <Label className="text-xs font-semibold">
+                {method === "bank" ? "ব্যাংক অ্যাকাউন্ট নম্বর" : `${METHOD_LABEL[method]} নম্বর`}
+              </Label>
+              {bankAcct && (
+                <button
+                  type="button"
+                  onClick={() => {
+                    navigator.clipboard.writeText(bankAcct);
+                    toast.success("নম্বর কপি হয়েছে");
+                  }}
+                  className="flex items-center gap-1 text-xs font-semibold text-primary hover:underline"
+                >
+                  <Copy className="h-3 w-3" /> কপি
+                </button>
+              )}
+            </div>
             <Input
               type="tel"
               inputMode="numeric"
               value={bankAcct}
               onChange={(e) => setBankAcct(e.target.value.replace(/[^0-9]/g, ""))}
-              placeholder={method === "bank" ? "অ্যাকাউন্ট নম্বর" : "01XXXXXXXXX"}
+              placeholder={method === "bank" ? "ব্যাংক অ্যাকাউন্ট নম্বর দিন" : "01XXXXXXXXX"}
+              className={`h-11 font-roboto font-bold text-base tracking-widest shadow-xs ${
+                method === "bank"
+                  ? "bg-amber-500/10 border-amber-500/40 text-amber-950 dark:text-amber-100 focus-visible:ring-amber-500"
+                  : "bg-primary/10 border-primary/40 text-foreground focus-visible:ring-primary"
+              }`}
             />
           </div>
         )}
@@ -295,20 +388,26 @@ function PaymentsPage() {
         ) : (
           <div className="space-y-2">
             {visiblePayments.map((p) => (
-              <div key={p.id} className="flex items-center gap-3 rounded-2xl border bg-card p-3">
+              <div key={p.id} className="flex items-center gap-3 rounded-2xl border bg-card p-3 shadow-xs">
                 <MemberAvatar name={p.members?.name ?? "?"} photoUrl={p.members?.photo_url} size="md" />
                 <div className="min-w-0 flex-1">
                   <div className="flex items-center justify-between gap-2">
-                    <div className="truncate font-medium">{p.members?.name ?? "সদস্য"}</div>
-                    <div className="font-bold text-success">{taka(p.amount)}</div>
+                    <div className="truncate font-semibold text-sm">{p.members?.name ?? "সদস্য"}</div>
+                    <div className="font-roboto font-black text-base text-success tracking-tight bg-success/10 px-2.5 py-0.5 rounded-lg border border-success/20">
+                      {taka(p.amount)}
+                    </div>
                   </div>
-                  <div className="flex items-center justify-between gap-2 text-xs text-muted-foreground">
-                    <span className="truncate">
-                      {METHOD_LABEL[(p.method ?? "cash") as PayMethod]}
-                      {p.bank_account_number ? ` • ${toBn(p.bank_account_number)}` : ""}
-                      {p.note ? ` • ${p.note}` : ""}
+                  <div className="flex items-center justify-between gap-2 text-xs text-muted-foreground mt-1">
+                    <span className="truncate flex items-center gap-1.5">
+                      <span className="font-medium">{METHOD_LABEL[(p.method ?? "cash") as PayMethod]}</span>
+                      {p.bank_account_number ? (
+                        <span className="font-roboto font-bold text-foreground/90 bg-muted px-1.5 py-0.5 rounded text-[11px] tracking-wider border">
+                          {p.bank_account_number}
+                        </span>
+                      ) : null}
+                      {p.note ? <span className="truncate">• {p.note}</span> : null}
                     </span>
-                    <span>{bnDate(p.paid_at)}</span>
+                    <span className="font-roboto font-medium shrink-0">{bnDate(p.paid_at)}</span>
                   </div>
 
                 </div>
