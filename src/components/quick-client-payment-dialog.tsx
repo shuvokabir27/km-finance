@@ -101,8 +101,9 @@ export function QuickClientPaymentDialog({
     queryKey: ["client-channel-summary"],
     enabled: open && !channelsSummary,
     queryFn: fetchClientSummary,
-    initialData: getCachedClientSummary,
-    staleTime: 1000 * 60 * 2,
+    placeholderData: getCachedClientSummary,
+    staleTime: 0,
+    refetchOnMount: "always",
   });
 
   const channelsList = useMemo(() => {

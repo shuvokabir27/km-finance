@@ -48,13 +48,13 @@ export async function fetchDashboardSummary(): Promise<DashboardSummary> {
   const monthStartISO = monthStartDate.toISOString();
 
   const [membersRes, attRes, salRes, bonRes, payRes, chRes, shRes] = await Promise.all([
-    supabase.from("members").select("id, name, photo_url, type, rate"),
-    supabase.from("attendance").select("member_id, date, present, rate_override, shooting_id"),
-    supabase.from("monthly_salaries").select("member_id, month, amount"),
-    supabase.from("bonuses").select("member_id, given_at, amount"),
-    supabase.from("payments").select("member_id, paid_at, amount").is("channel_id", null),
+    supabase.from("members").select("id, name, photo_url, type, rate").limit(2000),
+    supabase.from("attendance").select("member_id, date, present, rate_override, shooting_id").eq("present", true).limit(10000),
+    supabase.from("monthly_salaries").select("member_id, month, amount").limit(10000),
+    supabase.from("bonuses").select("member_id, given_at, amount").limit(10000),
+    supabase.from("payments").select("member_id, paid_at, amount").is("channel_id", null).limit(10000),
     supabase.from("channels").select("name").eq("is_shared", true),
-    supabase.from("shootings").select("id, channel"),
+    supabase.from("shootings").select("id, channel").limit(5000),
   ]);
 
   const sharedNames = new Set((chRes.data ?? []).map((c: { name: string }) => c.name));

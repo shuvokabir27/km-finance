@@ -86,19 +86,59 @@ type PaymentRow = {
 };
 
 function Dashboard() {
+  const queryClient = useQueryClient();
+
   const { data, isLoading } = useQuery({
     queryKey: ["dashboard"],
     queryFn: fetchDashboardSummary,
-    initialData: getCachedDashboardSummary,
-    staleTime: 1000 * 60 * 2,
+    placeholderData: getCachedDashboardSummary,
+    staleTime: 0,
+    refetchOnMount: "always",
   });
 
   const { data: clientSummaryList } = useQuery({
     queryKey: ["client-channel-summary"],
     queryFn: fetchClientSummary,
-    initialData: getCachedClientSummary,
-    staleTime: 1000 * 60 * 2,
+    placeholderData: getCachedClientSummary,
+    staleTime: 0,
+    refetchOnMount: "always",
   });
+
+  // Real-time synchronization: when payments, attendance, or shootings update,
+  // immediately invalidate dashboard caches so numbers update with 0 delay.
+  useEffect(() => {
+    const channel = supabase
+      .channel("dashboard-realtime-sync")
+      .on("postgres_changes", { event: "*", schema: "public", table: "payments" }, () => {
+        queryClient.invalidateQueries({ queryKey: ["dashboard"] });
+        queryClient.invalidateQueries({ queryKey: ["dashboard-recent-payments"] });
+      })
+      .on("postgres_changes", { event: "*", schema: "public", table: "attendance" }, () => {
+        queryClient.invalidateQueries({ queryKey: ["dashboard"] });
+        queryClient.invalidateQueries({ queryKey: ["dashboard-today-attendance"] });
+        queryClient.invalidateQueries({ queryKey: ["dashboard-recent-shooting-attendance"] });
+      })
+      .on("postgres_changes", { event: "*", schema: "public", table: "monthly_salaries" }, () => {
+        queryClient.invalidateQueries({ queryKey: ["dashboard"] });
+      })
+      .on("postgres_changes", { event: "*", schema: "public", table: "bonuses" }, () => {
+        queryClient.invalidateQueries({ queryKey: ["dashboard"] });
+      })
+      .on("postgres_changes", { event: "*", schema: "public", table: "client_payments" }, () => {
+        queryClient.invalidateQueries({ queryKey: ["client-channel-summary"] });
+      })
+      .on("postgres_changes", { event: "*", schema: "public", table: "shootings" }, () => {
+        queryClient.invalidateQueries({ queryKey: ["dashboard"] });
+        queryClient.invalidateQueries({ queryKey: ["dashboard-recent-shootings"] });
+        queryClient.invalidateQueries({ queryKey: ["dashboard-all-shootings-count"] });
+        queryClient.invalidateQueries({ queryKey: ["client-channel-summary"] });
+      })
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
+  }, [queryClient]);
 
   const recentShootings = useQuery({
     queryKey: ["dashboard-recent-shootings"],
@@ -146,7 +186,8 @@ function Dashboard() {
         shooting: { id: string; name: string; shoot_date: string } | null;
       }>;
     },
-    staleTime: 1000 * 60 * 2,
+    staleTime: 0,
+    refetchOnMount: "always",
   });
 
   // Query all members for total & active count
@@ -159,7 +200,8 @@ function Dashboard() {
       if (error) throw error;
       return data ?? [];
     },
-    staleTime: 1000 * 60 * 5,
+    staleTime: 1000 * 30,
+    refetchOnMount: "always",
   });
 
   // Query all shootings for total count & month count
@@ -174,7 +216,8 @@ function Dashboard() {
       if (error) throw error;
       return data ?? [];
     },
-    staleTime: 1000 * 60 * 5,
+    staleTime: 1000 * 30,
+    refetchOnMount: "always",
   });
 
   // Query today's attendance
@@ -188,7 +231,8 @@ function Dashboard() {
       if (error) throw error;
       return data ?? [];
     },
-    staleTime: 1000 * 60 * 2,
+    staleTime: 0,
+    refetchOnMount: "always",
   });
 
   const monthName = new Date().toLocaleDateString("bn-BD", { month: "long", year: "numeric" });
@@ -313,8 +357,9 @@ function ClientDuesCard() {
   const { data, isLoading } = useQuery({
     queryKey: ["client-channel-summary"],
     queryFn: fetchClientSummary,
-    initialData: getCachedClientSummary,
-    staleTime: 1000 * 60 * 2,
+    placeholderData: getCachedClientSummary,
+    staleTime: 0,
+    refetchOnMount: "always",
   });
 
   const totals = useMemo(() => {
@@ -2217,7 +2262,8 @@ function MonthlySummaryChart() {
       if (error) throw error;
       return (data ?? []) as { id: string; name: string; shoot_date: string }[];
     },
-    staleTime: 1000 * 60 * 2,
+    staleTime: 1000 * 30,
+    refetchOnMount: "always",
   });
 
   const ids = useMemo(() => shootings.map((s) => s.id), [shootings]);
@@ -2242,7 +2288,8 @@ function MonthlySummaryChart() {
       );
       return out;
     },
-    staleTime: 1000 * 60 * 2,
+    staleTime: 1000 * 30,
+    refetchOnMount: "always",
   });
 
   const summaries = summariesQuery.data ?? {};

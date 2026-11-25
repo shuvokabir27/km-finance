@@ -60,8 +60,9 @@ function ClientDuesPage() {
   const { data: summary = [], isLoading } = useQuery({
     queryKey: ["client-channel-summary"],
     queryFn: fetchClientSummary,
-    initialData: getCachedClientSummary,
-    staleTime: 1000 * 60 * 2,
+    placeholderData: getCachedClientSummary,
+    staleTime: 0,
+    refetchOnMount: "always",
   });
 
   const totals = useMemo(() => {

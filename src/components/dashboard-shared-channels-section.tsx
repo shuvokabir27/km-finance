@@ -110,7 +110,8 @@ export function DashboardSharedChannelsSection() {
         channels: { name: string } | null;
       }>;
     },
-    staleTime: 1000 * 60 * 2,
+    staleTime: 0,
+    refetchOnMount: "always",
   });
 
   // Recent Payouts Query
@@ -137,7 +138,8 @@ export function DashboardSharedChannelsSection() {
         } | null;
       }>;
     },
-    staleTime: 1000 * 60 * 2,
+    staleTime: 0,
+    refetchOnMount: "always",
   });
 
   const [activeTab, setActiveTab] = useState<"channels" | "activity">("channels");

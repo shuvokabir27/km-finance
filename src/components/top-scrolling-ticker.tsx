@@ -107,23 +107,25 @@ export function TopScrollingTicker() {
     return () => document.removeEventListener("visibilitychange", onVisibility);
   }, []);
 
-  // 1. Total Member Due (Immediate from cache)
+  // 1. Total Member Due (Immediate from cache placeholder)
   const { data: dashboardData } = useQuery({
     queryKey: ["dashboard"],
     queryFn: fetchDashboardSummary,
-    initialData: getCachedDashboardSummary,
-    staleTime: 1000 * 60 * 2,
+    placeholderData: getCachedDashboardSummary,
+    staleTime: 0,
+    refetchOnMount: "always",
   });
 
-  // 2. Total Client Due (Immediate from cache)
+  // 2. Total Client Due (Immediate from cache placeholder)
   const { data: clientSummary } = useQuery({
     queryKey: ["client-channel-summary"],
     queryFn: fetchClientSummary,
-    initialData: getCachedClientSummary,
-    staleTime: 1000 * 60 * 2,
+    placeholderData: getCachedClientSummary,
+    staleTime: 0,
+    refetchOnMount: "always",
   });
 
-  // 3. Last 3 Payments (Immediate from cache)
+  // 3. Last 3 Payments (Immediate from cache placeholder)
   const { data: recentPayments } = useQuery({
     queryKey: ["dashboard-recent-payments"],
     queryFn: async () => {
@@ -141,11 +143,12 @@ export function TopScrollingTicker() {
       }
       return list;
     },
-    initialData: getCachedPayments,
-    staleTime: 1000 * 60 * 2,
+    placeholderData: getCachedPayments,
+    staleTime: 0,
+    refetchOnMount: "always",
   });
 
-  // 4. Last 3 Shootings (Immediate from cache)
+  // 4. Last 3 Shootings (Immediate from cache placeholder)
   const { data: recentShootings } = useQuery({
     queryKey: ["dashboard-recent-shootings"],
     queryFn: async () => {
@@ -164,8 +167,9 @@ export function TopScrollingTicker() {
       }
       return list;
     },
-    initialData: getCachedShootings,
-    staleTime: 1000 * 60 * 2,
+    placeholderData: getCachedShootings,
+    staleTime: 0,
+    refetchOnMount: "always",
   });
 
   const memberDue = dashboardData?.outstanding ?? 0;
