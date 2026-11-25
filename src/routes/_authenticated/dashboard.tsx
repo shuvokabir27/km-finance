@@ -1775,15 +1775,15 @@ function DueBreakdownDialog({
             <div className="text-sm font-bold text-primary-foreground">{loading ? "…" : taka(total)}</div>
           </button>
         )}
-        <DialogContent className="max-w-md p-0 overflow-hidden rounded-3xl">
-          <DialogHeader className="border-b border-border/60 bg-muted/20 px-5 py-4">
-            <DialogTitle className="flex items-center justify-between text-base font-bold pr-6">
+        <DialogContent className="flex flex-col max-h-[90vh] w-full max-w-[calc(100vw-1.5rem)] sm:max-w-lg md:max-w-xl p-0 overflow-hidden rounded-2xl sm:rounded-3xl border-border/80 shadow-2xl">
+          <DialogHeader className="shrink-0 border-b border-border/60 bg-muted/20 px-4 py-3 sm:px-6 sm:py-4 pr-10 sm:pr-12">
+            <DialogTitle className="flex flex-wrap items-center justify-between gap-2 text-sm sm:text-base font-bold">
               <span className="flex items-center gap-2">
-                <Users className="h-5 w-5 text-rose-600" />
-                {title}
+                <Users className="h-4 w-4 sm:h-5 sm:w-5 text-rose-600 shrink-0" />
+                <span className="truncate">{title}</span>
               </span>
               <div className="flex items-center gap-2">
-                <span className="rounded-full bg-rose-50 px-3 py-0.5 text-sm font-bold text-rose-600 border border-rose-200">
+                <span className="rounded-full bg-rose-50 px-2.5 py-0.5 text-xs sm:text-sm font-bold text-rose-600 border border-rose-200">
                   {loading ? "…" : taka(total)}
                 </span>
                 <button
@@ -1793,59 +1793,59 @@ function DueBreakdownDialog({
                   title="বকেয়া পরিশোধ করুন"
                 >
                   <Wallet className="h-3.5 w-3.5" />
-                  পেমেন্ট
+                  <span>পেমেন্ট</span>
                 </button>
               </div>
             </DialogTitle>
           </DialogHeader>
 
-          <div className="border-b border-border/40 px-4 py-2.5 bg-muted/10">
+          <div className="shrink-0 border-b border-border/40 px-4 py-2.5 bg-muted/10">
             <div className="relative">
               <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-muted-foreground" />
               <Input
                 value={search}
                 onChange={(e) => setSearch(e.target.value)}
                 placeholder="সদস্যের নাম দিয়ে খুঁজুন..."
-                className="h-8 pl-8 text-xs rounded-xl bg-background"
+                className="h-8 sm:h-9 pl-8 text-xs sm:text-sm rounded-xl bg-background"
               />
             </div>
           </div>
 
-          <div className="max-h-[60vh] overflow-y-auto p-3 space-y-1.5">
+          <div className="flex-1 min-h-0 overflow-y-auto p-3 sm:p-4 space-y-2">
             {filtered.length === 0 ? (
               <div className="py-8 text-center text-xs text-muted-foreground">
                 {search ? "কোনো সদস্য পাওয়া যায়নি" : "কোনো বকেয়া নেই"}
               </div>
             ) : (
-              <ul className="space-y-1.5">
+              <ul className="space-y-1.5 sm:space-y-2">
                 {filtered.map((r, i) => (
                   <li
                     key={r.id}
-                    className="flex items-center gap-3 rounded-2xl border border-border/70 bg-card p-2.5 shadow-2xs hover:border-rose-300 hover:bg-rose-50/30 transition"
+                    className="flex items-center gap-2.5 sm:gap-3 rounded-2xl border border-border/70 bg-card p-2.5 sm:p-3 shadow-2xs hover:border-rose-300 hover:bg-rose-50/30 transition"
                   >
-                    <span className="w-5 shrink-0 text-center text-[10px] font-bold text-muted-foreground">
+                    <span className="w-5 shrink-0 text-center text-[10px] sm:text-xs font-bold text-muted-foreground">
                       {toBn(i + 1)}.
                     </span>
                     <MemberAvatar name={r.name} photoUrl={r.photo_url} size="sm" />
                     <div className="min-w-0 flex-1">
-                      <div className="truncate text-sm font-bold text-slate-800">{r.name}</div>
-                      <div className="text-[10px] text-muted-foreground flex items-center gap-1.5 mt-0.5">
+                      <div className="truncate text-xs sm:text-sm font-bold text-foreground">{r.name}</div>
+                      <div className="text-[10px] sm:text-xs text-muted-foreground flex flex-wrap items-center gap-1 sm:gap-1.5 mt-0.5">
                         <span>পূর্বের: {taka(r.prev)}</span>
                         <span>•</span>
                         <span>এই মাসের: {taka(r.curr)}</span>
                       </div>
                     </div>
                     <div className="flex flex-col items-end gap-1 shrink-0">
-                      <div className="text-sm font-black text-rose-600">{taka(r.amount)}</div>
-                      <div className="flex items-center gap-1.5">
+                      <div className="text-xs sm:text-sm font-black text-rose-600">{taka(r.amount)}</div>
+                      <div className="flex items-center gap-1 sm:gap-1.5">
                         <button
                           type="button"
                           onClick={() => setPayMemberId(r.id)}
-                          className="inline-flex items-center gap-1 rounded-lg bg-emerald-600 hover:bg-emerald-700 active:scale-95 text-white px-2 py-0.5 text-[11px] font-bold shadow-xs transition cursor-pointer"
+                          className="inline-flex items-center gap-1 rounded-lg bg-emerald-600 hover:bg-emerald-700 active:scale-95 text-white px-2 py-1 text-[10px] sm:text-xs font-bold shadow-xs transition cursor-pointer"
                           title={`${r.name}-কে পেমেন্ট করুন`}
                         >
                           <Wallet className="h-3 w-3" />
-                          পেমেন্ট
+                          <span>পেমেন্ট</span>
                         </button>
                         <MemberHisabLink memberId={r.id} onBeforeNavigate={() => setOpen(false)} />
                       </div>
@@ -1856,11 +1856,11 @@ function DueBreakdownDialog({
             )}
           </div>
 
-          <DialogFooter className="flex items-center justify-between border-t border-border/60 bg-muted/20 px-5 py-3">
-            <div className="text-xs text-muted-foreground">
+          <DialogFooter className="shrink-0 flex items-center justify-between border-t border-border/60 bg-muted/20 px-4 py-3 sm:px-6 sm:py-3.5">
+            <div className="text-xs sm:text-sm text-muted-foreground">
               মোট বকেয়া সদস্য: <span className="font-bold text-foreground">{toBn(filtered.length)} জন</span>
             </div>
-            <Button variant="outline" size="sm" className="rounded-xl" onClick={() => setOpen(false)}>
+            <Button variant="outline" size="sm" className="rounded-xl text-xs sm:text-sm font-semibold cursor-pointer" onClick={() => setOpen(false)}>
               বন্ধ
             </Button>
           </DialogFooter>
