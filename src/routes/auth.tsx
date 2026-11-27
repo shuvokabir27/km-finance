@@ -1,5 +1,5 @@
 import { createFileRoute, Navigate, useSearch } from "@tanstack/react-router";
-import { Mail, KeyRound, ArrowLeft, Phone, ShieldCheck, AlertCircle, LogOut, Lock, User, Sparkles, Loader2, ArrowRight } from "lucide-react";
+import { Mail, KeyRound, ArrowLeft, Phone, ShieldCheck, AlertCircle, LogOut, Lock, User, Loader2, ArrowRight, Wallet, Users, Banknote, BarChart3 } from "lucide-react";
 import { useState } from "react";
 import { z } from "zod";
 import { lovable } from "@/integrations/lovable";
@@ -296,424 +296,526 @@ function AuthPage() {
     setMaskedMobile("");
   };
 
-  return (
-    <div className="relative flex min-h-screen items-center justify-center overflow-hidden bg-gradient-to-br from-rose-50 via-red-50/50 to-amber-50/60 dark:from-zinc-950 dark:via-rose-950/40 dark:to-neutral-950 px-4 py-10 selection:bg-red-500 selection:text-white">
-      {/* Colorful floating ambient glows */}
-      <div className="pointer-events-none absolute -top-24 -left-24 h-96 w-96 rounded-full bg-gradient-to-br from-red-500/30 via-rose-400/20 to-amber-400/20 blur-3xl animate-pulse" />
-      <div className="pointer-events-none absolute top-1/3 -right-28 h-[28rem] w-[28rem] rounded-full bg-gradient-to-br from-rose-500/25 via-pink-500/20 to-orange-400/25 blur-3xl" />
-      <div className="pointer-events-none absolute -bottom-28 left-1/4 h-80 w-80 rounded-full bg-gradient-to-tr from-red-600/25 via-amber-400/20 to-rose-300/15 blur-3xl" />
-      {/* Studio particle grid overlay */}
-      <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(#e11d48_1px,transparent_1px)] [background-size:20px_20px] opacity-[0.07]" />
+  const fieldCls =
+    "h-12 rounded-xl border-border bg-background text-base shadow-xs transition focus-visible:border-red-500 focus-visible:ring-4 focus-visible:ring-red-500/15";
+  const primaryBtnCls =
+    "w-full h-12 rounded-xl bg-red-600 text-base font-semibold text-white shadow-sm shadow-red-600/20 transition hover:bg-red-700 active:scale-[0.99] disabled:opacity-60 cursor-pointer";
+  const linkBtnCls =
+    "inline-flex items-center gap-1.5 text-sm font-medium text-red-600 transition hover:text-red-700 hover:underline underline-offset-4 disabled:opacity-50 dark:text-red-400 dark:hover:text-red-300";
 
-      <div className="relative w-full max-w-md">
-        {/* Brand Header */}
-        <div className="mb-7 flex flex-col items-center gap-3">
-          <div className="relative group">
-            <div className="absolute -inset-1.5 rounded-3xl bg-gradient-to-r from-red-600 via-rose-500 to-amber-500 opacity-75 blur-md group-hover:opacity-100 transition duration-500 animate-pulse" />
-            <div className="relative flex h-20 w-20 items-center justify-center rounded-2xl bg-white p-2 shadow-xl ring-2 ring-red-500/20 dark:bg-zinc-900">
-              <img
-                src={kmLogo}
-                alt="Kuakata Multimedia"
-                className="h-full w-full object-contain drop-shadow"
-              />
-            </div>
+  const heading =
+    step === "reset_pin"
+      ? { title: "পিন রিসেট করুন", sub: "SMS-এ পাওয়া কোড দিয়ে নতুন পিন সেট করুন" }
+      : step === "code"
+        ? { title: "কোড যাচাই করুন", sub: "আপনাকে পাঠানো ৬ ডিজিটের কোডটি লিখুন" }
+        : mode === "email"
+          ? { title: "ইমেইল দিয়ে লগইন", sub: "আপনার এডমিন ইমেইলে একটি লগইন কোড পাঠানো হবে" }
+          : { title: "আবার স্বাগতম", sub: "চালিয়ে যেতে আপনার ৪ ডিজিটের এডমিন পিন দিন" };
+
+  return (
+    <div className="grid min-h-screen bg-background lg:grid-cols-[1.05fr_1fr] selection:bg-red-500 selection:text-white">
+      {/* ───────── Brand panel (desktop) ───────── */}
+      <aside className="relative hidden overflow-hidden bg-gradient-to-br from-[#5f0f14] via-red-800 to-red-600 p-12 text-white lg:flex lg:flex-col lg:justify-between">
+        <div className="pointer-events-none absolute inset-0 bg-[linear-gradient(rgba(255,255,255,0.06)_1px,transparent_1px),linear-gradient(90deg,rgba(255,255,255,0.06)_1px,transparent_1px)] [background-size:44px_44px] [mask-image:radial-gradient(ellipse_at_top_left,black_30%,transparent_75%)]" />
+        <div className="pointer-events-none absolute -right-32 -bottom-32 h-[26rem] w-[26rem] rounded-full bg-amber-400/20 blur-3xl" />
+        <div className="pointer-events-none absolute -top-20 -left-20 h-72 w-72 rounded-full bg-rose-300/20 blur-3xl" />
+
+        <div className="relative flex items-center gap-3">
+          <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-white p-1.5 shadow-lg shadow-black/20">
+            <img src={kmLogo} alt="Kuakata Multimedia" className="h-full w-full object-contain" />
           </div>
-          <div className="text-center space-y-1">
-            <h1 className="text-2xl sm:text-3xl font-black tracking-tight bg-gradient-to-r from-red-600 via-rose-600 to-amber-600 bg-clip-text text-transparent">
-              Kuakata Multimedia Finance
-            </h1>
-            <div className="inline-flex items-center gap-1.5 rounded-full border border-red-500/20 bg-red-500/10 px-3 py-0.5 text-xs font-semibold text-red-700 dark:text-red-300 shadow-2xs">
-              <Sparkles className="h-3 w-3 text-red-500 animate-spin" style={{ animationDuration: "8s" }} />
-              টিম ও বেতন ব্যবস্থাপনা
-            </div>
+          <div className="leading-tight">
+            <p className="text-base font-bold tracking-tight">Kuakata Multimedia</p>
+            <p className="text-xs font-medium text-white/70">Finance Suite</p>
           </div>
         </div>
 
-        {/* Glassmorphic Red Card */}
-        <div className="relative space-y-5 rounded-3xl border border-red-500/20 bg-white/85 dark:bg-zinc-900/85 p-6 sm:p-8 shadow-[0_25px_60px_-15px_rgba(225,29,72,0.25)] backdrop-blur-2xl ring-1 ring-red-500/10">
-          {denied && (
-            <div
-              role="alert"
-              className="flex items-start gap-2 rounded-xl border border-destructive/30 bg-destructive/10 px-3.5 py-3 text-sm text-destructive"
-            >
-              <AlertCircle className="mt-0.5 h-4 w-4 shrink-0" />
-              <span className="leading-snug">
-                এই অ্যাকাউন্টে access নেই। শুধু অনুমোদিত admin ইমেইল দিয়ে লগইন করুন।
-              </span>
-            </div>
-          )}
-
-          {user && denied && (
-            <Button variant="ghost" className="w-full text-red-600 hover:text-red-700 hover:bg-red-50 dark:hover:bg-red-950/30" onClick={signOutCurrent}>
-              <LogOut className="mr-2 h-4 w-4" /> অন্য অ্যাকাউন্টে সাইন-ইন করুন
-            </Button>
-          )}
-
-          {errMsg && mode !== "pin" && (
-            <div
-              role="alert"
-              className="flex items-start gap-2 rounded-xl border border-destructive/30 bg-destructive/10 px-3.5 py-3 text-sm text-destructive animate-in fade-in slide-in-from-top-1"
-            >
-              <AlertCircle className="mt-0.5 h-4 w-4 shrink-0" />
-              <span className="leading-snug font-medium">{errMsg}</span>
-            </div>
-          )}
-
-          {step === "credentials" && (
-            <div className="grid grid-cols-2 gap-1.5 rounded-2xl bg-red-500/10 dark:bg-zinc-800/60 p-1.5 text-xs font-semibold">
-              <button
-                type="button"
-                onClick={() => switchMode("pin")}
-                className={`flex items-center justify-center gap-1.5 rounded-xl py-2.5 transition-all duration-200 ${
-                  mode === "pin" || mode === "mobile"
-                    ? "bg-gradient-to-r from-red-600 to-rose-600 text-white shadow-md shadow-red-500/30 scale-[1.02]"
-                    : "text-muted-foreground hover:text-foreground hover:bg-white/40 dark:hover:bg-zinc-800"
-                }`}
+        <div className="relative max-w-md space-y-8">
+          <div className="space-y-3">
+            <h2 className="text-4xl font-bold leading-[1.25] tracking-tight">
+              টিম, বেতন ও হিসাব —<br />সব এক জায়গায়।
+            </h2>
+            <p className="text-base leading-relaxed text-white/75">
+              কুয়াকাটা মাল্টিমিডিয়ার আয়-ব্যয়, সদস্যদের পেমেন্ট এবং বকেয়া এক ড্যাশবোর্ডে পরিষ্কারভাবে দেখুন।
+            </p>
+          </div>
+          <ul className="grid grid-cols-2 gap-3">
+            {[
+              { icon: Wallet, label: "আয়-ব্যয়ের হিসাব" },
+              { icon: Users, label: "টিম ও সদস্য" },
+              { icon: Banknote, label: "বেতন ও বকেয়া" },
+              { icon: BarChart3, label: "রিপোর্ট ও বিশ্লেষণ" },
+            ].map(({ icon: Icon, label }) => (
+              <li
+                key={label}
+                className="flex items-center gap-2.5 rounded-xl border border-white/15 bg-white/[0.07] px-3.5 py-3 text-sm font-medium backdrop-blur-sm"
               >
-                <Lock className="h-3.5 w-3.5" />
-                এডমিন পিন
-              </button>
-              <button
-                type="button"
-                onClick={() => switchMode("email")}
-                className={`flex items-center justify-center gap-1.5 rounded-xl py-2.5 transition-all duration-200 ${
-                  mode === "email"
-                    ? "bg-gradient-to-r from-red-600 to-rose-600 text-white shadow-md shadow-red-500/30 scale-[1.02]"
-                    : "text-muted-foreground hover:text-foreground hover:bg-white/40 dark:hover:bg-zinc-800"
-                }`}
-              >
-                <Mail className="h-3.5 w-3.5" />
-                শুধু ইমেইল
-              </button>
-            </div>
-          )}
+                <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-white/15">
+                  <Icon className="h-4 w-4" />
+                </span>
+                {label}
+              </li>
+            ))}
+          </ul>
+        </div>
 
-          {/* Mode 1: Admin PIN Login (Default - Mobile number hidden) */}
-          {step === "credentials" && mode === "pin" && (
-            <div className="space-y-4 pt-1">
-              <div className="space-y-2">
-                <div className="relative">
-                  <Input
-                    type="password"
-                    inputMode="numeric"
-                    pattern="[0-9]*"
-                    maxLength={4}
-                    autoFocus
-                    placeholder="••••"
-                    className={`h-14 text-center font-mono text-3xl tracking-[0.6em] bg-white/70 dark:bg-zinc-950/70 shadow-inner rounded-2xl font-bold transition-all text-red-950 dark:text-red-100 placeholder:text-red-300 dark:placeholder:text-red-900 ${
-                      pinErr
-                        ? "border-red-500 ring-2 ring-red-500/30"
-                        : "border-red-500/30 focus-visible:border-red-500 focus-visible:ring-2 focus-visible:ring-red-500/30"
-                    }`}
-                    value={pin}
-                    onChange={(e) => {
-                      setPinErr(null);
-                      const val = e.target.value.replace(/\D/g, "").slice(0, 4);
-                      setPin(val);
-                      if (val.length === 4) {
-                        startPinLogin(val);
-                      }
-                    }}
-                    onKeyDown={(e) => e.key === "Enter" && startPinLogin(pin)}
-                  />
+        <div className="relative flex items-center justify-between text-xs text-white/60">
+          <span>© {new Date().getFullYear()} Kuakata Multimedia</span>
+          <span className="inline-flex items-center gap-1.5">
+            <ShieldCheck className="h-3.5 w-3.5" /> নিরাপদ এনক্রিপ্টেড লগইন
+          </span>
+        </div>
+      </aside>
+
+      {/* ───────── Form panel ───────── */}
+      <main className="relative flex items-center justify-center px-4 py-10 sm:px-8">
+        <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(ellipse_at_top,rgba(220,38,38,0.07),transparent_60%)] lg:hidden" />
+
+        <div className="relative w-full max-w-[400px]">
+          {/* Mobile brand header */}
+          <div className="mb-8 flex flex-col items-center gap-3 text-center lg:hidden">
+            <div className="flex h-16 w-16 items-center justify-center rounded-2xl bg-white p-2 shadow-md ring-1 ring-black/5 dark:bg-zinc-900 dark:ring-white/10">
+              <img src={kmLogo} alt="Kuakata Multimedia" className="h-full w-full object-contain" />
+            </div>
+            <div>
+              <p className="text-lg font-bold tracking-tight">Kuakata Multimedia</p>
+              <p className="text-xs font-medium text-muted-foreground">টিম ও বেতন ব্যবস্থাপনা</p>
+            </div>
+          </div>
+
+          <div className="rounded-2xl border border-border bg-card p-6 shadow-[0_1px_2px_rgba(0,0,0,0.04),0_12px_40px_-12px_rgba(0,0,0,0.12)] sm:p-8">
+            {/* Heading */}
+            <div className="mb-6 space-y-1.5">
+              <h1 className="text-2xl font-bold tracking-tight text-foreground">{heading.title}</h1>
+              <p className="text-sm text-muted-foreground">{heading.sub}</p>
+            </div>
+
+            <div className="space-y-5">
+              {denied && (
+                <div
+                  role="alert"
+                  className="flex items-start gap-2.5 rounded-xl border border-destructive/25 bg-destructive/5 px-3.5 py-3 text-sm text-destructive"
+                >
+                  <AlertCircle className="mt-0.5 h-4 w-4 shrink-0" />
+                  <span className="leading-snug">
+                    এই অ্যাকাউন্টে access নেই। শুধু অনুমোদিত admin ইমেইল দিয়ে লগইন করুন।
+                  </span>
                 </div>
-                {pinErr && (
-                  <p className="text-center text-xs font-semibold text-red-600 dark:text-red-400 animate-in fade-in slide-in-from-top-1">
-                    {pinErr}
-                  </p>
-                )}
-              </div>
+              )}
 
-              <Button
-                className="w-full h-12 text-base font-bold rounded-2xl text-white bg-gradient-to-r from-red-600 via-rose-600 to-red-500 hover:from-red-500 hover:to-rose-600 shadow-lg shadow-red-600/35 hover:shadow-red-600/50 hover:scale-[1.01] active:scale-[0.99] transition-all duration-200 cursor-pointer"
-                onClick={() => startPinLogin(pin)}
-                disabled={loggingIn || pin.length !== 4}
-              >
-                {loggingIn ? (
-                  <span className="flex items-center gap-2">
-                    <Loader2 className="h-5 w-5 animate-spin" />
-                    যাচাই ও প্রবেশ হচ্ছে…
-                  </span>
-                ) : (
-                  <span className="flex items-center justify-center gap-2">
-                    <ShieldCheck className="h-5 w-5" />
-                    পিন দিয়ে প্রবেশ করুন
-                  </span>
-                )}
-              </Button>
+              {user && denied && (
+                <Button variant="outline" className="h-11 w-full rounded-xl" onClick={signOutCurrent}>
+                  <LogOut className="mr-2 h-4 w-4" /> অন্য অ্যাকাউন্টে সাইন-ইন করুন
+                </Button>
+              )}
 
-              {failedAttempts >= 3 && (
-                <div className="pt-1 text-center animate-in fade-in slide-in-from-top-1">
+              {errMsg && mode !== "pin" && (
+                <div
+                  role="alert"
+                  className="flex items-start gap-2.5 rounded-xl border border-destructive/25 bg-destructive/5 px-3.5 py-3 text-sm text-destructive animate-in fade-in slide-in-from-top-1"
+                >
+                  <AlertCircle className="mt-0.5 h-4 w-4 shrink-0" />
+                  <span className="leading-snug font-medium">{errMsg}</span>
+                </div>
+              )}
+
+              {/* Mode switch */}
+              {step === "credentials" && (
+                <div className="grid grid-cols-2 gap-1 rounded-xl bg-muted p-1 text-sm font-medium" role="tablist">
+                  {([
+                    { key: "pin", label: "এডমিন পিন", icon: Lock, active: mode === "pin" || mode === "mobile" },
+                    { key: "email", label: "ইমেইল", icon: Mail, active: mode === "email" },
+                  ] as const).map(({ key, label, icon: Icon, active }) => (
+                    <button
+                      key={key}
+                      type="button"
+                      role="tab"
+                      aria-selected={active}
+                      onClick={() => switchMode(key)}
+                      className={`flex items-center justify-center gap-2 rounded-lg py-2.5 transition-all duration-200 cursor-pointer ${
+                        active
+                          ? "bg-background text-foreground shadow-sm ring-1 ring-black/5 dark:ring-white/10"
+                          : "text-muted-foreground hover:text-foreground"
+                      }`}
+                    >
+                      <Icon className={`h-4 w-4 ${active ? "text-red-600 dark:text-red-400" : ""}`} />
+                      {label}
+                    </button>
+                  ))}
+                </div>
+              )}
+
+              {/* Mode 1: Admin PIN Login */}
+              {step === "credentials" && mode === "pin" && (
+                <div className="space-y-5 animate-in fade-in">
+                  <div className="space-y-2.5">
+                    <PinBoxes
+                      value={pin}
+                      error={!!pinErr}
+                      disabled={loggingIn}
+                      onChange={(val) => {
+                        setPinErr(null);
+                        setPin(val);
+                        if (val.length === 4) startPinLogin(val);
+                      }}
+                      onEnter={() => startPinLogin(pin)}
+                    />
+                    {pinErr && (
+                      <p className="flex items-center justify-center gap-1.5 text-sm font-medium text-red-600 dark:text-red-400 animate-in fade-in slide-in-from-top-1">
+                        <AlertCircle className="h-4 w-4" />
+                        {pinErr}
+                      </p>
+                    )}
+                  </div>
+
+                  <Button className={primaryBtnCls} onClick={() => startPinLogin(pin)} disabled={loggingIn || pin.length !== 4}>
+                    {loggingIn ? (
+                      <span className="flex items-center gap-2">
+                        <Loader2 className="h-5 w-5 animate-spin" />
+                        যাচাই করা হচ্ছে…
+                      </span>
+                    ) : (
+                      <span className="flex items-center justify-center gap-2">
+                        প্রবেশ করুন
+                        <ArrowRight className="h-4 w-4" />
+                      </span>
+                    )}
+                  </Button>
+
+                  {failedAttempts >= 3 && (
+                    <div className="text-center animate-in fade-in slide-in-from-top-1">
+                      <button type="button" onClick={openPinReset} className={linkBtnCls}>
+                        <KeyRound className="h-4 w-4" />
+                        পিন ভুলে গেছেন? OTP দিয়ে রিসেট করুন
+                      </button>
+                    </div>
+                  )}
+                </div>
+              )}
+
+              {/* Step: Reset PIN via SMS OTP */}
+              {step === "reset_pin" && (
+                <div className="space-y-4 animate-in fade-in slide-in-from-top-1">
                   <button
                     type="button"
-                    onClick={openPinReset}
-                    className="inline-flex items-center gap-1.5 text-xs font-semibold text-red-600 dark:text-red-400 hover:text-red-700 dark:hover:text-red-300 hover:underline transition cursor-pointer"
+                    onClick={() => {
+                      setStep("credentials");
+                      setPinErr(null);
+                      setResetErr(null);
+                    }}
+                    className="inline-flex items-center gap-1.5 text-sm font-medium text-muted-foreground transition hover:text-foreground"
                   >
-                    <KeyRound className="h-3.5 w-3.5" />
-                    পিন ভুলে গেছেন? OTP দিয়ে রিসেট করুন
+                    <ArrowLeft className="h-4 w-4" /> ফিরে যান
                   </button>
+
+                  <div className="flex items-start gap-2.5 rounded-xl border border-border bg-muted/60 px-3.5 py-3 text-sm text-muted-foreground">
+                    <Phone className="mt-0.5 h-4 w-4 shrink-0 text-red-600 dark:text-red-400" />
+                    <span className="leading-snug">
+                      {resetMaskedMobile
+                        ? `${resetMaskedMobile} নাম্বারে SMS-এ ৬ ডিজিটের কোড পাঠানো হয়েছে।`
+                        : "আপনার নিবন্ধিত মোবাইল নাম্বারে SMS কোড পাঠানো হচ্ছে…"}
+                    </span>
+                  </div>
+
+                  <div className="space-y-1.5">
+                    <Label className="text-sm font-medium">৬ ডিজিটের কোড</Label>
+                    <Input
+                      type="text"
+                      inputMode="numeric"
+                      pattern="[0-9]*"
+                      maxLength={6}
+                      autoComplete="one-time-code"
+                      autoFocus
+                      placeholder="••••••"
+                      className={`${fieldCls} text-center font-mono text-xl tracking-[0.5em]`}
+                      value={resetCode}
+                      onChange={(e) => {
+                        setResetErr(null);
+                        setResetCode(e.target.value.replace(/\D/g, "").slice(0, 6));
+                      }}
+                    />
+                  </div>
+
+                  <div className="grid grid-cols-2 gap-3">
+                    <div className="space-y-1.5">
+                      <Label className="text-sm font-medium">নতুন পিন</Label>
+                      <Input
+                        type="password"
+                        inputMode="numeric"
+                        pattern="[0-9]*"
+                        maxLength={4}
+                        placeholder="••••"
+                        className={`${fieldCls} text-center font-mono text-lg tracking-[0.4em]`}
+                        value={newResetPin}
+                        onChange={(e) => {
+                          setResetErr(null);
+                          setNewResetPin(e.target.value.replace(/\D/g, "").slice(0, 4));
+                        }}
+                      />
+                    </div>
+                    <div className="space-y-1.5">
+                      <Label className="text-sm font-medium">আবার লিখুন</Label>
+                      <Input
+                        type="password"
+                        inputMode="numeric"
+                        pattern="[0-9]*"
+                        maxLength={4}
+                        placeholder="••••"
+                        className={`${fieldCls} text-center font-mono text-lg tracking-[0.4em]`}
+                        value={confirmResetPin}
+                        onChange={(e) => {
+                          setResetErr(null);
+                          setConfirmResetPin(e.target.value.replace(/\D/g, "").slice(0, 4));
+                        }}
+                      />
+                    </div>
+                  </div>
+
+                  {resetErr && (
+                    <p className="flex items-center justify-center gap-1.5 text-sm font-medium text-red-600 dark:text-red-400 animate-in fade-in">
+                      <AlertCircle className="h-4 w-4" />
+                      {resetErr}
+                    </p>
+                  )}
+
+                  <Button
+                    className={primaryBtnCls}
+                    onClick={handleConfirmResetPin}
+                    disabled={resetting || resetCode.length !== 6 || newResetPin.length !== 4 || confirmResetPin.length !== 4}
+                  >
+                    {resetting ? (
+                      <span className="flex items-center gap-2">
+                        <Loader2 className="h-5 w-5 animate-spin" />
+                        রিসেট হচ্ছে…
+                      </span>
+                    ) : (
+                      "পিন রিসেট ও লগইন করুন"
+                    )}
+                  </Button>
+
+                  <div className="text-center">
+                    <button type="button" onClick={handleResendResetOtp} disabled={resetSending} className={linkBtnCls}>
+                      {resetSending ? "পাঠানো হচ্ছে…" : "কোড আবার পাঠান"}
+                    </button>
+                  </div>
+                </div>
+              )}
+
+              {/* Mode 2: Optional Mobile + SMS OTP fallback */}
+              {step === "credentials" && mode === "mobile" && (
+                <div className="space-y-4 animate-in fade-in slide-in-from-top-1">
+                  <div className="flex items-center justify-between">
+                    <span className="text-sm font-medium text-muted-foreground">মোবাইল SMS লগইন</span>
+                    <button type="button" onClick={() => switchMode("pin")} className={linkBtnCls}>
+                      ← শুধু পিন দিয়ে লগইন
+                    </button>
+                  </div>
+                  <div className="space-y-1.5">
+                    <Label className="text-sm font-medium">মোবাইল নাম্বার</Label>
+                    <div className="relative">
+                      <Phone className="pointer-events-none absolute left-3.5 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+                      <Input
+                        type="tel"
+                        inputMode="numeric"
+                        pattern="[0-9]*"
+                        maxLength={11}
+                        placeholder="01XXXXXXXXX"
+                        className={`${fieldCls} pl-10`}
+                        value={mobile}
+                        onChange={(e) => setMobile(e.target.value.replace(/\D/g, "").slice(0, 11))}
+                      />
+                    </div>
+                  </div>
+                  <div className="space-y-1.5">
+                    <Label className="text-sm font-medium">পিন (৪ ডিজিট)</Label>
+                    <Input
+                      type="password"
+                      inputMode="numeric"
+                      pattern="[0-9]*"
+                      maxLength={4}
+                      placeholder="••••"
+                      className={`${fieldCls} text-center font-mono text-lg tracking-[0.5em]`}
+                      value={pin}
+                      onChange={(e) => setPin(e.target.value.replace(/\D/g, "").slice(0, 4))}
+                      onKeyDown={(e) => e.key === "Enter" && startMobile()}
+                    />
+                  </div>
+                  <Button className={primaryBtnCls} onClick={startMobile} disabled={sending || mobile.length !== 11 || pin.length !== 4}>
+                    {sending ? "পাঠানো হচ্ছে…" : "মোবাইলে কোড পাঠান"}
+                  </Button>
+                </div>
+              )}
+
+              {/* Mode 3: Email OTP */}
+              {step === "credentials" && mode === "email" && (
+                <div className="space-y-5 animate-in fade-in">
+                  <div className="space-y-1.5">
+                    <Label className="text-sm font-medium">এডমিন ইমেইল</Label>
+                    <div className="relative">
+                      <Mail className="pointer-events-none absolute left-3.5 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+                      <Input
+                        type="email"
+                        inputMode="email"
+                        autoComplete="email"
+                        autoFocus
+                        placeholder="admin@example.com"
+                        className={`${fieldCls} pl-10`}
+                        value={email}
+                        onChange={(e) => setEmail(e.target.value)}
+                        onKeyDown={(e) => e.key === "Enter" && startEmail()}
+                      />
+                    </div>
+                  </div>
+                  <Button className={primaryBtnCls} onClick={startEmail} disabled={sending || !email.trim()}>
+                    {sending ? (
+                      <span className="flex items-center gap-2">
+                        <Loader2 className="h-5 w-5 animate-spin" />
+                        পাঠানো হচ্ছে…
+                      </span>
+                    ) : (
+                      <span className="flex items-center justify-center gap-2">
+                        ইমেইলে কোড পাঠান
+                        <ArrowRight className="h-4 w-4" />
+                      </span>
+                    )}
+                  </Button>
+                </div>
+              )}
+
+              {/* Step: verify OTP code */}
+              {step === "code" && (
+                <div className="space-y-4 animate-in fade-in">
+                  <button
+                    type="button"
+                    onClick={() => { setStep("credentials"); setCode(""); }}
+                    className="inline-flex items-center gap-1.5 text-sm font-medium text-muted-foreground transition hover:text-foreground"
+                  >
+                    <ArrowLeft className="h-4 w-4" /> ফিরে যান
+                  </button>
+                  <div className="space-y-2">
+                    <Input
+                      type="text"
+                      inputMode="numeric"
+                      pattern="[0-9]*"
+                      maxLength={6}
+                      autoComplete="one-time-code"
+                      autoFocus
+                      placeholder="••••••"
+                      className={`${fieldCls} h-14 text-center font-mono text-2xl font-semibold tracking-[0.5em]`}
+                      value={code}
+                      onChange={(e) => setCode(e.target.value.replace(/\D/g, "").slice(0, 6))}
+                      onKeyDown={(e) => e.key === "Enter" && verifyOtp()}
+                    />
+                    <p className="text-center text-xs text-muted-foreground">
+                      {resolvedMobile ? `${maskedMobile} নাম্বারে পাঠানো SMS কোড লিখুন` : `${maskEmail(resolvedEmail)}-এ পাঠানো কোড লিখুন`}
+                    </p>
+                  </div>
+                  <Button className={primaryBtnCls} onClick={verifyOtp} disabled={verifying || code.length !== 6}>
+                    {verifying ? (
+                      <span className="flex items-center gap-2">
+                        <Loader2 className="h-5 w-5 animate-spin" />
+                        যাচাই হচ্ছে…
+                      </span>
+                    ) : (
+                      "লগইন করুন"
+                    )}
+                  </Button>
+                  <div className="text-center">
+                    <button type="button" onClick={resend} disabled={sending} className={linkBtnCls}>
+                      {sending ? "পাঠানো হচ্ছে…" : "কোড আবার পাঠান"}
+                    </button>
+                  </div>
                 </div>
               )}
             </div>
-          )}
 
-          {/* Step: Reset PIN via SMS OTP */}
-          {step === "reset_pin" && (
-            <div className="space-y-4 pt-1 animate-in fade-in slide-in-from-top-1">
-              <div className="flex items-center justify-between pb-1 border-b border-red-500/10">
-                <div className="flex items-center gap-2 text-sm font-bold text-red-600 dark:text-red-400">
-                  <KeyRound className="h-4 w-4" />
-                  <span>এডমিন পিন রিসেট</span>
-                </div>
-                <button
-                  type="button"
-                  onClick={() => {
-                    setStep("credentials");
-                    setPinErr(null);
-                    setResetErr(null);
-                  }}
-                  className="text-xs font-medium text-muted-foreground hover:text-foreground inline-flex items-center gap-1 transition"
-                >
-                  <ArrowLeft className="h-3 w-3" /> ফিরে যান
-                </button>
+            {/* Member login */}
+            <div className="mt-6">
+              <div className="relative mb-5 flex items-center">
+                <div className="flex-1 border-t border-border" />
+                <span className="px-3 text-xs font-medium text-muted-foreground">অথবা</span>
+                <div className="flex-1 border-t border-border" />
               </div>
-
-              <div className="rounded-xl bg-red-500/10 dark:bg-red-950/30 p-3 text-center">
-                <p className="text-xs font-medium text-red-700 dark:text-red-300">
-                  {resetMaskedMobile
-                    ? `${resetMaskedMobile} নাম্বারে SMS-এ ৬ ডিজিটের ওটিপি পাঠানো হয়েছে।`
-                    : "আপনার নিবন্ধিত মোবাইল নাম্বারে SMS কোড পাঠানো হচ্ছে…"}
-                </p>
-              </div>
-
-              <div className="space-y-1.5">
-                <Label className="text-xs font-semibold">৬-ডিজিট কোড (SMS OTP)</Label>
-                <Input
-                  type="text"
-                  inputMode="numeric"
-                  pattern="[0-9]*"
-                  maxLength={6}
-                  autoFocus
-                  placeholder="••••••"
-                  className="h-12 text-center font-mono text-xl tracking-[0.5em] bg-white/70 dark:bg-zinc-950/70 border-red-500/30 focus-visible:border-red-500 rounded-xl font-bold"
-                  value={resetCode}
-                  onChange={(e) => {
-                    setResetErr(null);
-                    setResetCode(e.target.value.replace(/\D/g, "").slice(0, 6));
-                  }}
-                />
-              </div>
-
-              <div className="grid grid-cols-2 gap-2">
-                <div className="space-y-1.5">
-                  <Label className="text-xs font-semibold">নতুন পিন (৪ ডিজিট)</Label>
-                  <Input
-                    type="password"
-                    inputMode="numeric"
-                    pattern="[0-9]*"
-                    maxLength={4}
-                    placeholder="••••"
-                    className="h-11 text-center font-mono text-lg tracking-[0.4em] bg-white/70 dark:bg-zinc-950/70 border-red-500/30 focus-visible:border-red-500 rounded-xl"
-                    value={newResetPin}
-                    onChange={(e) => {
-                      setResetErr(null);
-                      setNewResetPin(e.target.value.replace(/\D/g, "").slice(0, 4));
-                    }}
-                  />
-                </div>
-                <div className="space-y-1.5">
-                  <Label className="text-xs font-semibold">পুনরায় নতুন পিন</Label>
-                  <Input
-                    type="password"
-                    inputMode="numeric"
-                    pattern="[0-9]*"
-                    maxLength={4}
-                    placeholder="••••"
-                    className="h-11 text-center font-mono text-lg tracking-[0.4em] bg-white/70 dark:bg-zinc-950/70 border-red-500/30 focus-visible:border-red-500 rounded-xl"
-                    value={confirmResetPin}
-                    onChange={(e) => {
-                      setResetErr(null);
-                      setConfirmResetPin(e.target.value.replace(/\D/g, "").slice(0, 4));
-                    }}
-                  />
-                </div>
-              </div>
-
-              {resetErr && (
-                <p className="text-center text-xs font-semibold text-red-600 dark:text-red-400 animate-in fade-in">
-                  {resetErr}
-                </p>
-              )}
-
-              <Button
-                className="w-full h-12 text-base font-bold rounded-2xl text-white bg-gradient-to-r from-red-600 via-rose-600 to-red-500 hover:from-red-500 hover:to-rose-600 shadow-lg shadow-red-600/35 hover:scale-[1.01] active:scale-[0.99] transition-all cursor-pointer"
-                onClick={handleConfirmResetPin}
-                disabled={resetting || resetCode.length !== 6 || newResetPin.length !== 4 || confirmResetPin.length !== 4}
+              <a
+                href="/member-login"
+                className="group flex h-11 w-full items-center justify-center gap-2 rounded-xl border border-border bg-background text-sm font-medium text-foreground shadow-xs transition hover:border-red-500/40 hover:bg-red-50 hover:text-red-700 dark:hover:bg-red-950/30 dark:hover:text-red-300"
               >
-                {resetting ? (
-                  <span className="flex items-center gap-2">
-                    <Loader2 className="h-5 w-5 animate-spin" />
-                    রিসেট ও লগইন হচ্ছে…
-                  </span>
-                ) : (
-                  "পিন রিসেট ও লগইন করুন"
-                )}
-              </Button>
-
-              <div className="text-center">
-                <button
-                  type="button"
-                  onClick={handleResendResetOtp}
-                  disabled={resetSending}
-                  className="text-xs font-semibold text-red-600 hover:text-red-700 dark:text-red-400 hover:underline disabled:opacity-50"
-                >
-                  {resetSending ? "পাঠানো হচ্ছে…" : "কোড আবার পাঠান"}
-                </button>
-              </div>
+                <User className="h-4 w-4 text-muted-foreground transition group-hover:text-red-600" />
+                সদস্য হিসেবে লগইন করুন
+                <ArrowRight className="h-4 w-4 opacity-50 transition-transform group-hover:translate-x-0.5" />
+              </a>
             </div>
-          )}
-
-          {/* Mode 2: Optional Mobile + SMS OTP fallback */}
-          {step === "credentials" && mode === "mobile" && (
-            <div className="space-y-4 animate-in fade-in slide-in-from-top-1">
-              <div className="flex items-center justify-between">
-                <span className="text-xs font-semibold text-muted-foreground">মোবাইল SMS লগইন</span>
-                <button
-                  type="button"
-                  onClick={() => switchMode("pin")}
-                  className="text-xs text-red-600 hover:text-red-700 dark:text-red-400 hover:underline font-semibold"
-                >
-                  ← শুধু পিন দিয়ে লগইন
-                </button>
-              </div>
-              <div className="space-y-1.5">
-                <Label className="flex items-center gap-1.5 text-sm">
-                  <Phone className="h-3.5 w-3.5 text-red-500" /> মোবাইল
-                </Label>
-                <Input
-                  type="tel"
-                  inputMode="numeric"
-                  pattern="[0-9]*"
-                  maxLength={11}
-                  placeholder="01XXXXXXXXX"
-                  className="bg-white/70 dark:bg-zinc-950/70 border-red-500/20 focus-visible:border-red-500 focus-visible:ring-red-500/30 rounded-xl"
-                  value={mobile}
-                  onChange={(e) => setMobile(e.target.value.replace(/\D/g, "").slice(0, 11))}
-                />
-              </div>
-              <div className="space-y-1.5">
-                <Label className="flex items-center gap-1.5 text-sm">
-                  <ShieldCheck className="h-3.5 w-3.5 text-red-500" /> পিন (৪ ডিজিট)
-                </Label>
-                <Input
-                  type="password"
-                  inputMode="numeric"
-                  pattern="[0-9]*"
-                  maxLength={4}
-                  placeholder="••••"
-                  className="text-center font-mono text-lg tracking-[0.5em] bg-white/70 dark:bg-zinc-950/70 border-red-500/20 focus-visible:border-red-500 focus-visible:ring-red-500/30 rounded-xl"
-                  value={pin}
-                  onChange={(e) => setPin(e.target.value.replace(/\D/g, "").slice(0, 4))}
-                  onKeyDown={(e) => e.key === "Enter" && startMobile()}
-                />
-              </div>
-              <Button
-                className="w-full h-11 font-bold rounded-xl text-white bg-gradient-to-r from-red-600 to-rose-600 hover:from-red-500 hover:to-rose-500 shadow-md shadow-red-500/30"
-                onClick={startMobile}
-                disabled={sending || mobile.length !== 11 || pin.length !== 4}
-              >
-                {sending ? "পাঠানো হচ্ছে…" : "মোবাইলে কোড পাঠান"}
-              </Button>
-            </div>
-          )}
-
-          {step === "credentials" && mode === "email" && (
-            <div className="space-y-4 pt-1">
-              <div className="space-y-1.5">
-                <Label className="flex items-center gap-1.5 text-sm font-semibold">
-                  <Mail className="h-4 w-4 text-red-500" /> এডমিন ইমেইল
-                </Label>
-                <Input
-                  type="email"
-                  inputMode="email"
-                  autoComplete="email"
-                  placeholder="admin@example.com"
-                  className="h-11 bg-white/70 dark:bg-zinc-950/70 border-red-500/20 focus-visible:border-red-500 focus-visible:ring-red-500/30 rounded-xl"
-                  value={email}
-                  onChange={(e) => setEmail(e.target.value)}
-                  onKeyDown={(e) => e.key === "Enter" && startEmail()}
-                />
-              </div>
-              <Button
-                className="w-full h-12 text-base font-bold rounded-2xl text-white bg-gradient-to-r from-red-600 via-rose-600 to-red-500 hover:from-red-500 hover:to-rose-500 shadow-lg shadow-red-500/30"
-                onClick={startEmail}
-                disabled={sending || !email.trim()}
-              >
-                {sending ? "পাঠানো হচ্ছে…" : "ইমেইলে কোড পাঠান"}
-              </Button>
-            </div>
-          )}
-
-          {step === "code" && (
-            <div className="space-y-4 pt-1">
-              <button
-                type="button"
-                onClick={() => { setStep("credentials"); setCode(""); }}
-                className="inline-flex items-center gap-1 text-xs text-red-600 hover:text-red-700 dark:text-red-400 font-semibold"
-              >
-                <ArrowLeft className="h-3.5 w-3.5" /> ফিরে যান
-              </button>
-              <div className="space-y-2">
-                <Label className="flex items-center justify-center gap-1.5 text-xs font-semibold uppercase tracking-wide">
-                  <KeyRound className="h-4 w-4 text-red-500" /> ৬-ডিজিট কোড
-                </Label>
-                <Input
-                  type="text"
-                  inputMode="numeric"
-                  pattern="[0-9]*"
-                  maxLength={6}
-                  autoComplete="one-time-code"
-                  autoFocus
-                  placeholder="••••••"
-                  className="h-14 text-center font-mono text-2xl tracking-[0.5em] bg-white/70 dark:bg-zinc-950/70 border-red-500/30 focus-visible:border-red-500 focus-visible:ring-red-500/30 rounded-2xl shadow-inner font-bold"
-                  value={code}
-                  onChange={(e) => setCode(e.target.value.replace(/\D/g, "").slice(0, 6))}
-                  onKeyDown={(e) => e.key === "Enter" && verifyOtp()}
-                />
-                <p className="text-center text-[11px] text-muted-foreground">
-                  {resolvedMobile ? `${maskedMobile} নাম্বারে পাঠানো SMS কোড লিখুন` : `${maskEmail(resolvedEmail)}-এ পাঠানো কোড লিখুন`}
-                </p>
-              </div>
-              <Button
-                className="w-full h-12 text-base font-bold rounded-2xl text-white bg-gradient-to-r from-red-600 via-rose-600 to-red-500 hover:from-red-500 hover:to-rose-500 shadow-lg shadow-red-500/30"
-                onClick={verifyOtp}
-                disabled={verifying || code.length !== 6}
-              >
-                {verifying ? "যাচাই হচ্ছে…" : "লগইন করুন"}
-              </Button>
-              <button
-                type="button"
-                onClick={resend}
-                disabled={sending}
-                className="w-full text-center text-xs font-semibold text-red-600 hover:text-red-700 dark:text-red-400 hover:underline disabled:opacity-50"
-              >
-                {sending ? "পাঠানো হচ্ছে…" : "কোড আবার পাঠান"}
-              </button>
-            </div>
-          )}
-
-          {/* Member Login Pill Button */}
-          <div className="pt-3 border-t border-red-500/10 flex justify-center">
-            <a
-              href="/member-login"
-              className="group inline-flex items-center gap-2 rounded-full border border-red-500/25 bg-red-500/5 hover:bg-red-500/15 px-4 py-2 text-xs font-semibold text-red-600 dark:text-red-400 hover:text-red-700 dark:hover:text-red-300 transition-all duration-200 shadow-2xs hover:scale-105 active:scale-95"
-            >
-              <User className="h-3.5 w-3.5 text-red-500 group-hover:scale-110 transition-transform" />
-              <span>সদস্য লগইন</span>
-              <ArrowRight className="h-3 w-3 opacity-60 group-hover:translate-x-0.5 transition-transform" />
-            </a>
           </div>
+
+          <p className="mt-6 flex items-center justify-center gap-1.5 text-xs text-muted-foreground lg:hidden">
+            <ShieldCheck className="h-3.5 w-3.5" /> নিরাপদ এনক্রিপ্টেড লগইন · © {new Date().getFullYear()} Kuakata Multimedia
+          </p>
         </div>
+      </main>
+    </div>
+  );
+}
+
+function PinBoxes({
+  value,
+  onChange,
+  onEnter,
+  error,
+  disabled,
+  length = 4,
+}: {
+  value: string;
+  onChange: (v: string) => void;
+  onEnter: () => void;
+  error?: boolean;
+  disabled?: boolean;
+  length?: number;
+}) {
+  const [focused, setFocused] = useState(false);
+  return (
+    <div className="relative mx-auto w-fit">
+      <input
+        type="password"
+        inputMode="numeric"
+        pattern="[0-9]*"
+        autoComplete="off"
+        maxLength={length}
+        autoFocus
+        aria-label="৪ ডিজিটের এডমিন পিন"
+        aria-invalid={error || undefined}
+        disabled={disabled}
+        value={value}
+        onChange={(e) => onChange(e.target.value.replace(/\D/g, "").slice(0, length))}
+        onKeyDown={(e) => e.key === "Enter" && onEnter()}
+        onFocus={() => setFocused(true)}
+        onBlur={() => setFocused(false)}
+        className="absolute inset-0 z-10 h-full w-full cursor-text opacity-0"
+      />
+      <div className="flex gap-3">
+        {Array.from({ length }).map((_, i) => {
+          const filled = i < value.length;
+          const active = focused && !disabled && (i === value.length || (value.length === length && i === length - 1));
+          return (
+            <div
+              key={i}
+              className={`flex h-14 w-14 items-center justify-center rounded-xl border-2 bg-background transition-all duration-150 sm:h-16 sm:w-16 ${
+                error
+                  ? "border-red-500 bg-red-50 dark:bg-red-950/30"
+                  : active
+                    ? "border-red-500 ring-4 ring-red-500/15"
+                    : filled
+                      ? "border-foreground/25"
+                      : "border-border"
+              }`}
+            >
+              {filled ? (
+                <span className="h-3 w-3 rounded-full bg-foreground animate-in zoom-in-50 duration-150" />
+              ) : active ? (
+                <span className="h-6 w-0.5 animate-pulse rounded-full bg-red-500" />
+              ) : null}
+            </div>
+          );
+        })}
       </div>
     </div>
   );
